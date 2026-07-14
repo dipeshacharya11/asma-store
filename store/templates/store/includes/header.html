@@ -1,0 +1,308 @@
+{% load static %}
+
+<header id="siteHeader" class="site-header">
+  <div class="header-grid">
+
+    <!-- LEFT NAVIGATION -->
+    <div class="header-nav-left">
+      <nav class="main-nav" aria-label="Main navigation">
+        <ul>
+          <li>
+            <a href="{% url 'store:home' %}">Home</a>
+          </li>
+
+          <li data-mega-trigger="shop">
+            <a href="{% url 'store:collection' %}" class="shop-link">
+              Shop
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m7 10 5 5 5-5"/>
+              </svg>
+            </a>
+          </li>
+
+         <!-- <li>
+            <a href="{% url 'store:collection' %}">Products</a>
+          </li>-->
+
+          <li>
+            <a href="{% url 'store:blog_list' %}">Blogs</a>
+          </li>
+
+          <!--<li>
+            <a href="{% url 'store:home' %}#story">Pages</a>
+          </li>-->
+        </ul>
+      </nav>
+
+      <button
+        type="button"
+        class="burger"
+        id="burgerBtn"
+        aria-label="Open menu"
+        aria-controls="mobileDrawer"
+        aria-expanded="false"
+      >
+        <svg viewBox="0 0 24 24">
+          <path d="M4 7h16M4 12h16M4 17h16"/>
+        </svg>
+      </button>
+    </div>
+
+
+    <!-- CENTER LOGO -->
+    <a
+      href="{% url 'store:home' %}"
+      class="logo"
+      aria-label="Asma Stores home"
+    >
+      <img
+        src="{% static 'store/images/logo_bg_r.png' %}"
+        alt="Asma Stores"
+      >
+    </a>
+
+
+    <!-- RIGHT ICONS -->
+    <div class="header-icons">
+
+      <!-- SEARCH -->
+      <button
+        type="button"
+        class="icon-btn"
+        id="searchTrigger"
+        aria-label="Search"
+      >
+        <svg viewBox="0 0 24 24">
+          <circle cx="10.8" cy="10.8" r="6.6"/>
+          <path d="m16 16 4.2 4.2"/>
+        </svg>
+      </button>
+
+
+      <!-- ACCOUNT -->
+      {% if user.is_authenticated %}
+      <a
+        href="{% url 'store:account' %}"
+        class="icon-btn"
+        aria-label="My account"
+      >
+      {% else %}
+      <a
+        href="{% url 'store:login' %}"
+        class="icon-btn"
+        aria-label="Sign in"
+      >
+      {% endif %}
+
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="7" r="3.8"/>
+          <path d="M4.5 21v-2.2a7.5 7.5 0 0 1 15 0V21"/>
+        </svg>
+
+      </a>
+
+
+      <!-- CART -->
+      <button
+        type="button"
+        class="icon-btn cart-icon-btn"
+        id="cartTrigger"
+        aria-label="Open cart"
+      >
+        <svg viewBox="0 0 24 24">
+          <path d="M6.5 8.5h11l.9 12h-12.8l.9-12Z"/>
+          <path d="M9 9V6.5a3 3 0 0 1 6 0V9"/>
+        </svg>
+
+        {% if cart_count %}
+        <span class="cart-badge" id="cartBadge">
+          {{ cart_count }}
+        </span>
+        {% endif %}
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- MEGA MENU -->
+  <div class="mega-menu" data-mega-for="shop">
+
+    <div class="mega-grid">
+
+      <!-- CATEGORIES -->
+      <div class="mega-col">
+        <h5>Shop by Category</h5>
+
+        {% for cat in nav_categories %}
+        <a
+          class="mega-link"
+          href="{{ cat.get_absolute_url }}"
+        >
+          {{ cat.name }}
+        </a>
+        {% endfor %}
+      </div>
+
+
+      <!-- COLLECTIONS -->
+      <div class="mega-col">
+        <h5>Collections</h5>
+
+        <a class="mega-link"
+           href="{% url 'store:collection' %}">
+          All Products
+        </a>
+
+        <a class="mega-link"
+           href="{% url 'store:collection' %}?sort=newest">
+          New Arrivals
+        </a>
+
+        <a class="mega-link"
+           href="{% url 'store:collection' %}?sort=price_desc">
+          Best Sellers
+        </a>
+
+        <a class="mega-link"
+           href="{% url 'store:collection' %}">
+          Gift Sets
+        </a>
+      </div>
+
+
+      <!-- FEATURED CATEGORY -->
+      {% with nav_categories|first as first_cat %}
+      <a
+        class="mega-card"
+        href="{% url 'store:collection' %}"
+      >
+
+        {% if first_cat and first_cat.image_display_url %}
+
+        <img
+          src="{{ first_cat.image_display_url }}"
+          alt="{{ first_cat.name }}"
+          loading="lazy"
+          decoding="async"
+        >
+
+        {% else %}
+
+        <div
+          class="bg"
+          style="background:{{ first_cat.hero_gradient|default:'linear-gradient(150deg,#C9A227,#E5C76B)' }}"
+        ></div>
+
+        {% endif %}
+
+        <span class="mega-card-label">
+          {{ first_cat.name|default:"Wall Decor" }}
+        </span>
+
+      </a>
+      {% endwith %}
+
+
+      <!-- PROMO -->
+      <div class="mega-promo">
+        <h4>The Gift Edit</h4>
+
+        <p>
+          Curated luxury gift sets, ready to ship.
+        </p>
+
+        <a href="{% url 'store:collection' %}">
+          Shop Now →
+        </a>
+      </div>
+
+    </div>
+
+  </div>
+
+</header>
+
+
+<!-- MOBILE OVERLAY -->
+<div
+  class="drawer-overlay"
+  id="drawerOverlay"
+></div>
+
+
+<!-- MOBILE DRAWER -->
+<div
+  class="mobile-drawer"
+  id="mobileDrawer"
+  aria-hidden="true"
+>
+
+  <a href="{% url 'store:home' %}" class="mobile-logo">
+    <img
+      src="{% static 'store/images/logo.jpeg' %}"
+      alt="Asma Stores"
+    >
+  </a>
+
+  <ul>
+
+    <li>
+      <a href="{% url 'store:home' %}">Home</a>
+    </li>
+
+    <li>
+      <button type="button" class="mobile-acc-head">
+        Shop
+        <span>+</span>
+      </button>
+
+      <div class="mobile-acc-body">
+        {% for cat in nav_categories %}
+        <a href="{{ cat.get_absolute_url }}">
+          {{ cat.name }}
+        </a>
+        {% endfor %}
+      </div>
+    </li>
+
+    <li>
+      <a href="{% url 'store:collection' %}">
+        Products
+      </a>
+    </li>
+
+    <li>
+      <a href="{% url 'store:blog_list' %}">
+        Blogs
+      </a>
+    </li>
+
+    {% if user.is_authenticated %}
+
+    <li>
+      <a href="{% url 'store:account' %}">
+        My Account
+      </a>
+    </li>
+
+    <li>
+      <a href="{% url 'store:logout' %}">
+        Log Out
+      </a>
+    </li>
+
+    {% else %}
+
+    <li>
+      <a href="{% url 'store:login' %}">
+        Sign In
+      </a>
+    </li>
+
+    {% endif %}
+
+  </ul>
+
+</div>

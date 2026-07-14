@@ -1,0 +1,307 @@
+{% load static %}
+
+<div class="cart-drawer-head">
+    <div>
+        <span class="drawer-eyebrow">Your selection</span>
+        <h3>Shopping Cart</h3>
+    </div>
+
+    <button
+        type="button"
+        class="cart-drawer-close"
+        aria-label="Close shopping cart"
+        onclick="window.location.href='/'"
+    >
+        ×
+    </button>
+</div>
+
+
+{% if items %}
+
+<div class="shipping-progress-wrap">
+    <p class="shipping-progress-text">
+        Free shipping on orders over Rs. 5,000.
+        {% if qualifies_free_shipping %}
+            You've unlocked free shipping!
+        {% else %}
+            You're <span class="highlight">Rs. {{ remaining_for_free_shipping }}</span> away from free shipping.
+        {% endif %}
+    </p>
+
+    <div class="shipping-progress-bar">
+        <div
+            class="shipping-progress-fill"
+            style="width:{{ free_shipping_progress_pct }}%;"
+        ></div>
+    </div>
+</div>
+
+
+<div class="cart-drawer-body">
+
+    <div class="drawer-cart-products">
+
+        {% for item in items %}
+
+        <article
+            class="drawer-item"
+            data-cart-item="{{ item.product.id }}"
+        >
+
+            <a
+                href="{{ item.product.get_absolute_url }}"
+                class="drawer-thumb-wrap"
+                aria-label="{{ item.product.name }}"
+            >
+                {% if item.product.primary_image_url %}
+
+                <img
+                    src="{{ item.product.primary_image_url }}"
+                    alt="{{ item.product.name }}"
+                    class="drawer-thumb"
+                    loading="lazy"
+                    decoding="async"
+                >
+
+                {% else %}
+
+                <div
+                    class="drawer-thumb drawer-thumb-fallback"
+                    style="
+                    background:
+                    {{ item.product.image_gradient|default:'linear-gradient(160deg,#C9A227,#E5C76B)' }};
+                    "
+                ></div>
+
+                {% endif %}
+            </a>
+
+
+            <div class="drawer-item-info">
+
+                <div class="drawer-product-top">
+
+                    <div>
+                        <span class="drawer-product-label">
+                            Asma Collection
+                        </span>
+
+                        <h5>
+                            <a href="{{ item.product.get_absolute_url }}">
+                                {{ item.product.name }}
+                            </a>
+                        </h5>
+                    </div>
+
+                    <strong class="drawer-item-price">
+                        Rs. {{ item.line_total }}
+                    </strong>
+
+                </div>
+
+
+                <span class="drawer-unit-price">
+                    Rs. {{ item.product.price }} each
+                </span>
+
+
+                <div class="drawer-actions">
+
+                    <form
+                        action="{% url 'store:cart_update' item.product.id %}"
+                        method="POST"
+                        class="drawer-qty"
+                    >
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            name="qty"
+                            value="{{ item.qty|add:-1 }}"
+                            aria-label="Decrease quantity"
+                        >
+                            −
+                        </button>
+
+                        <span>{{ item.qty }}</span>
+
+                        <button
+                            type="submit"
+                            name="qty"
+                            value="{{ item.qty|add:1 }}"
+                            aria-label="Increase quantity"
+                        >
+                            +
+                        </button>
+                    </form>
+
+
+                    <a
+                        href="{% url 'store:cart_remove' item.product.id %}"
+                        class="drawer-remove"
+                    >
+                        Remove
+                    </a>
+
+                </div>
+
+            </div>
+
+        </article>
+
+        {% endfor %}
+
+    </div>
+
+
+    {% if upsell_products %}
+
+    <section class="drawer-upsell">
+
+        <div class="drawer-upsell-head">
+            <div>
+                <span>Curated for you</span>
+                <h6>You may also like</h6>
+            </div>
+        </div>
+
+
+        <div class="drawer-upsell-row">
+
+            {% for product in upsell_products %}
+
+            <article class="drawer-upsell-card">
+
+                <a
+                    href="{{ product.get_absolute_url }}"
+                    class="drawer-upsell-image"
+                >
+
+                    {% if product.primary_image_url %}
+
+                    <img
+                        src="{{ product.primary_image_url }}"
+                        alt="{{ product.name }}"
+                        class="drawer-upsell-thumb"
+                        loading="lazy"
+                    >
+
+                    {% else %}
+
+                    <div
+                        class="drawer-upsell-thumb"
+                        style="
+                        background:
+                        {{ product.image_gradient|default:'linear-gradient(160deg,#C9A227,#E5C76B)' }};
+                        "
+                    ></div>
+
+                    {% endif %}
+
+                </a>
+
+
+                <div class="drawer-upsell-content">
+
+                    <h6>
+                        <a href="{{ product.get_absolute_url }}">
+                            {{ product.name }}
+                        </a>
+                    </h6>
+
+                    <span>Rs. {{ product.price }}</span>
+
+                    <button
+                        type="button"
+                        class="drawer-upsell-add cart-add-btn"
+                        data-product-id="{{ product.id }}"
+                    >
+                        + Add to Cart
+                    </button>
+
+                </div>
+
+            </article>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+    {% endif %}
+
+</div>
+
+
+<div class="cart-drawer-foot">
+
+    <div class="drawer-subtotal-row">
+        <span>Subtotal</span>
+
+        <strong>
+            Rs. {{ subtotal }}
+        </strong>
+    </div>
+
+
+    <p class="drawer-shipnote">
+        Taxes and shipping calculated at checkout.
+    </p>
+
+
+    <div class="drawer-btn-row">
+
+        <a
+            href="{% url 'store:checkout' %}"
+            class="drawer-checkout-btn"
+        >
+            Check Out
+        </a>
+
+        <a
+            href="{% url 'store:cart' %}"
+            class="drawer-view-cart-btn"
+        >
+            View Cart
+        </a>
+
+    </div>
+
+
+    <button
+        type="button"
+        class="drawer-continue cart-drawer-close"
+    >
+        Continue Shopping
+    </button>
+
+</div>
+
+
+{% else %}
+
+
+<div class="drawer-empty">
+
+    <div class="drawer-empty-icon">
+        ♡
+    </div>
+
+    <h4>Your cart is empty</h4>
+
+    <p>
+        Discover pieces selected for the Asma collection.
+    </p>
+
+    <a
+        href="{% url 'store:collection' %}"
+        class="drawer-empty-btn"
+    >
+        Explore Collection
+    </a>
+
+</div>
+
+{% endif %}

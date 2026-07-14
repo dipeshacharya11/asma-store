@@ -1,0 +1,583 @@
+/* ==========================================================================
+   ASMA STORES HEADER
+   ========================================================================== */
+
+.site-header{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  width:100%;
+  z-index:80;
+
+  padding:0;
+
+  background:rgba(255,255,255,.98);
+  border:0;
+  box-shadow:none;
+
+  transition:
+    box-shadow .35s var(--ease),
+    background .35s var(--ease);
+}
+
+.site-header.is-scrolled{
+  background:rgba(255,255,255,.96);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+
+  box-shadow:0 8px 30px rgba(0,0,0,.08);
+}
+
+
+/* ==========================================================================
+   HEADER GRID
+   ========================================================================== */
+
+.header-grid{
+  width:100%;
+  max-width:1440px;
+  height:104px;
+
+  margin:0 auto;
+  padding:0 32px;
+
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+
+  gap:30px;
+
+  transition:height .35s var(--ease);
+}
+
+.site-header.is-scrolled .header-grid{
+  height:82px;
+}
+
+
+/* ==========================================================================
+   LEFT NAVIGATION
+   ========================================================================== */
+
+.header-nav-left{
+  display:flex;
+  align-items:center;
+  min-width:0;
+}
+
+.main-nav ul{
+  display:flex;
+  align-items:center;
+
+  gap:42px;
+
+  padding:0;
+  margin:0;
+
+  list-style:none;
+}
+
+.main-nav li{
+  position:relative;
+}
+
+.main-nav a{
+  position:relative;
+
+  display:flex;
+  align-items:center;
+  gap:5px;
+
+  padding:12px 0;
+
+  color:var(--text-primary);
+
+  font-size:13px;
+  font-weight:500;
+  line-height:1;
+
+  letter-spacing:.015em;
+  text-transform:uppercase;
+
+  text-decoration:none;
+
+  transition:
+    color .3s var(--ease);
+}
+
+.main-nav a::after{
+  content:"";
+
+  position:absolute;
+  left:0;
+  bottom:4px;
+
+  width:0;
+  height:1px;
+
+  background:var(--brand-primary);
+
+  transition:width .35s var(--ease);
+}
+
+.main-nav a:hover{
+  color:var(--brand-primary);
+}
+
+.main-nav a:hover::after{
+  width:100%;
+}
+
+.shop-link svg{
+  width:12px;
+  height:12px;
+
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+
+
+/* ==========================================================================
+   CENTER LOGO
+   ========================================================================== */
+
+.logo{
+  width:180px;
+  height:82px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  overflow:hidden;
+
+  text-decoration:none;
+}
+
+.logo img{
+  display:block;
+
+  width:auto !important;
+  height:auto !important;
+
+  max-width:165px !important;
+  max-height:70px !important;
+
+  object-fit:contain;
+
+  transition:
+    max-width .35s var(--ease),
+    max-height .35s var(--ease);
+}
+
+.site-header.is-scrolled .logo{
+  height:68px;
+}
+
+.site-header.is-scrolled .logo img{
+  max-width:145px !important;
+  max-height:56px !important;
+}
+
+
+
+/* ==========================================================================
+   RIGHT ICONS
+   ========================================================================== */
+
+.header-icons{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+
+  gap:26px;
+}
+
+.icon-btn{
+  position:relative;
+
+  width:25px;
+  height:25px;
+
+  padding:0;
+  margin:0;
+
+  border:0;
+  outline:0;
+
+  background:transparent;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:var(--text-primary);
+
+  cursor:pointer;
+  text-decoration:none;
+
+  transition:
+    color .25s var(--ease),
+    transform .25s var(--ease);
+}
+
+.icon-btn svg{
+  display:block;
+
+  width:24px;
+  height:24px;
+
+  fill:none;
+  stroke:currentColor;
+
+  stroke-width:1.65;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.icon-btn:hover{
+  color:var(--brand-primary);
+  transform:translateY(-2px);
+}
+
+
+
+/* ==========================================================================
+   CART BADGE
+   ========================================================================== */
+
+.cart-icon-btn{
+  margin-left:2px;
+}
+
+.cart-badge{
+  position:absolute;
+
+  top:-7px;
+  right:-10px;
+
+  width:18px;
+  height:18px;
+
+  border-radius:50%;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:var(--brand-primary);
+  color:#fff;
+
+  font-size:9px;
+  font-weight:700;
+  line-height:1;
+
+  pointer-events:none;
+}
+
+.cart-badge.bump{
+  animation:cartBadgeBump .4s var(--ease);
+}
+
+@keyframes cartBadgeBump{
+  0%{
+    transform:scale(1);
+  }
+
+  45%{
+    transform:scale(1.4);
+  }
+
+  100%{
+    transform:scale(1);
+  }
+}
+
+
+
+/* ==========================================================================
+   BURGER
+   ========================================================================== */
+
+.burger{
+  display:none;
+
+  width:26px;
+  height:26px;
+
+  padding:0;
+
+  border:0;
+  background:transparent;
+
+  color:var(--text-primary);
+
+  cursor:pointer;
+}
+
+.burger svg{
+  width:25px;
+  height:25px;
+
+  fill:none;
+  stroke:currentColor;
+
+  stroke-width:1.7;
+  stroke-linecap:round;
+}
+
+
+
+/* ==========================================================================
+   MOBILE DRAWER
+   ========================================================================== */
+
+.mobile-drawer{
+  position:fixed;
+
+  top:0;
+  left:0;
+
+  width:min(320px, 88vw);
+  height:100%;
+
+  z-index:110;
+
+  padding:28px;
+
+  background:var(--surface-page);
+
+  overflow-y:auto;
+
+  transform:translateX(-100%);
+
+  transition:transform .45s var(--ease);
+
+  box-shadow:20px 0 60px rgba(0,0,0,.12);
+}
+
+.mobile-drawer.is-open{
+  transform:translateX(0);
+}
+
+.mobile-logo{
+  display:flex;
+  justify-content:center;
+}
+
+.mobile-logo img{
+  width:auto !important;
+  height:auto !important;
+
+  max-width:145px !important;
+  max-height:60px !important;
+
+  object-fit:contain;
+}
+
+.mobile-drawer ul{
+  padding:0;
+  margin:30px 0 0;
+
+  list-style:none;
+}
+
+.mobile-drawer li{
+  border-bottom:1px solid var(--border-soft);
+}
+
+.mobile-drawer li > a,
+.mobile-acc-head{
+  width:100%;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:16px 4px;
+
+  border:0;
+  background:transparent;
+
+  color:var(--text-primary);
+
+  font-family:inherit;
+  font-size:14px;
+  font-weight:500;
+
+  text-decoration:none;
+
+  cursor:pointer;
+}
+
+.mobile-acc-body{
+  max-height:0;
+
+  overflow:hidden;
+
+  transition:max-height .4s var(--ease);
+}
+
+.mobile-acc-body a{
+  display:block;
+
+  padding:9px 4px 9px 16px;
+
+  color:var(--text-muted);
+
+  font-size:13.5px;
+
+  text-decoration:none;
+}
+
+
+
+
+/* ==========================================================================
+   DRAWER OVERLAY
+   ========================================================================== */
+
+.drawer-overlay{
+  position:fixed;
+  inset:0;
+
+  z-index:100;
+
+  background:rgba(0,0,0,.45);
+
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+
+  opacity:0;
+  visibility:hidden;
+
+  transition:
+    opacity .35s var(--ease),
+    visibility 0s .35s;
+}
+
+.drawer-overlay.is-open{
+  opacity:1;
+  visibility:visible;
+
+  transition:opacity .35s var(--ease);
+}
+
+
+
+/* ==========================================================================
+   TABLET
+   ========================================================================== */
+
+@media(max-width:1100px){
+
+  .header-grid{
+    height:88px;
+
+    grid-template-columns:1fr auto 1fr;
+
+    padding:0 24px;
+  }
+
+  .site-header.is-scrolled .header-grid{
+    height:74px;
+  }
+
+  .main-nav{
+    display:none;
+  }
+
+  .burger{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .logo{
+    width:155px;
+    height:70px;
+  }
+
+  .logo img{
+    max-width:145px !important;
+    max-height:58px !important;
+  }
+
+  .header-icons{
+    gap:20px;
+  }
+
+  .mega-menu{
+    display:none;
+  }
+}
+
+
+
+/* ==========================================================================
+   MOBILE
+   ========================================================================== */
+
+@media(max-width:600px){
+
+  .header-grid{
+    height:76px;
+
+    padding:0 18px;
+
+    gap:12px;
+  }
+
+  .site-header.is-scrolled .header-grid{
+    height:68px;
+  }
+
+  .logo{
+    width:125px;
+    height:60px;
+  }
+
+  .logo img{
+    max-width:118px !important;
+    max-height:50px !important;
+  }
+
+  .site-header.is-scrolled .logo img{
+    max-width:110px !important;
+    max-height:46px !important;
+  }
+
+  .header-icons{
+    gap:15px;
+  }
+
+  .icon-btn{
+    width:22px;
+    height:22px;
+  }
+
+  .icon-btn svg{
+    width:21px;
+    height:21px;
+  }
+
+  .header-icons .icon-btn:nth-child(2){
+    display:none;
+  }
+
+  .cart-badge{
+    width:16px;
+    height:16px;
+
+    top:-7px;
+    right:-8px;
+
+    font-size:8px;
+  }
+}

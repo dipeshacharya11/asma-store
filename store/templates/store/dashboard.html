@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Asma Stores Admin</title>
+{% load static %}
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#2563EB;
+  --gold-light:#DBEAFE;
+  --dark:#202020;
+  --bg:#F4F2ED;
+  --surface:#FFFFFF;
+  --border:#EAE5D8;
+  --text:#303030;
+  --muted:#6B6B6B;
+  --success:#2E7D32;
+  --sale:#D72638;
+  --grad-gold:linear-gradient(135deg,var(--gold),var(--gold-light));
+  --radius:16px;
+  --shadow:0 8px 28px rgba(32,32,32,.07);
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+[data-theme="dark"]{
+  --bg:#16140F;
+  --surface:#201D17;
+  --border:#2E2A20;
+  --text:#EDE9DF;
+  --muted:#9C9789;
+  --shadow:0 8px 28px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:'Poppins',sans-serif; background:var(--bg); color:var(--text); transition:background .3s, color .3s;}
+h1,h2,h3{font-family:'Playfair Display',serif; font-weight:700; color:var(--text);}
+a{text-decoration:none; color:inherit;}
+button{font-family:'Poppins'; cursor:pointer; border:none; background:none; color:inherit;}
+
+.app{display:grid; grid-template-columns:250px 1fr; min-height:100vh;}
+.sidebar{background:var(--surface); border-right:1px solid var(--border); padding:24px 16px; position:sticky; top:0; height:100vh; overflow-y:auto;}
+.brand{display:flex; align-items:center; gap:10px; padding:6px 10px 24px; font-family:'Playfair Display'; font-weight:700; font-size:16px;}
+.brand img{height:32px; border-radius:6px;}
+.nav-label{font-size:10.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); padding:16px 10px 8px;}
+.nav-item{display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; font-size:13.5px; font-weight:500; color:var(--muted); transition:all .25s var(--ease);}
+.nav-item .ic{width:16px; text-align:center;}
+.nav-item:hover{background:var(--bg); color:var(--gold);}
+.nav-item.active{background:var(--grad-gold); color:#fff;}
+
+.main{min-width:0;}
+.topbar{position:sticky; top:0; z-index:10; background:var(--surface); border-bottom:1px solid var(--border); padding:16px 32px; display:flex; justify-content:space-between; align-items:center;}
+.topbar-actions{display:flex; align-items:center; gap:16px;}
+.theme-toggle{width:50px; height:26px; border-radius:100px; background:var(--bg); border:1px solid var(--border); position:relative; padding:2px;}
+.theme-toggle .knob{width:20px; height:20px; border-radius:50%; background:var(--grad-gold); transition:transform .35s var(--ease); display:flex; align-items:center; justify-content:center; font-size:10px;}
+[data-theme="dark"] .theme-toggle .knob{transform:translateX(24px);}
+.topbar-links a{font-size:12.5px; color:var(--muted); margin-left:16px;}
+.topbar-links a:hover{color:var(--gold);}
+
+.content{padding:28px 32px 70px;}
+.page-head{margin-bottom:24px;}
+.page-head p{color:var(--muted); font-size:13px; margin-top:4px;}
+
+.kpi-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:24px;}
+.kpi-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow);}
+.kpi-card span{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;}
+.kpi-card h2{font-size:24px; margin-top:6px;}
+
+.charts-row{display:grid; grid-template-columns:1.6fr 1fr; gap:20px; margin-bottom:24px;}
+.card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; box-shadow:var(--shadow);}
+.card h3{font-size:15px; margin-bottom:18px;}
+
+.donut-wrap{display:flex; align-items:center; gap:20px;}
+.donut-legend{flex:1; display:flex; flex-direction:column; gap:10px;}
+.donut-legend .row{display:flex; justify-content:space-between; font-size:12.5px;}
+.donut-legend .row .lbl{display:flex; align-items:center; gap:8px; color:var(--muted);}
+.donut-legend .row .lbl i{width:9px; height:9px; border-radius:50%;}
+
+.tables-row{display:grid; grid-template-columns:1.5fr 1fr; gap:20px;}
+table{width:100%; border-collapse:collapse;}
+th{text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:9px 8px; border-bottom:1px solid var(--border);}
+td{padding:11px 8px; font-size:13px; border-bottom:1px solid var(--border);}
+tr:last-child td{border-bottom:none;}
+.status-pill{font-size:10px; font-weight:700; padding:3px 9px; border-radius:100px; text-transform:capitalize;}
+.status-pill.pending{background:#FFF6E5; color:#8A5E10;}
+.status-pill.paid, .status-pill.delivered{background:#EAF4EB; color:var(--success);}
+.status-pill.shipped{background:var(--gold); color:#fff;}
+.status-pill.cancelled{background:#FBEAEC; color:var(--sale);}
+.stock-low{color:var(--sale); font-weight:700;}
+.empty-note{color:var(--muted); font-size:12.5px; padding:18px 0; text-align:center;}
+.admin-link-btn{display:inline-block; margin-top:14px; font-size:12px; font-weight:600; color:var(--gold); border-bottom:1.5px solid var(--gold-light); padding-bottom:2px;}
+
+@media(max-width:1000px){ .app{grid-template-columns:1fr;} .sidebar{display:none;} .kpi-grid{grid-template-columns:1fr 1fr;} .charts-row, .tables-row{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="app">
+
+<aside class="sidebar">
+  <div class="brand"><img src="{% static 'store/images/logo.jpeg' %}" alt="Asma Stores"> Asma Admin</div>
+
+  <div class="nav-label">Overview</div>
+  <a class="nav-item active"><span class="ic">▦</span> Dashboard</a>
+
+  <div class="nav-label">Catalog</div>
+  <a class="nav-item" href="/admin/store/product/"><span class="ic">▢</span> Products</a>
+  <a class="nav-item" href="/admin/store/category/"><span class="ic">◧</span> Categories</a>
+  <a class="nav-item" href="/admin/store/heroslide/"><span class="ic">▤</span> Hero Slides</a>
+
+  <div class="nav-label">Sales</div>
+  <a class="nav-item" href="/admin/store/order/"><span class="ic">▥</span> Orders</a>
+  <a class="nav-item" href="/admin/store/coupon/"><span class="ic">%</span> Coupons</a>
+
+  <div class="nav-label">Content</div>
+  <a class="nav-item" href="/admin/store/blogpost/"><span class="ic">✎</span> Blog</a>
+  <a class="nav-item" href="/admin/store/testimonial/"><span class="ic">★</span> Testimonials</a>
+
+  <div class="nav-label">System</div>
+  <a class="nav-item" href="/admin/auth/user/"><span class="ic">◎</span> Staff & Users</a>
+  <a class="nav-item" href="{% url 'store:home' %}"><span class="ic">←</span> View Store</a>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <h1 style="font-size:19px;">Dashboard</h1>
+    <div class="topbar-actions">
+      <button class="theme-toggle" id="themeToggle"><div class="knob"></div></button>
+      <div class="topbar-links">
+        <a href="/admin/">Full Admin</a>
+        <a href="/admin/logout/">Log Out</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-head">
+      <p>Live data, pulled directly from the database on every request — nothing here is hardcoded.</p>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card"><span>Today's Revenue</span><h2>Rs. {{ today_revenue|floatformat:0 }}</h2></div>
+      <div class="kpi-card"><span>Total Revenue</span><h2>Rs. {{ total_revenue|floatformat:0 }}</h2></div>
+      <div class="kpi-card"><span>Orders ({{ today_order_count }} today)</span><h2>{{ order_count }}</h2></div>
+      <div class="kpi-card"><span>Avg. Order Value</span><h2>Rs. {{ avg_order_value|floatformat:0 }}</h2></div>
+    </div>
+
+    <div class="charts-row">
+      <div class="card">
+        <h3>Revenue — Last 7 Days</h3>
+        <svg id="trendChart" viewBox="0 0 640 200" style="width:100%; height:200px;"></svg>
+      </div>
+      <div class="card">
+        <h3>Revenue by Category</h3>
+        <div class="donut-wrap">
+          <svg id="donutChart" viewBox="0 0 160 160" width="150" height="150"></svg>
+          <div class="donut-legend">
+            {% for d in donut_data %}
+            <div class="row"><span class="lbl"><i style="background:{{ d.color }}"></i>{{ d.name }}</span><b>{{ d.pct }}%</b></div>
+            {% empty %}
+            <span class="empty-note">No sales yet.</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tables-row">
+      <div class="card">
+        <h3>Recent Orders</h3>
+        <table>
+          <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for order in recent_orders %}
+            <tr>
+              <td><b>#{{ order.id }}</b></td>
+              <td>{{ order.full_name }}</td>
+              <td>Rs. {{ order.total }}</td>
+              <td><span class="status-pill {{ order.status }}">{{ order.status }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="empty-note">No orders yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <a class="admin-link-btn" href="/admin/store/order/">Manage all orders →</a>
+      </div>
+
+      <div class="card">
+        <h3>Low Stock ({{ out_of_stock_count }} out of stock)</h3>
+        <table>
+          <thead><tr><th>Product</th><th>Stock</th></tr></thead>
+          <tbody>
+            {% for p in low_stock %}
+            <tr><td>{{ p.name }}</td><td class="stock-low">{{ p.stock }} left</td></tr>
+            {% empty %}
+            <tr><td colspan="2" class="empty-note">Nothing low right now.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <a class="admin-link-btn" href="/admin/store/product/">Manage inventory →</a>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <h3>Top-Selling Products (by units sold)</h3>
+      <table>
+        <thead><tr><th>Product</th><th>Units Sold</th></tr></thead>
+        <tbody>
+          {% for p in top_products %}
+          <tr><td>{{ p.product__name }}</td><td>{{ p.total_sold }}</td></tr>
+          {% empty %}
+          <tr><td colspan="2" class="empty-note">No sales recorded yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+</div>
+
+{{ trend_labels|json_script:"trendLabels" }}
+{{ trend_values|json_script:"trendValues" }}
+<script>
+// Dark mode toggle
+const toggle = document.getElementById('themeToggle');
+const root = document.documentElement;
+toggle.addEventListener('click', ()=>{
+  const isDark = root.getAttribute('data-theme') === 'dark';
+  root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+});
+
+// Real 7-day revenue trend, drawn from actual query results (see trend_labels/trend_values in the view)
+const labels = JSON.parse(document.getElementById('trendLabels').textContent);
+const values = JSON.parse(document.getElementById('trendValues').textContent);
+const maxVal = Math.max(...values, 1);
+const svg = document.getElementById('trendChart');
+const w = 640, h = 200, pad = 24;
+const stepX = (w - pad*2) / Math.max(values.length - 1, 1);
+
+for(let i=0;i<=4;i++){
+  const y = pad + i*((h-pad*2)/4);
+  const gl = document.createElementNS('http://www.w3.org/2000/svg','line');
+  gl.setAttribute('x1',pad); gl.setAttribute('x2',w-pad); gl.setAttribute('y1',y); gl.setAttribute('y2',y);
+  gl.setAttribute('stroke','currentColor'); gl.setAttribute('stroke-opacity','0.08');
+  svg.appendChild(gl);
+}
+
+const points = values.map((v,i)=>{
+  const x = pad + i*stepX;
+  const y = h - pad - (v/maxVal)*(h-pad*2);
+  return [x,y];
+});
+const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+path.setAttribute('d', 'M ' + points.map(p=>p.join(',')).join(' L '));
+path.setAttribute('fill','none');
+path.setAttribute('stroke','#2563EB');
+path.setAttribute('stroke-width','3');
+path.setAttribute('stroke-linecap','round');
+path.setAttribute('stroke-linejoin','round');
+const len = 1200;
+path.style.strokeDasharray = len;
+path.style.strokeDashoffset = len;
+path.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(.22,1,.36,1)';
+svg.appendChild(path);
+requestAnimationFrame(()=> requestAnimationFrame(()=>{ path.style.strokeDashoffset = 0; }));
+
+points.forEach((p,i)=>{
+  const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('cx',p[0]); c.setAttribute('cy',p[1]); c.setAttribute('r','4');
+  c.setAttribute('fill','#2563EB');
+  svg.appendChild(c);
+  const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+  t.setAttribute('x',p[0]); t.setAttribute('y',h-4); t.setAttribute('text-anchor','middle');
+  t.setAttribute('font-size','10'); t.setAttribute('fill','currentColor'); t.setAttribute('opacity','0.5');
+  t.textContent = labels[i];
+  svg.appendChild(t);
+});
+
+// Real category revenue donut, drawn from donut_data computed in the view
+const donutData = [{% for d in donut_data %}{pct:{{ d.pct }}, color:"{{ d.color }}"},{% endfor %}];
+const donut = document.getElementById('donutChart');
+const cx=75, cy=75, r=58, stroke=20;
+let acc = -90;
+const circumference = 2*Math.PI*r;
+donutData.forEach((d)=>{
+  const frac = d.pct/100;
+  const dash = circumference*frac;
+  const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  circle.setAttribute('cx',cx); circle.setAttribute('cy',cy); circle.setAttribute('r',r);
+  circle.setAttribute('fill','none');
+  circle.setAttribute('stroke',d.color);
+  circle.setAttribute('stroke-width',stroke);
+  circle.setAttribute('stroke-dasharray', dash + ' ' + (circumference-dash));
+  circle.setAttribute('stroke-dashoffset', -((acc+90)/360)*circumference);
+  circle.setAttribute('transform', `rotate(-90 ${cx} ${cy})`);
+  donut.appendChild(circle);
+  acc += frac*360;
+});
+if(donutData.length === 0){
+  const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('cx',cx); c.setAttribute('cy',cy); c.setAttribute('r',r);
+  c.setAttribute('fill','none'); c.setAttribute('stroke','#EAE5D8'); c.setAttribute('stroke-width',stroke);
+  donut.appendChild(c);
+}
+</script>
+</body>
+</html>

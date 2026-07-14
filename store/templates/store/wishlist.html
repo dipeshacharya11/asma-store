@@ -1,0 +1,38 @@
+{% extends "store/base.html" %}
+{% block title %}Your Wishlist — Asma Stores{% endblock %}
+{% block extra_style %}
+.wishlist-wrap{padding:120px 0 90px;}
+{% endblock %}
+{% block content %}
+<div class="container wishlist-wrap">
+  <h1 style="margin-bottom:8px;">Your Wishlist</h1>
+  <p class="muted" style="margin-bottom:36px;">{{ products|length }} piece{{ products|length|pluralize }} saved for later.</p>
+
+  <div class="prod-grid">
+    {% for product in products %}
+    <div class="prod-card" data-reveal>
+      <div class="prod-media">
+        <div class="badge-row">
+          {% if product.discount_percent %}<span class="pbadge sale">-{{ product.discount_percent }}%</span>{% endif %}
+        </div>
+        <div class="quick-actions">
+          <button class="qa-btn wishlist-toggle-btn is-active" data-product-id="{{ product.id }}">♥</button>
+        </div>
+        <a href="{{ product.get_absolute_url }}">
+          {% if product.primary_image_url %}<img class="img-a" src="{{ product.primary_image_url }}" alt="{{ product.name }}" loading="lazy">{% else %}<div class="img-a" style="background:{{ product.image_gradient|default:'linear-gradient(160deg,var(--brand-primary-light),var(--brand-primary))' }};"></div>{% endif %}
+          <div class="prod-frame"></div>
+        </a>
+        <div class="quick-add-bar"><button class="cart-add-btn" data-product-id="{{ product.id }}" {% if product.is_out_of_stock %}disabled{% endif %}>{% if product.is_out_of_stock %}Sold Out{% else %}Quick Add{% endif %}</button></div>
+      </div>
+      <div class="prod-info">
+        <div class="prod-cat">{{ product.category.name }}</div>
+        <h4><a href="{{ product.get_absolute_url }}">{{ product.name }}</a></h4>
+        <div class="price-row"><span class="price">Rs. {{ product.price }}</span></div>
+      </div>
+    </div>
+    {% empty %}
+    <p class="muted">Your wishlist is empty. <a href="{% url 'store:collection' %}" style="color:var(--brand-primary); font-weight:600;">Start browsing →</a></p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

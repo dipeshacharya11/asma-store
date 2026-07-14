@@ -1,0 +1,16 @@
+{% extends "store/base.html" %}
+{% block title %}Search — Asma Stores{% endblock %}
+{% block extra_style %}
+.search-page-wrap{padding:120px 0 90px;}
+.search-page-form{display:flex; border-bottom:2px solid var(--dark); padding-bottom:14px; margin-bottom:40px; max-width:600px;}
+.search-page-form input{flex:1; font-family:'Playfair Display'; font-size:24px; background:none; border:none; outline:none;}
+{% endblock %}
+{% block content %}
+<div class="container search-page-wrap">
+  <form method="get" class="search-page-form">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search products..." autofocus>
+    <button type="submit" class="qa-btn" style="position:static;">⌕</button>
+  </form>
+  {% include "store/includes/search_results.html" %}
+</div>
+{% endblock %}

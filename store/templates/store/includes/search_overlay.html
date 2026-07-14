@@ -1,0 +1,33 @@
+<div class="search-overlay" id="searchOverlay">
+  <span class="search-close" id="searchClose">✕</span>
+  <div class="search-overlay-inner">
+    <div class="search-input-row">
+      <span class="ic">⌕</span>
+      <input type="text" id="searchInput" placeholder="Search for canvas art, decor, categories..." autocomplete="off">
+    </div>
+
+    <div id="searchDefaultState">
+      <div class="search-section">
+        <h6>Popular Searches</h6>
+        <div class="search-chip-row">
+          <span class="search-chip search-chip-fill">Canvas Painting</span>
+          <span class="search-chip search-chip-fill">Mithila Art</span>
+          <span class="search-chip search-chip-fill">Wall Decor</span>
+          <span class="search-chip search-chip-fill">Gift Set</span>
+        </div>
+      </div>
+      <div class="search-section">
+        <h6>Shop by Category</h6>
+        <div class="search-chip-row">
+          {% for cat in nav_categories %}
+          <a href="{{ cat.get_absolute_url }}" class="search-chip">{{ cat.name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div id="searchResultsState" style="display:none;">
+      <div id="searchResultsTarget"></div>
+    </div>
+  </div>
+</div>

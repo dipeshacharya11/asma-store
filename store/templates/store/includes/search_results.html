@@ -1,0 +1,14 @@
+{% if results %}
+<h6 style="font-size:11px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin-bottom:16px;">{{ results|length }} result{{ results|length|pluralize }} for "{{ query }}"</h6>
+<div class="search-results-grid">
+  {% for p in results %}
+  <a class="search-result-card" href="{{ p.get_absolute_url }}">
+    <div class="search-result-thumb" style="{% if p.primary_image_url %}background-image:url('{{ p.primary_image_url }}');{% else %}background:{{ p.image_gradient|default:'linear-gradient(160deg,#C9A227,#E5C76B)' }};{% endif %}"></div>
+    <h6>{{ p.name }}</h6>
+    <span>Rs. {{ p.price }}</span>
+  </a>
+  {% endfor %}
+</div>
+{% elif query %}
+<p class="search-empty">No products found for "{{ query }}". Try a different search term.</p>
+{% endif %}

@@ -1,0 +1,24 @@
+/* ==========================================================================
+   Mega menu — glass panel, 4 columns (categories / links / product preview / promo)
+   ========================================================================== */
+.mega-menu{
+  position:fixed; top:100%; left:0; right:0; z-index:75;
+  background:rgba(255,255,255,.86); backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+  box-shadow:0 30px 70px rgba(32,32,32,.14);
+  opacity:0; visibility:hidden; transform:translateY(-8px);
+  transition:opacity .4s var(--ease), transform .4s var(--ease), visibility 0s .4s;
+  padding:44px 0;
+}
+.mega-menu.is-open{opacity:1; visibility:visible; transform:translateY(0); transition:opacity .4s var(--ease), transform .4s var(--ease);}
+.mega-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:36px; max-width:1360px; margin:0 auto; padding:0 32px;}
+.mega-col h5{font-size:11px; text-transform:uppercase; letter-spacing:.14em; color:var(--brand-primary); margin-bottom:16px; font-weight:600;}
+.mega-col a.mega-link{display:block; font-size:14px; padding:7px 0; color:var(--text-secondary); transition:all .25s var(--ease); border-left:2px solid transparent; padding-left:10px; margin-left:-10px;}
+.mega-col a.mega-link:hover{color:var(--brand-primary); border-left-color:var(--brand-primary);}
+.mega-card{border-radius:var(--radius-md); overflow:hidden; position:relative; aspect-ratio:4/5; box-shadow:var(--shadow-soft); display:block;}
+.mega-card img, .mega-card .bg{width:100%; height:100%; object-fit:cover; background-size:cover; background-position:center; transition:transform .8s var(--ease); position:absolute; inset:0;}
+.mega-card:hover img, .mega-card:hover .bg{transform:scale(1.08);}
+.mega-card .mega-card-label{position:absolute; bottom:16px; left:16px; color:#fff; font-family:'Playfair Display'; font-size:17px; z-index:2;}
+.mega-card::after{content:''; position:absolute; inset:0; background:linear-gradient(0deg, rgba(32,20,8,.55), transparent 60%); z-index:1;}
+.mega-promo{border-radius:var(--radius-md); background:var(--brand-primary-light); padding:26px; display:flex; flex-direction:column; justify-content:flex-end; min-height:100%; color:#1e40af;}
+.mega-promo h4{color:#1e40af; font-size:19px; margin-bottom:8px;}
+.mega-promo a{font-size:12.5px; font-weight:700; text-decoration:underline; color:#1e40af;}

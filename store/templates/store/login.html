@@ -1,0 +1,22 @@
+{% extends "store/base.html" %}
+{% block title %}Sign In — Asma Stores{% endblock %}
+{% block extra_style %}
+.auth-box{max-width:400px; margin:130px auto 100px; padding:0 20px;}
+.form-group{display:flex; flex-direction:column; gap:6px; margin-bottom:16px;}
+.form-group label{font-size:12.5px; font-weight:600; color:var(--muted);}
+.form-group input{padding:13px 16px; border-radius:11px; border:1.5px solid var(--border); font-size:13.5px;}
+{% endblock %}
+{% block content %}
+<div class="auth-box">
+  <h1 style="margin-bottom:8px;">Welcome back</h1>
+  <p class="muted" style="margin-bottom:28px;">Sign in to continue to your account.</p>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-group"><label>Username</label>{{ form.username }}</div>
+    <div class="form-group"><label>Password</label>{{ form.password }}</div>
+    {% if form.errors %}<p style="color:var(--sale); font-size:13px; margin-bottom:14px;">Incorrect username or password.</p>{% endif %}
+    <button type="submit" class="btn btn-gold" style="width:100%;">Sign In</button>
+  </form>
+  <p class="muted" style="text-align:center; margin-top:24px; font-size:13px;">Don't have an account? <a href="{% url 'store:register' %}" style="color:var(--primary); font-weight:600;">Create one</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,428 @@
+/* ==========================================================================
+   Product Detail Page Specific Styles
+   ========================================================================== */
+
+/* Lightbox */
+.pdp-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1060; /* Above everything except maybe modal */
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.pdp-lightbox.is-open {
+  display: flex;
+  animation: fadeIn 0.2s ease;
+}
+.pdp-lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+}
+.pdp-lightbox-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  text-align: center;
+}
+.pdp-lightbox-image {
+  max-width: 100%;
+  max-height: 100vh;
+  object-fit: contain;
+  border-radius: 0.5rem;
+}
+.pdp-lightbox-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  color: #fff;
+  opacity: 0.9;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pdp-lightbox-close:hover {
+  opacity: 1;
+}
+.pdp-lightbox-nav {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.pdp-lightbox-nav-prev,
+.pdp-lightbox-nav-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.5);
+  border: none;
+  color: #fff;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  opacity: 0.8;
+  z-index: 2;
+}
+.pdp-lightbox-nav-prev {
+  left: -2.5rem;
+}
+.pdp-lightbox-nav-next {
+  right: -2.5rem;
+}
+.pdp-lightbox-nav-prev:hover,
+.pdp-lightbox-nav-next:hover {
+  opacity: 1;
+  background: rgba(0,0,0,0.7);
+}
+.pdp-lightbox-image-container {
+  flex: 1;
+  max-width: 100%;
+}
+.pdp-lightbox-caption {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #eee;
+}
+
+/* Hide scrollbar for scrolling containers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Mobile sticky purchase bar */
+.pdp-sticky-bar {
+  display: none; /* Show only on mobile */
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1050; /* Above content but below lightbox */
+  padding: 1rem;
+  background: var(--surface-page);
+  border-top: 1px solid var(--border-default);
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.pdp-sticky-bar-price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--brand-primary);
+  white-space: nowrap;
+}
+.pdp-sticky-bar-button {
+  flex: 1;
+  min-height: 3.5rem; /* 44px approx */
+  background: var(--brand-primary);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pdp-sticky-bar-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.pdp-sticky-bar-button[data-status="sold-out"] {
+  background: var(--status-sale);
+  color: #fff;
+}
+
+/* Product benefits grid */
+.pdp-highlights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.pdp-highlight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.pdp-highlight-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-soft);
+  border-radius: 50%;
+  color: var(--brand-primary);
+  font-size: 1.2rem;
+}
+.pdp-highlight-text {
+  display: flex;
+  flex-direction: column;
+}
+.pdp-highlight-text strong {
+  font-size: 0.9rem;
+  display: block;
+}
+.pdp-highlight-text span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Signature Products Section */
+.pdp-signature-section {
+  padding: 4rem 0 2rem;
+}
+.pdp-signature-section + .pdp-signature-section {
+  border-top: 1px solid var(--border-default);
+}
+.pdp-signature-header {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.pdp-signature-header h2 {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 36px);
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.pdp-signature-header .underline {
+  width: 4rem;
+  height: 3px;
+  background: var(--brand-primary);
+}
+.pdp-signature-slider {
+  display: flex;
+  overflow-x: auto;
+  gap: 1.5rem;
+  padding-bottom: 1rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.pdp-signature-slider::-webkit-scrollbar {
+  display: none;
+}
+.pdp-signature-slide {
+  flex: 0 0 auto;
+  width: calc(100% * 0.55); /* Show 1.8 cards approx */
+  scroll-snap-align: start;
+}
+.pdp-signature-card {
+  position: relative;
+  text-align: left;
+  background: var(--surface-page);
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: transform 0.3s ease;
+}
+.pdp-signature-card:hover {
+  transform: translateY(-4px);
+}
+.pdp-signature-media {
+  position: relative;
+  aspect-ratio: 4/5;
+  overflow: hidden;
+  background: var(--surface-soft);
+}
+.pdp-signature-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.pdp-signature-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: var(--status-sale);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+.pdp-signature-info {
+  padding: 1rem;
+}
+.pdp-signature-category {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--brand-primary);
+  margin-bottom: 0.25rem;
+}
+.pdp-signature-title {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.pdp-signature-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.pdp-signature-price del {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+.pdp-signature-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.pdp-signature-actions button {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pdp-signature-actions .add-to-cart {
+  background: var(--brand-primary);
+  color: #fff;
+}
+.pdp-signature-actions .add-to-cart:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.pdp-signature-actions .view-product {
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+}
+.pdp-signature-actions .wishlist {
+  background: transparent;
+  border: none;
+  color: var(text-muted);
+  font-size: 1.2rem;
+  padding: 0.5rem;
+}
+.pdp-signature-actions .wishlist.is-active {
+  color: var(--status-sale);
+}
+
+/* Hover actions for product cards (signature and related) */
+.pdp-card-hover-actions {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+.pdp-card-hover-actions button {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  border: none;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  cursor: pointer;
+}
+.pdp-card-hover-actions button:hover {
+  background: rgba(255,255,255,1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.pdp-card:hover .pdp-card-hover-actions {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-0.25rem);
+  pointer-events: all;
+}
+
+/* Mobile adjustments */
+@media (max-width: 991px) {
+  .pdp-sticky-bar {
+    display: flex;
+  }
+  /* Adjust padding bottom when sticky bar is visible */
+  body.pdp-sticky-bar-visible {
+    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+  }
+  /* Ensure product image gallery doesn't exceed viewport height */
+  .pdp-gallery {
+    max-height: 70vh;
+  }
+  /* Make product title more prominent */
+  .pdp-info h1 {
+    font-size: clamp(24px, 5vw, 32px);
+  }
+  /* Adjust price size */
+  .pdp-price-now {
+    font-size: clamp(1.8rem, 5vw, 2.2rem);
+  }
+}
+
+/* Reduce horizontal spacing on mobile */
+@media (max-width: 767px) {
+  .pdp-layout {
+    gap: 1.5rem;
+  }
+  .pdp-info {
+    padding: 0;
+  }
+  .pdp-meta-row,
+  .pdp-price-row,
+  .pdp-cta-row {
+    gap: 0.75rem;
+  }
+  .pdp-highlights-grid {
+    gap: 0.75rem;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+/* Ensure no horizontal overflow */
+body {
+  overflow-x: hidden;
+}
+
+/* Focus visible */
+*:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}

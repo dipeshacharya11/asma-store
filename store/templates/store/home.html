@@ -1,0 +1,259 @@
+{% extends "store/base.html" %}
+{% block extra_style %}
+:root{
+  --hero-overlay-start:rgba(5, 15, 30, .74);
+  --hero-overlay-end:rgba(5, 15, 30, .15);
+  --hero-gradient:linear-gradient(0deg, var(--hero-overlay-start) 0%, var(--hero-overlay-end) 55%, rgba(5, 15, 30, .35) 100%);
+}
+.hero{position:relative; height:92vh; min-height:600px; overflow:hidden; background:var(--dark); display:flex;}
+.acc-panel{position:relative; flex:1; cursor:pointer; overflow:hidden; transition:flex 3s var(--ease-previous), filter .6s var(--ease-previous); filter:brightness(.7);}
+.acc-panel.active{flex:3.6; filter:brightness(1);}
+.acc-panel img, .acc-panel .bg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; background-size:cover; background-position:center; transform:scale(1.06); transition:transform 1.8s var(--ease-previous);}
+.acc-panel:hover img, .acc-panel:hover .bg{transform:scale(1.1);}
+.acc-panel.active img, .acc-panel.active .bg{transform:scale(1.14);}
+.acc-panel::after{content:''; position:absolute; inset:0; background:var(--hero-gradient);}
+.acc-panel:not(.active):not(:last-child)::before{content:''; position:absolute; top:0; right:0; bottom:0; width:1px; background:rgba(255,255,255,.18); z-index:6;}
+.acc-vtext{position:absolute; right:18px; top:50%; transform:translateY(-50%) rotate(180deg); writing-mode:vertical-lr; letter-spacing:4px; color:rgba(255,255,255,.85); font-size:12px; font-weight:600; z-index:4; transition:opacity .4s var(--ease-previous); text-transform:uppercase;}
+.acc-panel.active .acc-vtext{opacity:0;}
+.acc-content{position:absolute; left:56px; bottom:64px; max-width:520px; color:#fff; z-index:5; opacity:0; transform:translateY(24px); transition:opacity 1.5s var(--ease-previous) .7s, transform 1.3s var(--ease-previous) .4s;}
+.acc-panel.active .acc-content{opacity:1; transform:translateY(0);}
+.acc-content .eyebrow{color:var(--brand-primary-light);} .acc-content .eyebrow::before{background:var(--brand-primary-light);}
+.acc-content h1{font-size:clamp(26px,3.2vw,44px); line-height:1.15; margin-bottom:14px; color:#fff;}
+.acc-content p{font-size:14.5px; line-height:1.7; margin-bottom:22px; color:rgba(255,255,255,.82); max-width:380px;}
+.hero-progress{position:absolute; bottom:26px; left:56px; z-index:6; display:flex; gap:8px;}
+.hero-progress span{width:30px; height:2px; background:rgba(255,255,255,.3); position:relative; overflow:hidden;}
+.hero-progress span::after{content:''; position:absolute; inset:0; background:var(--brand-primary); transform:scaleX(0); transform-origin:left;}
+.hero-progress span.active::after{transform:scaleX(1); transition:transform 5s linear;}
+@media(max-width:900px){ .hero{flex-direction:column; height:auto;} .acc-panel{height:100px; flex:none;} .acc-panel.active{height:60vh; flex:none;} .acc-content{left:24px; bottom:36px; max-width:85%;} .acc-vtext{display:none;} }
+
+/* Circular category quick-nav (Netro-style) */
+.circle-cat-row{display:flex; justify-content:center; gap:38px; flex-wrap:wrap; margin-top:-70px; position:relative; z-index:10;}
+.circle-cat{text-align:center;}
+.circle-cat-thumb{
+  width:104px; height:104px; border-radius:50%; overflow:hidden; margin:0 auto 12px; background:var(--surface-soft);
+  box-shadow:var(--shadow-lift); border:4px solid #fff; transition:transform .4s var(--ease-previous);
+}
+.circle-cat:hover .circle-cat-thumb{transform:translateY(-6px);}
+.circle-cat-thumb img, .circle-cat-thumb .bg{width:100%; height:100%; object-fit:cover; background-size:cover; background-position:center;}
+.circle-cat span{font-weight:600; font-size:13.5px; font-family:'Playfair Display';}
+.cat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:26px;}
+.cat-card{position:relative; border-radius:var(--radius-lg); overflow:hidden; aspect-ratio:3/4; box-shadow:var(--shadow-soft); transition:transform .5s var(--ease-previous);}
+.cat-card:hover{transform:translateY(-8px);}
+.cat-art, .cat-art img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; background-size:cover; background-position:center; transition:transform .8s var(--ease-previous);}
+.cat-card:hover .cat-art, .cat-card:hover .cat-art img{transform:scale(1.09);}
+.cat-card::after{content:''; position:absolute; inset:0; background:linear-gradient(0deg, rgba(5,15,30,.75), rgba(5,15,30,0) 60%);}
+.cat-info{position:absolute; bottom:0; left:0; right:0; padding:24px; z-index:2; color:#fff;}
+.cat-info h3{font-size:20px; margin-bottom:4px; color:#fff;}
+.testi-track{display:grid; grid-template-columns:repeat(3,1fr); gap:26px;}
+.testi-card{background:var(--surface-light); border-radius:var(--radius-lg); padding:32px;}
+.testi-card .stars{color:var(--brand-primary); margin-bottom:14px;}
+@media(max-width:980px){ .cat-grid{grid-template-columns:repeat(2,1fr);} .testi-track{grid-template-columns:1fr;} .circle-cat-row{gap:22px;} .circle-cat-thumb{width:80px; height:80px;} }
+.chosen-tabs{display:flex; justify-content:center; gap:28px; margin-bottom:36px;}
+.chosen-tab{font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); font-weight:600; padding-bottom:8px; border-bottom:2px solid transparent; cursor:pointer; transition:all .3s var(--ease-previous);}
+.chosen-tab.is-active, .chosen-tab:hover{color:var(--brand-primary); border-color:var(--brand-primary);}
+
+#products .chosen-section-head {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border: none;
+}
+
+#products .chosen-section-head h2 {
+    width: auto;
+    margin: 0;
+    text-align: center;
+}
+{% endblock %}
+
+{% block content %}
+<section class="hero" style="padding:0;">
+  {% for slide in hero_slides %}
+  <div class="acc-panel {% if forloop.first %}active{% endif %}" data-index="{{ forloop.counter0 }}">
+    {% if slide.display_image %}<img src="{{ slide.display_image }}" alt="{{ slide.title }}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">{% else %}<div class="bg" style="background:linear-gradient(145deg,var(--brand-primary-light),var(--brand-primary));"></div>{% endif %}
+    <span class="acc-vtext">{{ slide.vertical_label|default:slide.title }}</span>
+    <div class="acc-content">
+      <div class="eyebrow">{{ slide.eyebrow }}</div>
+      <h1>{{ slide.title }}</h1>
+      <p>{{ slide.description }}</p>
+      <a href="{{ slide.cta_url }}" class="btn btn-primary">{{ slide.cta_text }} →</a>
+    </div>
+  </div>
+  {% endfor %}
+  <div class="hero-progress" id="heroProgress"></div>
+</section>
+<!--
+<div class="circle-cat-row">
+  {% for cat in categories %}
+  <a class="circle-cat" href="{{ cat.get_absolute_url }}">
+    <div class="circle-cat-thumb">
+      {% if cat.image_display_url %}<img src="{{ cat.image_display_url }}" alt="{{ cat.name }}" loading="lazy">{% else %}<div class="bg" style="background:{{ cat.hero_gradient|default:'linear-gradient(150deg,#C9A227,#E5C76B)' }};"></div>{% endif %}
+    </div>
+    <span>{{ cat.name }}</span>
+  </a>
+  {% endfor %}
+</div>-->
+</div>
+
+<section id="collections">
+  <div class="container">
+    <div class="section-head" data-reveal>
+      <div><div class="eyebrow">Shop by Category</div><h2>Explore Our Collections</h2></div>
+      <a href="{% url 'store:collection' %}" class="view-all">View all →</a>
+    </div>
+    <div class="cat-grid">
+    {% for cat in categories|slice:":8" %}
+      <a class="cat-card"
+         href="{{ cat.get_absolute_url }}"
+         data-reveal>
+
+        <div class="cat-art">
+          {% if cat.image_display_url %}
+            <img
+              src="{{ cat.image_display_url }}"
+              alt="{{ cat.name }}"
+              loading="lazy"
+              decoding="async"
+            >
+          {% else %}
+            <div style="
+              background:{{ cat.hero_gradient|default:'linear-gradient(145deg,var(--brand-primary-light),var(--brand-primary))' }};
+              width:100%;
+              height:100%;
+            "></div>
+          {% endif %}
+        </div>
+
+        <div class="cat-info">
+          <h3>{{ cat.name }}</h3>
+          <span style="color:rgba(255,255,255,.75); font-size:13px;">
+            {{ cat.product_count }} products
+          </span>
+        </div>
+
+      </a>
+    {% endfor %}
+    </div>
+  </div>
+
+  {% if categories|length > 8 %}
+    <div class="cat-view-all">
+      <a href="{% url 'store:collection' %}" class="btn-outline">
+        View All Categories →
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+</section>
+
+<section id="products">
+  <div class="container">
+    <div class="section-head chosen-section-head" data-reveal>
+      <h2>Chosen For You</h2>
+    </div>
+    <div class="chosen-tabs">
+      <span class="chosen-tab is-active" data-chosen="all">All</span>
+      <span class="chosen-tab" data-chosen="new">New Arrivals</span>
+      <span class="chosen-tab" data-chosen="top">Top Rated</span>
+    </div>
+    <div class="prod-grid">
+      {% for product in featured_products %}
+      <div class="prod-card" data-reveal data-chosen-item data-is-new="{{ product.is_new|yesno:'1,0' }}" data-rating="{{ product.rating }}">
+        <div class="prod-media">
+          <div class="badge-row">
+            {% if product.discount_percent %}<span class="pbadge sale">-{{ product.discount_percent }}%</span>{% endif %}
+            {% if product.is_new %}<span class="pbadge new">New</span>{% endif %}
+            {% if product.is_low_stock %}<span class="pbadge low">Only {{ product.stock }} left</span>{% endif %}
+          </div>
+          <div class="quick-actions">
+            <button class="qa-btn wishlist-toggle-btn {% if product.id in wishlist_ids %}is-active{% endif %}" data-product-id="{{ product.id }}">{% if product.id in wishlist_ids %}♥{% else %}♡{% endif %}</button>
+            <a class="qa-btn" href="{{ product.get_absolute_url }}" title="Quick View">👁</a>
+          </div>
+          <a href="{{ product.get_absolute_url }}">
+            {% if product.primary_image_url %}<img class="img-a" src="{{ product.primary_image_url }}" alt="{{ product.name }}" loading="lazy">{% else %}<div class="img-a" style="background:{{ product.image_gradient|default:'linear-gradient(160deg,var(--brand-primary-light),var(--brand-primary))' }};"></div>{% endif %}
+            {% if product.secondary_image_url %}<img class="img-b" src="{{ product.secondary_image_url }}" alt="{{ product.name }}" loading="lazy">{% else %}<div class="img-b" style="background:{{ product.image_gradient_secondary|default:'linear-gradient(200deg,#202020,var(--brand-primary))' }};"></div>{% endif %}
+            <div class="prod-frame"></div>
+          </a>
+          <div class="quick-add-bar">
+            <button class="cart-add-btn" data-product-id="{{ product.id }}" {% if product.is_out_of_stock %}disabled{% endif %}>{% if product.is_out_of_stock %}Sold Out{% else %}Quick Add{% endif %}</button>
+          </div>
+        </div>
+        <div class="prod-info">
+          <div class="prod-cat">{{ product.category.name }}</div>
+          <h4><a href="{{ product.get_absolute_url }}">{{ product.name }}</a></h4>
+          <div class="rating-row">{% for i in "12345" %}{% if forloop.counter <= product.rating %}★{% else %}☆{% endif %}{% endfor %}</div>
+          <div class="price-row">
+            <span class="price">Rs. {{ product.price }}</span>
+            {% if product.compare_at_price %}<span class="price-old">Rs. {{ product.compare_at_price }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <p class="text-muted">No featured products yet — mark some products as "Featured" in the admin panel.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if testimonials %}
+<section style="background:var(--surface-muted);">
+  <div class="container">
+    <div class="section-head" data-reveal><div><div class="eyebrow">Testimonials</div><h2>Loved by Customers</h2></div></div>
+    <div class="testi-track">
+      {% for t in testimonials %}
+      <div class="testi-card" data-reveal>
+        <div class="stars">{% for i in "12345" %}{% if forloop.counter <= t.rating %}★{% else %}☆{% endif %}{% endfor %}</div>
+        <p style="margin-bottom:18px; font-size:14.5px; line-height:1.7;">"{{ t.quote }}"</p>
+        <b>{{ t.name }}</b> <span class="text-muted" style="font-size:12.5px; display:block;">{{ t.role }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_script %}
+<script>
+const accPanels = document.querySelectorAll('.acc-panel');
+const heroProgressWrap = document.getElementById('heroProgress');
+let accCurrent = 0, accTimer;
+accPanels.forEach((_,i)=>{
+  const bar = document.createElement('span');
+  if(i===0) bar.classList.add('active');
+  heroProgressWrap.appendChild(bar);
+});
+const progressBars = heroProgressWrap.querySelectorAll('span');
+function activatePanel(i){
+  accPanels[accCurrent].classList.remove('active');
+  progressBars[accCurrent].classList.remove('active');
+  accCurrent = i;
+  accPanels[accCurrent].classList.add('active');
+  progressBars[accCurrent].classList.add('active');
+}
+function startAccordion(){ clearInterval(accTimer); accTimer = setInterval(()=> activatePanel((accCurrent+1)%accPanels.length), 5000); }
+accPanels.forEach((panel,i)=>{
+  panel.addEventListener('mouseenter', ()=>{ clearInterval(accTimer); activatePanel(i); });
+  panel.addEventListener('mouseleave', startAccordion);
+  panel.addEventListener('click', ()=> activatePanel(i));
+});
+startAccordion();
+
+document.querySelectorAll('.chosen-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.chosen-tab').forEach(t=>t.classList.remove('is-active'));
+    tab.classList.add('is-active');
+    const filter = tab.dataset.chosen;
+    document.querySelectorAll('[data-chosen-item]').forEach(card=>{
+      if(filter === 'all'){ card.style.display=''; }
+      else if(filter === 'new'){ card.style.display = card.dataset.isNew === '1' ? '' : 'none'; }
+      else if(filter === 'top'){ card.style.display = parseFloat(card.dataset.rating) >= 4.5 ? '' : 'none'; }
+    });
+  });
+});
+</script>
+{% endblock %}

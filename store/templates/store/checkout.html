@@ -1,0 +1,59 @@
+{% extends "store/base.html" %}
+{% block title %}Checkout — Asma Stores{% endblock %}
+{% block extra_style %}
+.checkout-layout{padding:120px 0 90px; display:grid; grid-template-columns:1.3fr 1fr; gap:56px;}
+.form-card{background:var(--light-gray); border-radius:var(--radius-lg); padding:30px; margin-bottom:22px;}
+.form-card h3{font-size:16px; margin-bottom:18px;}
+.form-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+.form-group{display:flex; flex-direction:column; gap:6px; margin-bottom:14px;}
+.form-group.full{grid-column:1/-1;}
+.form-group label{font-size:12.5px; font-weight:600; color:var(--muted);}
+.form-group input, .form-group textarea{padding:12px 14px; border-radius:10px; border:1.5px solid var(--border); font-size:13.5px;}
+.summary-card{background:var(--light-gray); border-radius:var(--radius-lg); padding:28px; height:fit-content; position:sticky; top:120px;}
+.total-row{display:flex; justify-content:space-between; padding:7px 0; font-size:14px; color:var(--muted);}
+.total-row.grand{font-weight:700; font-size:17px; color:var(--text); border-top:1px solid var(--border); padding-top:14px; margin-top:6px;}
+.promo-row{display:flex; gap:8px; margin:16px 0;}
+.promo-row input{flex:1; padding:11px 14px; border-radius:10px; border:1.5px solid var(--border); font-size:13px;}
+@media(max-width:900px){ .checkout-layout{grid-template-columns:1fr;} .form-grid{grid-template-columns:1fr;} }
+{% endblock %}
+{% block content %}
+<div class="container">
+  <h1 style="margin:36px 0 10px;">Checkout</h1>
+  <form method="post" class="checkout-layout">
+    {% csrf_token %}
+    <div>
+      <div class="form-card">
+        <h3>Contact & Shipping</h3>
+        <div class="form-grid">
+          <div class="form-group full"><label>Full Name</label><input type="text" name="full_name" required></div>
+          <div class="form-group full"><label>Email</label><input type="email" name="email" required></div>
+          <div class="form-group"><label>Phone</label><input type="tel" name="phone"></div>
+          <div class="form-group"><label>City</label><input type="text" name="city"></div>
+          <div class="form-group full"><label>Address</label><textarea name="address" rows="3" required></textarea></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <h3>Shipping Method</h3>
+        <label style="display:flex; gap:10px; align-items:center; font-size:13.5px;"><input type="radio" name="shipping_cost" value="0" checked> Cash on Delivery</label><br><br>
+        <!--<label style="display:flex; gap:10px; align-items:center; font-size:13.5px;"><input type="radio" name="shipping_cost" value="0" checked> Standard (Free, 3–5 days)</label><br><br>
+        <label style="display:flex; gap:10px; align-items:center; font-size:13.5px;"><input type="radio" name="shipping_cost" value="450"> Express (Rs. 450, 1–2 days)</label>-->
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <h3 style="margin-bottom:18px;">Order Summary</h3>
+      {% for product, qty in checkout_items %}
+      <div style="display:flex; justify-content:space-between; font-size:13.5px; padding:8px 0; border-bottom:1px solid var(--border);">
+        <span>{{ product.name }} × {{ qty }}</span><b>Rs. {{ product.price|floatformat:2 }}</b>
+      </div>
+      {% endfor %}
+      <div class="promo-row">
+        <input type="text" name="coupon_code" placeholder="Discount code">
+      </div>
+      <div class="total-row"><span>Subtotal</span><span>Rs. {{ checkout_subtotal }}</span></div>
+      <div class="total-row grand"><span>Total (before shipping)</span><span>Rs. {{ checkout_subtotal }}</span></div>
+      <button type="submit" class="btn btn-dark" style="width:100%; margin-top:18px;">Place Order</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

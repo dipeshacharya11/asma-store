@@ -1,0 +1,63 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>{% block title %}Asma Stores — Luxury Wall Art & Home Decor{% endblock %}</title>
+
+<link rel="icon" href="{% static 'store/images/logo.jpeg' %}">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Poppins:wght@400;500;600;700&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="{% static 'store/css/base.css' %}">
+<link rel="stylesheet" href="{% static 'store/css/header.css' %}">
+<link rel="stylesheet" href="{% static 'store/css/mega_menu.css' %}">
+<link rel="stylesheet" href="{% static 'store/css/cart.css' %}">
+<link rel="stylesheet" href="{% static 'store/css/product.css' %}">
+<link rel="stylesheet" href="{% static 'store/css/animations.css' %}">
+
+<style>
+{% block extra_style %}{% endblock %}
+</style>
+
+</head>
+
+<body>
+
+{% include "store/includes/header.html" %}
+
+{% if messages %}
+<div class="messages">
+  {% for message in messages %}
+  <div class="msg {{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% block content %}{% endblock %}
+
+{% include "store/includes/footer.html" %}
+
+<!-- Cart drawer shell -->
+<div class="cart-drawer" id="cartDrawer">
+  {% include "store/includes/cart_drawer.html" %}
+</div>
+
+{% include "store/includes/search_overlay.html" %}
+
+<script src="{% static 'store/js/header.js' %}" defer></script>
+<script src="{% static 'store/js/mega_menu.js' %}" defer></script>
+<script src="{% static 'store/js/cart_drawer.js' %}" defer></script>
+<script src="{% static 'store/js/search.js' %}" defer></script>
+<script src="{% static 'store/js/wishlist.js' %}" defer></script>
+<script src="{% static 'store/js/animations.js' %}" defer></script>
+
+{% block extra_script %}{% endblock %}
+
+</body>
+</html>
+
