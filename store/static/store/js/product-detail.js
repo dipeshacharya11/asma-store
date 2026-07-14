@@ -291,5 +291,14 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Initialize
-  init();
+  try {
+    init();
+  } catch (error) {
+    console.error("Error initializing product detail page:", error);
+    // Optionally show a user-friendly message
+    const mainContent = document.querySelector('.pdp-page');
+    if (mainContent) {
+      mainContent.innerHTML = '<div style="text-align: center; padding: 50px; color: var(--text-primary);">Failed to load product details. Please try again later.</div>';
+    }
+  }
 });

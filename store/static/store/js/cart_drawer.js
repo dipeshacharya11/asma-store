@@ -83,7 +83,9 @@
       const qtyInput = document.getElementById('pdpQuantity');
       if (qtyInput) {
         const val = parseInt(qtyInput.value, 10);
-        if (!isNaN(val) || val < 1 ? qty = 1 : qty = val;
+        if (!isNaN(val) && val >= 1) {
+          qty = val;
+        }
       }
 
       postJSON(`/cart/add/${pid}/`, `quantity=${qty}`).then((data) => {
