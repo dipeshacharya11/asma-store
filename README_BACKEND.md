@@ -1,4 +1,4 @@
-# Asma Stores — Django Backend (Latest: full custom dashboard with real charts)
+# Asma Stores — Django Backend 
 
 ## What's new in this pass
 
