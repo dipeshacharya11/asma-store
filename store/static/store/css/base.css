@@ -156,3 +156,360 @@ footer{background:#4480B2; color:rgba(255,255,255,.8); padding:76px 0 30px; marg
 [data-reveal].is-visible{opacity:1; transform:translateY(0);}
 
 @media(prefers-reduced-motion: reduce){ *{transition-duration:.01ms !important; animation-duration:.01ms !important;} }
+/* ==============================================================================================================
+   SIGNATURE PRODUCTS
+   ========================================================================== */
+
+.signature-section{
+  position:relative;
+  padding:110px 0;
+  overflow:hidden;
+  background:#f7f9fc;
+}
+
+.signature-section-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:40px;
+  margin-bottom:48px;
+}
+
+.signature-section-head > div{
+  max-width:620px;
+}
+
+.signature-section-head .eyebrow{
+  margin-bottom:13px;
+  color:var(--brand-primary, #3f6f9f);
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+
+.signature-section-head h2{
+  margin:0;
+  color:var(--dark);
+  font-family:"Playfair Display", serif;
+  font-size:clamp(34px, 4vw, 58px);
+  font-weight:600;
+  line-height:1.08;
+}
+
+.signature-section-head p{
+  max-width:520px;
+  margin:18px 0 0;
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.8;
+}
+
+
+/* TABS */
+
+.signature-tabs{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:42px;
+  padding-bottom:15px;
+  overflow-x:auto;
+  border-bottom:1px solid var(--border);
+}
+
+.signature-tab{
+  flex:0 0 auto;
+  padding:10px 19px;
+  border:1px solid var(--border);
+  border-radius:100px;
+  background:transparent;
+  color:var(--muted);
+  font-family:inherit;
+  font-size:12px;
+  font-weight:500;
+  cursor:pointer;
+  transition:
+    background .3s ease,
+    border-color .3s ease,
+    color .3s ease;
+}
+
+.signature-tab:hover,
+.signature-tab.is-active{
+  border-color:var(--brand-primary, #3f6f9f);
+  background:var(--brand-primary, #3f6f9f);
+  color:#fff;
+}
+
+
+/* COLLECTION */
+
+.signature-collection{
+  display:none;
+}
+
+.signature-collection.is-active{
+  display:block;
+}
+
+.signature-collection-intro{
+  margin-bottom:30px;
+}
+
+.signature-collection-intro span{
+  color:var(--brand-primary, #3f6f9f);
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+.signature-collection-intro h3{
+  margin:7px 0 8px;
+  color:var(--dark);
+  font-family:"Playfair Display", serif;
+  font-size:30px;
+  font-weight:600;
+}
+
+.signature-collection-intro p{
+  max-width:600px;
+  margin:0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.7;
+}
+
+
+/* PRODUCT GRID */
+
+.signature-grid{
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0, 1fr));
+  gap:30px 22px;
+}
+
+.signature-card{
+  min-width:0;
+}
+
+.signature-media{
+  position:relative;
+  height:410px;
+  overflow:hidden;
+  background:#eef2f6;
+}
+
+.signature-media > a{
+  display:block;
+  width:100%;
+  height:100%;
+}
+
+.signature-media img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  transition:transform .8s var(--ease);
+}
+
+.signature-card:hover .signature-media img{
+  transform:scale(1.055);
+}
+
+.signature-placeholder{
+  width:100%;
+  height:100%;
+  background-size:cover;
+}
+
+
+/* BADGE */
+
+.signature-badge{
+  position:absolute;
+  top:16px;
+  left:16px;
+  z-index:2;
+  padding:7px 11px;
+  background:#fff;
+  color:var(--dark);
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+
+/* QUICK ADD */
+
+.signature-add{
+  position:absolute;
+  right:16px;
+  bottom:16px;
+  left:16px;
+  z-index:3;
+  opacity:0;
+  transform:translateY(15px);
+  transition:
+    opacity .35s ease,
+    transform .35s ease;
+}
+
+.signature-card:hover .signature-add{
+  opacity:1;
+  transform:none;
+}
+
+.signature-add .cart-add-btn{
+  width:100%;
+  min-height:48px;
+  border:0;
+  background:#fff;
+  color:var(--dark);
+  font-family:inherit;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+
+.signature-add .cart-add-btn:hover{
+  background:var(--brand-primary, #3f6f9f);
+  color:#fff;
+}
+
+
+/* PRODUCT INFO */
+
+.signature-info{
+  padding:19px 3px 0;
+}
+
+.signature-category{
+  display:block;
+  margin-bottom:7px;
+  color:var(--brand-primary, #3f6f9f);
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+.signature-info h4{
+  margin:0 0 10px;
+  font-family:"Playfair Display", serif;
+  font-size:19px;
+  font-weight:600;
+  line-height:1.3;
+}
+
+.signature-info h4 a{
+  color:var(--dark);
+  text-decoration:none;
+}
+
+.signature-info h4 a:hover{
+  color:var(--brand-primary, #3f6f9f);
+}
+
+.signature-price{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.signature-price strong{
+  color:var(--dark);
+  font-size:14px;
+  font-weight:600;
+}
+
+.signature-price del{
+  color:var(--muted);
+  font-size:12px;
+}
+
+.signature-empty{
+  grid-column:1 / -1;
+  padding:50px;
+  color:var(--muted);
+  text-align:center;
+}
+
+
+/* TABLET */
+
+@media(max-width:1000px){
+
+  .signature-grid{
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+
+  .signature-section{
+    padding:80px 0;
+  }
+
+}
+
+
+/* MOBILE */
+
+@media(max-width:600px){
+
+  .signature-section{
+    padding:65px 0;
+  }
+
+  .signature-section-head{
+    display:block;
+    margin-bottom:35px;
+  }
+
+  .signature-section-head .view-all{
+    display:inline-block;
+    margin-top:20px;
+  }
+
+  .signature-tabs{
+    margin-bottom:30px;
+  }
+
+  .signature-grid{
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:25px 12px;
+  }
+
+  .signature-media{
+    height:260px;
+  }
+
+  .signature-add{
+    right:8px;
+    bottom:8px;
+    left:8px;
+    opacity:1;
+    transform:none;
+  }
+
+  .signature-add .cart-add-btn{
+    min-height:40px;
+    font-size:9px;
+  }
+
+  .signature-info h4{
+    font-size:16px;
+  }
+
+}
+
+@media(max-width:390px){
+
+  .signature-media{
+    height:230px;
+  }
+
+}

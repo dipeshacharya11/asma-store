@@ -10,7 +10,8 @@ from .models import (
     Order,
     OrderItem,
     BlogPost,
-)
+    SignatureCollection,
+    )
 
 
 admin.site.site_header = "Asma Store Admin"
@@ -202,3 +203,41 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [
         OrderItemInline,
     ]
+    #--------signature -------------------------------------------------------------------
+@admin.register(SignatureCollection)
+class SignatureCollectionAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "product_total",
+        "sort_order",
+        "is_active",
+        "created_at",
+    )
+
+    list_editable = (
+        "sort_order",
+        "is_active",
+    )
+
+    list_filter = (
+        "is_active",
+    )
+
+    search_fields = (
+        "name",
+        "subtitle",
+        "description",
+    )
+
+    filter_horizontal = (
+        "products",
+    )
+
+    ordering = (
+        "sort_order",
+        "name",
+    )
+
+    @admin.display(description="Products")
+    def product_total(self, obj):
+        return obj.products.count()

@@ -67,6 +67,7 @@
     margin: 0;
     text-align: center;
 }
+
 {% endblock %}
 
 {% block content %}
@@ -100,56 +101,95 @@
 
 <section id="collections">
   <div class="container">
-    <div class="section-head" data-reveal>
-      <div><div class="eyebrow">Shop by Category</div><h2>Explore Our Collections</h2></div>
-      <a href="{% url 'store:collection' %}" class="view-all">View all →</a>
+
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Shop by Category</div>
+        <h2>Explore Our Collections</h2>
+      </div>
+
+      <a href="{% url 'store:collection' %}" class="view-all">
+        View all →
+      </a>
     </div>
+
+
     <div class="cat-grid">
-    {% for cat in categories|slice:":8" %}
-      <a class="cat-card"
-         href="{{ cat.get_absolute_url }}"
-         data-reveal>
 
-        <div class="cat-art">
-          {% if cat.image_display_url %}
-            <img
-              src="{{ cat.image_display_url }}"
-              alt="{{ cat.name }}"
-              loading="lazy"
-              decoding="async"
-            >
-          {% else %}
-            <div style="
-              background:{{ cat.hero_gradient|default:'linear-gradient(145deg,var(--brand-primary-light),var(--brand-primary))' }};
-              width:100%;
-              height:100%;
-            "></div>
-          {% endif %}
+      {% for cat in categories|slice:":8" %}
+
+        <a
+          class="cat-card"
+          href="{{ cat.get_absolute_url }}"
+        >
+
+          <div class="cat-art">
+
+            {% if cat.image_display_url %}
+
+              <img
+                src="{{ cat.image_display_url }}"
+                alt="{{ cat.name }}"
+                loading="lazy"
+                decoding="async"
+              >
+
+            {% else %}
+
+              <div
+                class="cat-placeholder"
+                style="
+                  background:{{ cat.hero_gradient|default:'linear-gradient(145deg,#dbe7f3,#3f6f9f)' }};
+                  width:100%;
+                  height:100%;
+                "
+              ></div>
+
+            {% endif %}
+
+          </div>
+
+
+          <div class="cat-info">
+
+            <h3>{{ cat.name }}</h3>
+
+            <span>
+              {{ cat.product_count }} products
+            </span>
+
+          </div>
+
+        </a>
+
+      {% empty %}
+
+        <div class="category-empty">
+          No categories available.
         </div>
 
-        <div class="cat-info">
-          <h3>{{ cat.name }}</h3>
-          <span style="color:rgba(255,255,255,.75); font-size:13px;">
-            {{ cat.product_count }} products
-          </span>
-        </div>
+      {% endfor %}
 
-      </a>
-    {% endfor %}
     </div>
+
+
+    {% if categories|length > 8 %}
+
+      <div class="cat-view-all">
+
+        <a
+          href="{% url 'store:collection' %}"
+          class="btn-outline"
+        >
+          View All Categories →
+        </a>
+
+      </div>
+
+    {% endif %}
+
   </div>
-
-  {% if categories|length > 8 %}
-    <div class="cat-view-all">
-      <a href="{% url 'store:collection' %}" class="btn-outline">
-        View All Categories →
-      </a>
-    </div>
-  {% endif %}
-
-</div>
 </section>
-
 <section id="products">
   <div class="container">
     <div class="section-head chosen-section-head" data-reveal>
@@ -197,6 +237,214 @@
       {% endfor %}
     </div>
   </div>
+</section>
+<!-----------------------------------------____________________________________signature____________________-->
+
+
+<section id="signature-products" class="signature-section">
+
+  <div class="container">
+
+    <div class="signature-section-head">
+
+      <div>
+        <div class="eyebrow">
+          The Signature Edit
+        </div>
+
+        <h2>
+          Our Signature Products
+        </h2>
+
+        <p>
+          Discover distinctive fragrances and curated essentials
+          selected to define the Asma experience.
+        </p>
+      </div>
+
+      <a
+        href="{% url 'store:collection' %}"
+        class="view-all"
+      >
+        Explore Collection →
+      </a>
+
+    </div>
+
+
+    {% if signature_collections %}
+
+      <div class="signature-tabs">
+
+        {% for collection in signature_collections %}
+
+          <button
+            type="button"
+            class="signature-tab {% if forloop.first %}is-active{% endif %}"
+            data-signature-tab="{{ collection.id }}"
+          >
+            {{ collection.name }}
+          </button>
+
+        {% endfor %}
+
+      </div>
+
+
+      <div class="signature-collections">
+
+        {% for collection in signature_collections %}
+
+          <div
+            class="signature-collection {% if forloop.first %}is-active{% endif %}"
+            data-signature-collection="{{ collection.id }}"
+          >
+
+            <div class="signature-collection-intro">
+
+              {% if collection.subtitle %}
+                <span>
+                  {{ collection.subtitle }}
+                </span>
+              {% endif %}
+
+              <h3>
+                {{ collection.name }}
+              </h3>
+
+              {% if collection.description %}
+                <p>
+                  {{ collection.description }}
+                </p>
+              {% endif %}
+
+            </div>
+
+
+            <div class="signature-grid">
+
+              {% for product in collection.products.all|slice:":8" %}
+
+                {% if product.is_active %}
+
+                  <article class="signature-card">
+
+                    <div class="signature-media">
+
+                      <a href="{{ product.get_absolute_url }}">
+
+                        {% if product.primary_image_url %}
+
+                          <img
+                            src="{{ product.primary_image_url }}"
+                            alt="{{ product.name }}"
+                            loading="lazy"
+                            decoding="async"
+                          >
+
+                        {% else %}
+
+                          <div
+                            class="signature-placeholder"
+                            style="
+                              background:
+                              {{ product.image_gradient|default:'linear-gradient(145deg,#dbe7f3,#3f6f9f)' }};
+                            "
+                          ></div>
+
+                        {% endif %}
+
+                      </a>
+
+
+                      {% if product.is_new %}
+
+                        <span class="signature-badge">
+                          New
+                        </span>
+
+                      {% endif %}
+
+
+                      <div class="signature-add">
+
+                        <button
+                          type="button"
+                          class="cart-add-btn"
+                          data-product-id="{{ product.id }}"
+                          {% if product.is_out_of_stock %}disabled{% endif %}
+                        >
+
+                          {% if product.is_out_of_stock %}
+                            Sold Out
+                          {% else %}
+                            Quick Add
+                          {% endif %}
+
+                        </button>
+
+                      </div>
+
+                    </div>
+
+
+                    <div class="signature-info">
+
+                      <span class="signature-category">
+                        {{ product.category.name }}
+                      </span>
+
+                      <h4>
+
+                        <a href="{{ product.get_absolute_url }}">
+                          {{ product.name }}
+                        </a>
+
+                      </h4>
+
+
+                      <div class="signature-price">
+
+                        <strong>
+                          Rs. {{ product.price }}
+                        </strong>
+
+                        {% if product.compare_at_price %}
+
+                          <del>
+                            Rs. {{ product.compare_at_price }}
+                          </del>
+
+                        {% endif %}
+
+                      </div>
+
+                    </div>
+
+                  </article>
+
+                {% endif %}
+
+              {% empty %}
+
+                <p class="signature-empty">
+                  No products selected for this collection.
+                </p>
+
+              {% endfor %}
+
+            </div>
+
+          </div>
+
+        {% endfor %}
+
+      </div>
+
+    {% endif %}
+
+  </div>
+
 </section>
 
 {% if testimonials %}
@@ -255,5 +503,102 @@ document.querySelectorAll('.chosen-tab').forEach(tab=>{
     });
   });
 });
+
+  
+
+
+
+ 
+document.addEventListener("DOMContentLoaded", function () {
+
+  /* ============================================================
+     CHOSEN FOR YOU TABS
+     ============================================================ */
+
+  const chosenTabs = document.querySelectorAll("[data-chosen]");
+
+  chosenTabs.forEach(function (tab) {
+
+    tab.addEventListener("click", function () {
+
+      chosenTabs.forEach(function (item) {
+        item.classList.remove("is-active");
+      });
+
+      tab.classList.add("is-active");
+
+      const filter = tab.dataset.chosen;
+
+      document
+        .querySelectorAll("[data-chosen-item]")
+        .forEach(function (card) {
+
+          if (filter === "all") {
+            card.style.display = "";
+
+          } else if (filter === "new") {
+            card.style.display =
+              card.dataset.isNew === "1"
+                ? ""
+                : "none";
+
+          } else if (filter === "top") {
+            card.style.display =
+              parseFloat(card.dataset.rating) >= 4.5
+                ? ""
+                : "none";
+          }
+
+        });
+
+    });
+
+  });
+
+
+  /* ============================================================
+     SIGNATURE COLLECTION TABS
+     ============================================================ */
+
+  const signatureTabs = document.querySelectorAll(
+    "[data-signature-tab]"
+  );
+
+  const signatureCollections = document.querySelectorAll(
+    "[data-signature-collection]"
+  );
+
+  signatureTabs.forEach(function (tab) {
+
+    tab.addEventListener("click", function () {
+
+      const collectionId = tab.dataset.signatureTab;
+
+      signatureTabs.forEach(function (item) {
+        item.classList.remove("is-active");
+      });
+
+      signatureCollections.forEach(function (collection) {
+        collection.classList.remove("is-active");
+      });
+
+      tab.classList.add("is-active");
+
+      const selectedCollection = document.querySelector(
+        '[data-signature-collection="' +
+        collectionId +
+        '"]'
+      );
+
+      if (selectedCollection) {
+        selectedCollection.classList.add("is-active");
+      }
+
+    });
+
+  });
+
+});
 </script>
+
 {% endblock %}

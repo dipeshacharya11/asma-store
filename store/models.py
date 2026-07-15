@@ -297,3 +297,39 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity} × {self.product_name}"
+# ==========================================================================
+# SIGNATURE COLLECTION
+# ==========================================================================
+
+class SignatureCollection(models.Model):
+    name = models.CharField(
+        max_length=120,
+        help_text="Example: Oud Collection, Luxury Perfumes"
+    )
+
+    subtitle = models.CharField(
+        max_length=180,
+        blank=True
+    )
+
+    description = models.TextField(blank=True)
+
+    products = models.ManyToManyField(
+        Product,
+        related_name="signature_collections",
+        blank=True
+    )
+
+    sort_order = models.PositiveIntegerField(default=0)
+
+    is_active = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        verbose_name = "Signature Collection"
+        verbose_name_plural = "Signature Collections"
+
+    def __str__(self):
+        return self.name
