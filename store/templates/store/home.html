@@ -239,213 +239,208 @@
   </div>
 </section>
 <!-----------------------------------------____________________________________signature____________________-->
-
-
 <section id="signature-products" class="signature-section">
 
-  <div class="container">
+    <div class="container">
 
-    <div class="signature-section-head">
+        <div class="signature-section-head">
 
-      <div>
-        <div class="eyebrow">
-          The Signature Edit
+            <div>
+                <div class="eyebrow">The Signature Edit</div>
+
+                <h2>Our Signature Products</h2>
+
+                <p>
+                    Discover distinctive fragrances and curated essentials
+                    selected to define the Asma experience.
+                </p>
+            </div>
+
+            <a href="{% url 'store:collection' %}" class="view-all">
+                Explore Collection →
+            </a>
+
         </div>
 
-        <h2>
-          Our Signature Products
-        </h2>
+        {% if signature_collections %}
 
-        <p>
-          Discover distinctive fragrances and curated essentials
-          selected to define the Asma experience.
-        </p>
-      </div>
+            <!-- Tabs -->
+            <div class="signature-tabs">
 
-      <a
-        href="{% url 'store:collection' %}"
-        class="view-all"
-      >
-        Explore Collection →
-      </a>
+                {% for collection in signature_collections %}
+
+                    <button
+                        type="button"
+                        class="signature-tab {% if forloop.first %}is-active{% endif %}"
+                        data-signature-tab="{{ collection.id }}">
+
+                        {{ collection.name }}
+
+                    </button>
+
+                {% endfor %}
+
+            </div>
+
+            <!-- Collections -->
+            <div class="signature-collections">
+
+                {% for collection in signature_collections %}
+
+                    <div
+                        class="signature-collection {% if forloop.first %}is-active{% endif %}"
+                        data-signature-collection="{{ collection.id }}">
+
+                        <div class="signature-collection-intro">
+
+                            {% if collection.subtitle %}
+                                <span>{{ collection.subtitle }}</span>
+                            {% endif %}
+
+                            <h3>{{ collection.name }}</h3>
+
+                            {% if collection.description %}
+                                <p>{{ collection.description }}</p>
+                            {% endif %}
+
+                        </div>
+
+                        <div class="signature-grid">
+
+                            {% for product in collection.products.all|slice:":8" %}
+
+                                {% if product.is_active %}
+
+                                <article class="signature-card">
+
+                                    <div class="signature-media">
+
+                                        <a href="{{ product.get_absolute_url }}">
+
+                                            {% if product.primary_image_url %}
+
+                                                <img
+                                                    src="{{ product.primary_image_url }}"
+                                                    alt="{{ product.name }}"
+                                                    loading="lazy"
+                                                    decoding="async">
+
+                                            {% elif product.image %}
+
+                                                <img
+                                                    src="{{ product.image.url }}"
+                                                    alt="{{ product.name }}"
+                                                    loading="lazy"
+                                                    decoding="async">
+
+                                            {% else %}
+
+                                                <div
+                                                    class="signature-placeholder"
+                                                    style="background:{{ product.image_gradient|default:'linear-gradient(145deg,#dbe7f3,#3f6f9f)' }};">
+                                                </div>
+
+                                            {% endif %}
+
+                                        </a>
+
+                                        {% if product.is_new %}
+                                            <span class="signature-badge">
+                                                New
+                                            </span>
+                                        {% endif %}
+
+                                        <div class="signature-add">
+
+                                            <button
+                                                class="cart-add-btn"
+                                                data-product-id="{{ product.id }}"
+                                                {% if product.is_out_of_stock %}disabled{% endif %}>
+
+                                                {% if product.is_out_of_stock %}
+                                                    Sold Out
+                                                {% else %}
+                                                    Quick Add
+                                                {% endif %}
+
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="signature-info">
+
+                                        <span class="signature-category">
+                                            {{ product.category.name }}
+                                        </span>
+
+                                        <h4>
+                                            <a href="{{ product.get_absolute_url }}">
+                                                {{ product.name }}
+                                            </a>
+                                        </h4>
+
+                                        <div class="signature-price">
+
+                                            <strong>
+                                                Rs. {{ product.price }}
+                                            </strong>
+
+                                            {% if product.compare_at_price %}
+                                                <del>
+                                                    Rs. {{ product.compare_at_price }}
+                                                </del>
+                                            {% endif %}
+
+                                        </div>
+
+                                    </div>
+
+                                </article>
+
+                                {% endif %}
+
+                            {% empty %}
+
+                                <div class="signature-empty">
+
+                                    <h4>No products available</h4>
+
+                                    <p>
+                                        Assign products to this collection from the Django Admin.
+                                    </p>
+
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="signature-empty">
+
+                <h3>No Signature Collections Found</h3>
+
+                <p>
+                    Create a Signature Collection in the Django Admin and assign products to it.
+                </p>
+
+            </div>
+
+        {% endif %}
 
     </div>
 
-
-    {% if signature_collections %}
-
-      <div class="signature-tabs">
-
-        {% for collection in signature_collections %}
-
-          <button
-            type="button"
-            class="signature-tab {% if forloop.first %}is-active{% endif %}"
-            data-signature-tab="{{ collection.id }}"
-          >
-            {{ collection.name }}
-          </button>
-
-        {% endfor %}
-
-      </div>
-
-
-      <div class="signature-collections">
-
-        {% for collection in signature_collections %}
-
-          <div
-            class="signature-collection {% if forloop.first %}is-active{% endif %}"
-            data-signature-collection="{{ collection.id }}"
-          >
-
-            <div class="signature-collection-intro">
-
-              {% if collection.subtitle %}
-                <span>
-                  {{ collection.subtitle }}
-                </span>
-              {% endif %}
-
-              <h3>
-                {{ collection.name }}
-              </h3>
-
-              {% if collection.description %}
-                <p>
-                  {{ collection.description }}
-                </p>
-              {% endif %}
-
-            </div>
-
-
-            <div class="signature-grid">
-
-              {% for product in collection.products.all|slice:":8" %}
-
-                {% if product.is_active %}
-
-                  <article class="signature-card">
-
-                    <div class="signature-media">
-
-                      <a href="{{ product.get_absolute_url }}">
-
-                        {% if product.primary_image_url %}
-
-                          <img
-                            src="{{ product.primary_image_url }}"
-                            alt="{{ product.name }}"
-                            loading="lazy"
-                            decoding="async"
-                          >
-
-                        {% else %}
-
-                          <div
-                            class="signature-placeholder"
-                            style="
-                              background:
-                              {{ product.image_gradient|default:'linear-gradient(145deg,#dbe7f3,#3f6f9f)' }};
-                            "
-                          ></div>
-
-                        {% endif %}
-
-                      </a>
-
-
-                      {% if product.is_new %}
-
-                        <span class="signature-badge">
-                          New
-                        </span>
-
-                      {% endif %}
-
-
-                      <div class="signature-add">
-
-                        <button
-                          type="button"
-                          class="cart-add-btn"
-                          data-product-id="{{ product.id }}"
-                          {% if product.is_out_of_stock %}disabled{% endif %}
-                        >
-
-                          {% if product.is_out_of_stock %}
-                            Sold Out
-                          {% else %}
-                            Quick Add
-                          {% endif %}
-
-                        </button>
-
-                      </div>
-
-                    </div>
-
-
-                    <div class="signature-info">
-
-                      <span class="signature-category">
-                        {{ product.category.name }}
-                      </span>
-
-                      <h4>
-
-                        <a href="{{ product.get_absolute_url }}">
-                          {{ product.name }}
-                        </a>
-
-                      </h4>
-
-
-                      <div class="signature-price">
-
-                        <strong>
-                          Rs. {{ product.price }}
-                        </strong>
-
-                        {% if product.compare_at_price %}
-
-                          <del>
-                            Rs. {{ product.compare_at_price }}
-                          </del>
-
-                        {% endif %}
-
-                      </div>
-
-                    </div>
-
-                  </article>
-
-                {% endif %}
-
-              {% empty %}
-
-                <p class="signature-empty">
-                  No products selected for this collection.
-                </p>
-
-              {% endfor %}
-
-            </div>
-
-          </div>
-
-        {% endfor %}
-
-      </div>
-
-    {% endif %}
-
-  </div>
-
 </section>
+
 
 {% if testimonials %}
 <section style="background:var(--surface-muted);">

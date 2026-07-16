@@ -25,103 +25,40 @@ FREE_SHIPPING_THRESHOLD = Decimal('5000')
 def _is_ajax(request):
     return request.headers.get('x-requested-with') == 'XMLHttpRequest'
 
+
 def home(request):
-    # ============================================================
-    # HERO SLIDES CACHE
-    # ============================================================
-
+    # Real caching: these two queries are identical for every visitor, so
+    # they're cached for 5 minutes and invalidated immediately on save/delete
+    # via the signals in store/signals.py — not stale, just not re-queried
     hero_slides = cache.get(HERO_SLIDES_CACHE_KEY)
-
     if hero_slides is None:
-        hero_slides = list(
-            HeroSlide.objects.filter(
-                is_active=True
-            )
-        )
+        hero_slides = list(HeroSlide.objects.filter(is_active=True))
+        cache.set(HERO_SLIDES_CACHE_KEY, hero_slides, timeout=300)
 
-        cache.set(
-            HERO_SLIDES_CACHE_KEY,
-            hero_slides,
-            timeout=300
-        )
-
-
-    # ============================================================
-    # FEATURED PRODUCTS CACHE
-    # ============================================================
-
-    featured_products = cache.get(
-        FEATURED_PRODUCTS_CACHE_KEY
-    )
-
+    featured_products = cache.get(FEATURED_PRODUCTS_CACHE_KEY)
     if featured_products is None:
         featured_products = list(
-            Product.objects
-            .filter(
-                is_active=True,
-                is_featured=True,
-                stock__gt=0
-            )
-            .select_related("category")[:8]
+            Product.objects.filter(is_active=True, is_featured=True, stock__gt=0).select_related('category')[:8]
         )
-
-        cache.set(
-            FEATURED_PRODUCTS_CACHE_KEY,
-            featured_products,
-            timeout=300
-        )
-
-
-    # ============================================================
-    # SIGNATURE COLLECTIONS
-    # ============================================================
-
-    signature_collections = (
-        SignatureCollection.objects
-        .filter(is_active=True)
-        .prefetch_related(
-            "products",
-            "products__category",
-        )
-        .order_by(
-            "sort_order",
-            "name"
-        )
-    )
-
-
-    # ============================================================
-    # PAGE CONTEXT
-    # ============================================================
+        cache.set(FEATURED_PRODUCTS_CACHE_KEY, featured_products, timeout=300)
 
     context = {
-        "hero_slides": hero_slides,
-
-        "categories": Category.objects.filter(
-            is_active=True
-        ),
-
-        "featured_products": featured_products,
-
-        "signature_collections": signature_collections,
-
-        "testimonials": Testimonial.objects.filter(
-            is_active=True
-        ),
-
-        "transparent_hero": True,
+        'hero_slides': hero_slides,
+        'categories': Category.objects.filter(is_active=True),
+        'featured_products': featured_products,
+        'testimonials': Testimonial.objects.filter(is_active=True),
+        'transparent_hero': True,
     }
-
-
-    # ============================================================
-    # RENDER PAGE
-    # ============================================================
-
-    return render(
-        request,
-        "store/home.html",
-        context
+    return render(request, 'store/home.html', context)
+    signature_collections = (
+    SignatureCollection.objects
+    .filter(is_active=True)
+    .prefetch_related(
+        "products",
+        "products__category",
     )
+    .order_by("sort_order", "name")
+   )
 
 
 def collection(request, slug=None):
@@ -313,7 +250,7 @@ def blog_detail(request, slug):
     return render(request, 'store/blog_detail.html', {'post': post, 'recent': recent})
 
 
-# ---------------------------------------------------------------------------
+
 # Staff dashboard (requires staff status)
 # ---------------------------------------------------------------------------
 @staff_member_required
@@ -383,7 +320,7 @@ def staff_dashboard(request):
         'trend_values': trend_values,
         'trend_max': trend_max,
         'donut_data': donut_data,
-        'signature_collections': signature_collections,
+        'signature_collections':SignatureCollection,
 
     }
     return render(request, 'store/dashboard.html', context)
