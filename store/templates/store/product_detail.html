@@ -6,8 +6,8 @@
 {% block extra_style %}
 <style>
 :root{
-  --pdp-primary:var(--brand-primary,#165dff);
-  --pdp-primary-hover:var(--brand-primary-hover,#0d4ed8);
+  --pdp-primary:var(--brand-primary,#4A8ABA);
+  --pdp-primary-hover:var(--brand-primary-hover,#3C7198);
   --pdp-text:var(--text-primary,#111827);
   --pdp-muted:var(--text-muted,#6b7280);
   --pdp-border:var(--border-default,#e5e7eb);
@@ -730,21 +730,16 @@
 }
 
 /* Animations */
-.pdp-reveal{
-  opacity:1 !important;
-  visibility:visible !important;
-  transform:none !important;
-}
-/* FIX PRODUCT DETAIL PAGE NOT RENDERING */
-.pdp-reveal,
-.pdp-gallery,
-.pdp-info,
-.pdp-signature-section,
-.pdp-products-section{
-  opacity:1 !important;
-  visibility:visible !important;
-  transform:none !important;
-}
+/* .pdp-reveal is applied to the gallery/info/tabs/signature/products
+   sections as a marker class for a future scroll-reveal implementation
+   (matching the home.html data-reveal + IntersectionObserver pattern).
+   No reveal behavior is wired up here yet, so this intentionally has no
+   rules of its own right now — previously this class carried a block of
+   `opacity:1 !important` overrides that were a band-aid for an unrelated
+   bug (a missing closing block tag that broke the whole page), not an
+   actual animation. That's fixed at the source now, so the override is
+   gone; nothing on the page depended on it.
+   */
 @keyframes pdpFade{
   from{opacity:0;transform:translateY(8px)}
   to{opacity:1;transform:none}
@@ -1137,6 +1132,80 @@ body.pdp-sticky-bar-visible {
   color: var(--pdp-danger);
 }
 
+/* "You may also like" — horizontal slider with arrow nav. Reuses the
+   .pdp-signature-card component styles above for visual consistency, but
+   the track scrolls horizontally with snap points and fixed-width cards
+   (~220px per the spec) instead of the signature slider's percentage-based
+   width. Native touch swipe comes for free from overflow-x:auto plus
+   scroll-snap — no extra JS needed for that part. */
+.pdp-alsolike-section .pdp-alsolike-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pdp-alsolike-track {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scroll-behavior: smooth;
+  padding: 4px 2px 10px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.pdp-alsolike-track::-webkit-scrollbar {
+  display: none;
+}
+.pdp-alsolike-slide {
+  flex: 0 0 auto;
+  width: 220px;
+  scroll-snap-align: start;
+  transition: transform .35s var(--pdp-ease, ease);
+}
+.pdp-alsolike-slide:hover {
+  transform: translateY(-6px);
+}
+.pdp-alsolike-slide .pdp-signature-media {
+  aspect-ratio: 4/5;
+}
+.pdp-alsolike-arrow {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--pdp-border);
+  background: var(--pdp-surface, #fff);
+  color: var(--pdp-text);
+  font-size: 20px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all .25s var(--pdp-ease, ease);
+  box-shadow: 0 4px 14px rgba(15,23,42,.06);
+}
+.pdp-alsolike-arrow:hover {
+  background: var(--pdp-primary);
+  color: #fff;
+  border-color: transparent;
+}
+.pdp-alsolike-arrow:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.pdp-alsolike-arrow:disabled:hover {
+  background: var(--pdp-surface, #fff);
+  color: var(--pdp-text);
+}
+@media(max-width:768px) {
+  .pdp-alsolike-arrow { display: none; }
+  .pdp-alsolike-slide { width: 168px; }
+  .pdp-alsolike-track { gap: 12px; }
+}
+
 /* Hover actions for product cards (signature and related) */
 .pdp-card-hover-actions {
   position: absolute;
@@ -1505,6 +1574,58 @@ body {
       </div>
     </section>
 
+    <!-- You May Also Like — same category, horizontal slider with arrows + touch swipe -->
+    {% if related_products %}
+      <section class="pdp-products-section pdp-reveal pdp-alsolike-section" aria-label="You may also like">
+        <div class="container">
+          <div class="pdp-signature-header">
+            <div><h2>YOU MAY ALSO LIKE</h2></div>
+            <div class="underline"></div>
+          </div>
+
+          <div class="pdp-alsolike-wrap">
+            <button class="pdp-alsolike-arrow pdp-alsolike-prev" type="button" aria-label="Scroll to previous products" disabled>‹</button>
+
+            <div class="pdp-alsolike-track" id="alsoLikeTrack" role="list">
+              {% for item in related_products %}
+              <article class="pdp-signature-slide pdp-alsolike-slide" role="listitem">
+                <div class="pdp-signature-card">
+                  <div class="pdp-signature-media">
+                    <a href="{{ item.get_absolute_url }}" aria-label="View {{ item.name }}">
+                      {% if item.primary_image_url %}
+                        <img src="{{ item.primary_image_url }}" alt="{{ item.name }}" width="220" height="275" loading="lazy" decoding="async">
+                      {% else %}
+                        <div class="pdp-image-empty"><span>Image unavailable</span></div>
+                      {% endif %}
+                    </a>
+                    {% if item.discount_percent %}
+                      <span class="pdp-signature-badge">-{{ item.discount_percent }}%</span>
+                    {% endif %}
+                    <button class="pdp-card-wishlist wishlist-toggle-btn {% if item.id in wishlist_ids %}is-active{% endif %}" data-product-id="{{ item.id }}" aria-label="{% if item.id in wishlist_ids %}Remove {{ item.name }} from wishlist{% else %}Add {{ item.name }} to wishlist{% endif %}">
+                      {% if item.id in wishlist_ids %}♥{% else %}♡{% endif %}
+                    </button>
+                  </div>
+                  <div class="pdp-signature-info">
+                    {% if item.category %}<div class="pdp-signature-category">{{ item.category.name }}</div>{% endif %}
+                    <h3 class="pdp-signature-title">
+                      <a href="{{ item.get_absolute_url }}">{{ item.name }}</a>
+                    </h3>
+                    <div class="pdp-signature-price">
+                      <span>Rs. {{ item.price }}</span>
+                      {% if item.compare_at_price %}<del>Rs. {{ item.compare_at_price }}</del>{% endif %}
+                    </div>
+                  </div>
+                </div>
+              </article>
+              {% endfor %}
+            </div>
+
+            <button class="pdp-alsolike-arrow pdp-alsolike-next" type="button" aria-label="Scroll to more products">›</button>
+          </div>
+        </div>
+      </section>
+    {% endif %}
+
     <!-- Signature Products Section -->
     {% if signature_products %}
       <section class="pdp-signature-section pdp-reveal">
@@ -1630,7 +1751,8 @@ body {
       <div id="pdpLightboxCaption" class="pdp-lightbox-caption"></div>
     </div>
   </div>
-</main>{% endblock %}
+</main>
+{% endblock %}
 
 {% block extra_script %}
 <script src="{% static 'store/js/product-detail.js' %}" defer></script>

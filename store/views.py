@@ -42,31 +42,46 @@ def home(request):
         )
         cache.set(FEATURED_PRODUCTS_CACHE_KEY, featured_products, timeout=300)
 
+    # This query previously sat AFTER `return render(...)` below — completely
+    # unreachable dead code, so signature_collections was never actually in
+    # the template context and the whole "Our Signature Products" tabbed
+    # section always rendered its empty state. Moved above the return.
+    signature_collections = (
+        SignatureCollection.objects
+        .filter(is_active=True)
+        .prefetch_related('products', 'products__category')
+        .order_by('sort_order', 'name')
+    )
+
     context = {
         'hero_slides': hero_slides,
-        'categories': Category.objects.filter(is_active=True),
+        'categories': Category.objects.filter(is_active=True, parent__isnull=True),
         'featured_products': featured_products,
         'testimonials': Testimonial.objects.filter(is_active=True),
+        'signature_collections': signature_collections,
         'transparent_hero': True,
     }
     return render(request, 'store/home.html', context)
-    signature_collections = (
-    SignatureCollection.objects
-    .filter(is_active=True)
-    .prefetch_related(
-        "products",
-        "products__category",
-    )
-    .order_by("sort_order", "name")
-   )
 
 
 def collection(request, slug=None):
     products = Product.objects.filter(is_active=True, stock__gt=0).select_related('category')  # avoids N+1 queries
     category = None
+    subcategories = None
+
     if slug:
         category = get_object_or_404(Category, slug=slug, is_active=True)
-        products = products.filter(category=category)
+        if category.is_top_level:
+            # Viewing a parent category (e.g. "Perfumes") shows products from
+            # every active subcategory too, not just ones filed directly
+            # under the parent — customers browsing "Perfumes" expect to see
+            # "Men's Perfume" and "Women's Perfume" items without having to
+            # drill into each subcategory separately.
+            subcategories = category.active_children
+            category_ids = [category.id] + list(subcategories.values_list('id', flat=True))
+            products = products.filter(category_id__in=category_ids)
+        else:
+            products = products.filter(category=category)
 
     sort = request.GET.get('sort')
     if sort == 'price_asc':
@@ -79,22 +94,46 @@ def collection(request, slug=None):
     return render(request, 'store/collection.html', {
         'products': products,
         'category': category,
-        'categories': Category.objects.filter(is_active=True),
+        'subcategories': subcategories,
+        'categories': Category.objects.filter(is_active=True, parent__isnull=True),
     })
     
 
 def product_detail(request, slug):
     product = get_object_or_404(Product.objects.select_related('category'), slug=slug, is_active=True)
-    related = Product.objects.filter(
+
+    # "You may also like" — same category, excluding this product, up to 8.
+    related_products = Product.objects.filter(
         category=product.category, is_active=True, stock__gt=0
-    ).select_related('category').exclude(id=product.id)[:4]
+    ).select_related('category').exclude(id=product.id)[:8]
+
     signature_products = Product.objects.filter(
         is_active=True, is_featured=True, stock__gt=0
     ).select_related('category').exclude(id=product.id)[:10]
+
+    # Recently viewed — session-based, same pattern as the cart/wishlist.
+    # Track this product, then look up the OTHER products already in the
+    # list (most-recent-first) to display.
+    viewed = request.session.get('recently_viewed', [])
+    viewed = [pid for pid in viewed if pid != product.id]  # move to front if already there
+    viewed.insert(0, product.id)
+    request.session['recently_viewed'] = viewed[:12]
+
+    recently_viewed_products = []
+    if len(viewed) > 1:
+        other_ids = viewed[1:9]  # skip the product being viewed right now
+        products_by_id = Product.objects.filter(
+            id__in=other_ids, is_active=True
+        ).select_related('category').in_bulk()
+        # preserve most-recent-first order (in_bulk doesn't guarantee it)
+        recently_viewed_products = [products_by_id[pid] for pid in other_ids if pid in products_by_id]
+
     return render(request, 'store/product_detail.html', {
         'product': product,
-        'related': related,
+        'related': related_products,
+        'related_products': related_products,
         'signature_products': signature_products,
+        'recently_viewed_products': recently_viewed_products,
     })
 
 
@@ -320,8 +359,6 @@ def staff_dashboard(request):
         'trend_values': trend_values,
         'trend_max': trend_max,
         'donut_data': donut_data,
-        'signature_collections':SignatureCollection,
-
     }
     return render(request, 'store/dashboard.html', context)
 

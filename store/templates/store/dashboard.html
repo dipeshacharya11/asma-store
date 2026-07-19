@@ -8,8 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --gold:#2563EB;
-  --gold-light:#DBEAFE;
+  --gold:#4A8ABA;
+  --gold-light:#7FB2DE;
   --dark:#202020;
   --bg:#F4F2ED;
   --surface:#FFFFFF;
@@ -96,7 +96,7 @@ tr:last-child td{border-bottom:none;}
 <div class="app">
 
 <aside class="sidebar">
-  <div class="brand"><img src="{% static 'store/images/logo.jpeg' %}" alt="Asma Stores"> Asma Admin</div>
+  <div class="brand"><img src="{% static 'store/images/logo_bg_r.png' %}" alt="Asma Stores"> Asma Admin</div>
 
   <div class="nav-label">Overview</div>
   <a class="nav-item active"><span class="ic">▦</span> Dashboard</a>
@@ -252,7 +252,7 @@ const points = values.map((v,i)=>{
 const path = document.createElementNS('http://www.w3.org/2000/svg','path');
 path.setAttribute('d', 'M ' + points.map(p=>p.join(',')).join(' L '));
 path.setAttribute('fill','none');
-path.setAttribute('stroke','#2563EB');
+path.setAttribute('stroke','#4A8ABA');
 path.setAttribute('stroke-width','3');
 path.setAttribute('stroke-linecap','round');
 path.setAttribute('stroke-linejoin','round');
@@ -266,7 +266,7 @@ requestAnimationFrame(()=> requestAnimationFrame(()=>{ path.style.strokeDashoffs
 points.forEach((p,i)=>{
   const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
   c.setAttribute('cx',p[0]); c.setAttribute('cy',p[1]); c.setAttribute('r','4');
-  c.setAttribute('fill','#2563EB');
+  c.setAttribute('fill','#4A8ABA');
   svg.appendChild(c);
   const t = document.createElementNS('http://www.w3.org/2000/svg','text');
   t.setAttribute('x',p[0]); t.setAttribute('y',h-4); t.setAttribute('text-anchor','middle');

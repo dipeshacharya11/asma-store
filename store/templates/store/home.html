@@ -45,7 +45,7 @@
 .cat-info{position:absolute; bottom:0; left:0; right:0; padding:24px; z-index:2; color:#fff;}
 .cat-info h3{font-size:20px; margin-bottom:4px; color:#fff;}
 .testi-track{display:grid; grid-template-columns:repeat(3,1fr); gap:26px;}
-.testi-card{background:var(--surface-light); border-radius:var(--radius-lg); padding:32px;}
+.testi-card{background:var(--surface-soft); border-radius:var(--radius-lg); padding:32px;}
 .testi-card .stars{color:var(--brand-primary); margin-bottom:14px;}
 @media(max-width:980px){ .cat-grid{grid-template-columns:repeat(2,1fr);} .testi-track{grid-template-columns:1fr;} .circle-cat-row{gap:22px;} .circle-cat-thumb{width:80px; height:80px;} }
 .chosen-tabs{display:flex; justify-content:center; gap:28px; margin-bottom:36px;}
@@ -91,7 +91,7 @@
   {% for cat in categories %}
   <a class="circle-cat" href="{{ cat.get_absolute_url }}">
     <div class="circle-cat-thumb">
-      {% if cat.image_display_url %}<img src="{{ cat.image_display_url }}" alt="{{ cat.name }}" loading="lazy">{% else %}<div class="bg" style="background:{{ cat.hero_gradient|default:'linear-gradient(150deg,#C9A227,#E5C76B)' }};"></div>{% endif %}
+      {% if cat.image_display_url %}<img src="{{ cat.image_display_url }}" alt="{{ cat.name }}" loading="lazy">{% else %}<div class="bg" style="background:{{ cat.hero_gradient|default:'linear-gradient(150deg,#4A8ABA,#7FB2DE)' }};"></div>{% endif %}
     </div>
     <span>{{ cat.name }}</span>
   </a>
@@ -210,7 +210,6 @@
             {% if product.is_low_stock %}<span class="pbadge low">Only {{ product.stock }} left</span>{% endif %}
           </div>
           <div class="quick-actions">
-            <button class="qa-btn wishlist-toggle-btn {% if product.id in wishlist_ids %}is-active{% endif %}" data-product-id="{{ product.id }}">{% if product.id in wishlist_ids %}♥{% else %}♡{% endif %}</button>
             <a class="qa-btn" href="{{ product.get_absolute_url }}" title="Quick View">👁</a>
           </div>
           <a href="{{ product.get_absolute_url }}">

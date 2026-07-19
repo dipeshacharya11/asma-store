@@ -131,6 +131,31 @@ CATEGORY_GRADIENTS = {
     "Body Care": "linear-gradient(145deg,#eadfd2,#b99473)",
 }
 
+# Real subcategories per top-level category — this is what customers
+# actually browse by (e.g. "Perfumes" -> "Men's Perfume"). Products aren't
+# auto-reassigned into these (that stays a deliberate admin action per
+# product), but the navigable category structure now genuinely exists.
+SUBCATEGORY_DATA = {
+    "Perfumes": [
+        ("Men's Perfume", "linear-gradient(145deg,#101820,#3a536b)"),
+        ("Women's Perfume", "linear-gradient(145deg,#3a1620,#b06a80)"),
+        ("Unisex Perfume", "linear-gradient(145deg,#20201a,#8a8060)"),
+    ],
+    "Deodorants": [
+        ("Men's Deodorant", "linear-gradient(145deg,#1c2b2b,#4f6f6f)"),
+        ("Women's Deodorant", "linear-gradient(145deg,#2b1c26,#805a70)"),
+    ],
+    "Gift Sets": [
+        ("Gifts for Him", "linear-gradient(145deg,#2a1a10,#8a5a30)"),
+        ("Gifts for Her", "linear-gradient(145deg,#3a1420,#a85a70)"),
+        ("Couple Sets", "linear-gradient(145deg,#241a30,#6a4a8a)"),
+    ],
+    "Body Care": [
+        ("Lotions & Creams", "linear-gradient(145deg,#e8ded0,#b09070)"),
+        ("Bath & Shower", "linear-gradient(145deg,#dce8e4,#7fa898)"),
+    ],
+}
+
 
 class Command(BaseCommand):
     help = "Seed Asma Stores with demo categories and products"
@@ -180,6 +205,24 @@ class Command(BaseCommand):
             self.stdout.write(
                 f"{status} category: {name}"
             )
+
+        for parent_name, subs in SUBCATEGORY_DATA.items():
+            parent = categories.get(parent_name)
+            if not parent:
+                continue
+            for sub_index, (sub_name, sub_gradient) in enumerate(subs, start=1):
+                sub_category, sub_created = Category.objects.get_or_create(
+                    name=sub_name,
+                    defaults={
+                        "parent": parent,
+                        "description": f"Shop {sub_name.lower()}.",
+                        "hero_gradient": sub_gradient,
+                        "sort_order": sub_index,
+                        "is_active": True,
+                    },
+                )
+                status = "Created" if sub_created else "Exists"
+                self.stdout.write(f"  {status} subcategory: {parent_name} -> {sub_name}")
 
         for index, data in enumerate(PRODUCTS, start=1):
 
