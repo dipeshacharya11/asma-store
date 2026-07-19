@@ -11,6 +11,19 @@
 .circle-cat.is-active .circle-cat-thumb{box-shadow:0 0 0 3px var(--brand-primary), var(--shadow-lift);}
 .circle-cat-thumb{width:96px; height:96px; border-radius:50%; overflow:hidden; margin:0 auto 10px; background:var(--surface-soft); box-shadow:var(--shadow-lift); border:4px solid #fff; transition:transform .4s var(--ease);}
 .circle-cat:hover .circle-cat-thumb{transform:translateY(-5px);}
+
+/* Subcategory discovery row — shown only when viewing a parent category */
+.subcat-discovery{display:flex; flex-wrap:wrap; justify-content:center; gap:24px; padding:36px 0 8px;}
+.subcat-tile{text-align:center; width:140px;}
+.subcat-thumb{
+  aspect-ratio:1/1; border-radius:14px; overflow:hidden; background:var(--surface-soft);
+  box-shadow:var(--shadow-soft); margin-bottom:10px; transition:transform .4s var(--ease);
+}
+.subcat-thumb img, .subcat-thumb .bg{width:100%; height:100%; object-fit:cover; background-size:cover; background-position:center; transition:transform .6s var(--ease);}
+.subcat-tile:hover .subcat-thumb{transform:translateY(-5px);}
+.subcat-tile:hover .subcat-thumb img, .subcat-tile:hover .subcat-thumb .bg{transform:scale(1.06);}
+.subcat-tile span{font-size:13px; font-weight:600; color:var(--text-primary);}
+@media(max-width:560px){ .subcat-tile{width:104px;} .subcat-discovery{gap:14px;} }
 .circle-cat-thumb img, .circle-cat-thumb .bg{width:100%; height:100%; object-fit:cover; background-size:cover; background-position:center;}
 .circle-cat span{font-weight:600; font-size:13px; font-family:'Playfair Display'; color:var(--text-primary);}
 .shop-layout{padding:50px 0 90px;}
@@ -22,7 +35,17 @@
 <div class="page-banner">
   <div class="eyebrow" style="justify-content:center; color:var(--brand-primary-light);">{% if category %}{{ category.name }}{% else %}All Products{% endif %}</div>
   <h1>{% if category %}{{ category.name }}{% else %}Shop All{% endif %}</h1>
-  <div class="page-crumb"><b>Home</b> &nbsp;›&nbsp; {% if category %}{{ category.name }}{% else %}Shop All{% endif %}</div>
+  <div class="page-crumb">
+    <b>Home</b>
+    {% if category %}
+      {% if category.parent %}
+        &nbsp;›&nbsp; <a href="{{ category.parent.get_absolute_url }}" style="color:inherit;">{{ category.parent.name }}</a>
+      {% endif %}
+      &nbsp;›&nbsp; {{ category.name }}
+    {% else %}
+      &nbsp;›&nbsp; Shop All
+    {% endif %}
+  </div>
 </div>
 
 <div class="circle-cat-row">
@@ -39,6 +62,21 @@
   </a>
   {% endfor %}
 </div>
+
+{% if subcategories %}
+<div class="container">
+  <div class="subcat-discovery">
+    {% for sub in subcategories %}
+    <a class="subcat-tile" href="{{ sub.get_absolute_url }}">
+      <div class="subcat-thumb">
+        {% if sub.image_display_url %}<img src="{{ sub.image_display_url }}" alt="{{ sub.name }}" loading="lazy">{% else %}<div class="bg" style="background:{{ sub.hero_gradient|default:'linear-gradient(150deg,var(--brand-primary-light),var(--brand-primary))' }};"></div>{% endif %}
+      </div>
+      <span>{{ sub.name }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 
 <div class="container shop-layout">
   <div class="toolbar">
@@ -63,7 +101,6 @@
           {% if product.is_low_stock %}<span class="pbadge low">Only {{ product.stock }} left</span>{% endif %}
         </div>
         <div class="quick-actions">
-          <button class="qa-btn wishlist-toggle-btn {% if product.id in wishlist_ids %}is-active{% endif %}" data-product-id="{{ product.id }}">{% if product.id in wishlist_ids %}♥{% else %}♡{% endif %}</button>
           <a class="qa-btn" href="{{ product.get_absolute_url }}" title="Quick View">👁</a>
         </div>
         <a href="{{ product.get_absolute_url }}">

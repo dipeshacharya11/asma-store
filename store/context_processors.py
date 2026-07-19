@@ -38,13 +38,19 @@ def wishlist_summary(request):
 
 def nav_categories(request):
     """
-    Makes the active category list available for the header mega menu and footer.
-    Cached for 10 minutes since it's identical for every visitor — this is a real
-    cache, not a placeholder: it's invalidated immediately whenever a Category is
-    saved or deleted (see store/signals.py), so admin edits still show up right away.
+    Makes the active TOP-LEVEL category list available for the header mega
+    menu and footer, each with its active subcategories prefetched (so the
+    mega menu can show "Perfumes → Men's Perfume / Women's Perfume" without
+    an extra query per category). Cached for 10 minutes since it's identical
+    for every visitor — this is a real cache, not a placeholder: it's
+    invalidated immediately whenever a Category is saved or deleted (see
+    store/signals.py), so admin edits still show up right away.
     """
     categories = cache.get(NAV_CATEGORIES_CACHE_KEY)
     if categories is None:
-        categories = list(Category.objects.filter(is_active=True))
+        categories = list(
+            Category.objects.filter(is_active=True, parent__isnull=True)
+            .prefetch_related('children')
+        )
         cache.set(NAV_CATEGORIES_CACHE_KEY, categories, timeout=600)
     return {'nav_categories': categories}

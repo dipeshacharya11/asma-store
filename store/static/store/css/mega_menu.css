@@ -13,6 +13,9 @@
 .mega-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:36px; max-width:1360px; margin:0 auto; padding:0 32px;}
 .mega-col h5{font-size:11px; text-transform:uppercase; letter-spacing:.14em; color:var(--brand-primary); margin-bottom:16px; font-weight:600;}
 .mega-col a.mega-link{display:block; font-size:14px; padding:7px 0; color:var(--text-secondary); transition:all .25s var(--ease); border-left:2px solid transparent; padding-left:10px; margin-left:-10px;}
+.mega-col a.mega-link-parent{font-weight:700; color:var(--text-primary); margin-top:10px;}
+.mega-col a.mega-link-parent:first-child{margin-top:0;}
+.mega-col a.mega-link-child{font-size:12.5px; padding-left:22px; color:var(--text-muted);}
 .mega-col a.mega-link:hover{color:var(--brand-primary); border-left-color:var(--brand-primary);}
 .mega-card{border-radius:var(--radius-md); overflow:hidden; position:relative; aspect-ratio:4/5; box-shadow:var(--shadow-soft); display:block;}
 .mega-card img, .mega-card .bg{width:100%; height:100%; object-fit:cover; background-size:cover; background-position:center; transition:transform .8s var(--ease); position:absolute; inset:0;}

@@ -37,6 +37,11 @@ class Category(models.Model):
     name = models.CharField(max_length=120)
     slug = models.SlugField(unique=True, blank=True)
     description = models.TextField(blank=True)
+    parent = models.ForeignKey(
+        'self', null=True, blank=True, related_name='children', on_delete=models.CASCADE,
+        help_text="Leave blank for a top-level category. Set this to make it a subcategory "
+                  "(e.g. 'Men's Perfume' with parent 'Perfumes')."
+    )
     image = models.ImageField(upload_to='categories/', blank=True, null=True,
                                help_text="Uploaded photo — automatically compressed and resized on save.")
     hero_gradient = models.CharField(
@@ -51,6 +56,8 @@ class Category(models.Model):
         verbose_name_plural = 'Categories'
 
     def __str__(self):
+        if self.parent_id:
+            return f"{self.parent.name} → {self.name}"
         return self.name
 
     def save(self, *args, **kwargs):
@@ -68,8 +75,29 @@ class Category(models.Model):
         return reverse('store:collection_by_category', args=[self.slug])
 
     @property
+    def is_top_level(self):
+        return self.parent_id is None
+
+    @property
+    def active_children(self):
+        return self.children.filter(is_active=True)
+
+    @property
     def product_count(self):
+        """Direct products in this category only. For a top-level category,
+        does NOT include subcategory products — use total_product_count
+        for that."""
         return self.products.filter(is_active=True, stock__gt=0).count()
+
+    @property
+    def total_product_count(self):
+        """Direct products plus every subcategory's products — the number
+        shown on a parent category tile, since customers browsing 'Perfumes'
+        expect the count to include 'Men's Perfume', 'Women's Perfume', etc."""
+        count = self.product_count
+        for child in self.children.filter(is_active=True):
+            count += child.product_count
+        return count
 
     @property
     def image_display_url(self):

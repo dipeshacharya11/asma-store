@@ -302,3 +302,46 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 });
+
+/* ==========================================================================
+   "You may also like" slider — arrow-click scrolling. Touch/trackpad swipe
+   already works for free via the track's native `overflow-x:auto` +
+   `scroll-snap-type` in CSS, so this only needs to handle the arrow clicks
+   and keep their disabled state in sync with actual scroll position.
+   Deliberately a separate, self-contained DOMContentLoaded listener rather
+   than being folded into the gallery/lightbox init() above — that function
+   wraps everything in a single try/catch that replaces the *entire* page
+   content on any error, so an isolated failure here (e.g. no related
+   products) can't take down the whole product page with it.
+   ========================================================================== */
+document.addEventListener('DOMContentLoaded', function () {
+  const track = document.getElementById('alsoLikeTrack');
+  if (!track) return;
+
+  const prevBtn = document.querySelector('.pdp-alsolike-prev');
+  const nextBtn = document.querySelector('.pdp-alsolike-next');
+  if (!prevBtn || !nextBtn) return;
+
+  function scrollAmount() {
+    const card = track.querySelector('.pdp-alsolike-slide');
+    const gap = 18;
+    return card ? card.offsetWidth + gap : 240;
+  }
+
+  function updateArrowState() {
+    const maxScroll = track.scrollWidth - track.clientWidth - 2; // small tolerance
+    prevBtn.disabled = track.scrollLeft <= 2;
+    nextBtn.disabled = track.scrollLeft >= maxScroll;
+  }
+
+  prevBtn.addEventListener('click', () => {
+    track.scrollBy({ left: -scrollAmount(), behavior: 'smooth' });
+  });
+  nextBtn.addEventListener('click', () => {
+    track.scrollBy({ left: scrollAmount(), behavior: 'smooth' });
+  });
+
+  track.addEventListener('scroll', updateArrowState, { passive: true });
+  window.addEventListener('resize', updateArrowState);
+  updateArrowState();
+});

@@ -23,12 +23,17 @@ admin.site.index_title = "Store Management"
 class CategoryAdmin(admin.ModelAdmin):
     list_display = (
         "thumbnail",
-        "name",
+        "indented_name",
+        "parent",
         "slug",
-        "product_count",
+        "total_product_count",
         "is_active",
         "sort_order",
     )
+
+    list_filter = ("parent", "is_active")
+    autocomplete_fields = ("parent",)
+    search_fields = ("name", "slug")
 
     prepopulated_fields = {
         "slug": ("name",),
@@ -38,6 +43,16 @@ class CategoryAdmin(admin.ModelAdmin):
         "is_active",
         "sort_order",
     )
+
+    @admin.display(description="Category")
+    def indented_name(self, obj):
+        if obj.parent_id:
+            return format_html("&nbsp;&nbsp;&nbsp;&nbsp;↳ {}", obj.name)
+        return format_html("<b>{}</b>", obj.name)
+
+    @admin.display(description="Products (incl. subcategories)")
+    def total_product_count(self, obj):
+        return obj.total_product_count
 
     @admin.display(description="Photo")
     def thumbnail(self, obj):

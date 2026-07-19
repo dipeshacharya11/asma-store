@@ -1,2 +1,10 @@
-# Specify filepatterns you want git to ignore.
-
+__pycache__/
+*.py[cod]
+*.egg-info/
+db.sqlite3
+*.log
+venv/
+env/
+.venv/
+.DS_Store
+staticfiles/

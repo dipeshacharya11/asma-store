@@ -1,15 +1,18 @@
 /* ==========================================================================
    ASMA STORES — Design tokens & base styles
-   Palette per brand spec: blue primary/secondary, white surfaces,
-   near-black text, muted sale/success accents. No bright colors.
+   Primary blue sampled directly from the brand reference photo (a blue-
+   gradient canvas mockup) via PIL pixel sampling: #4A8ABA. All other blue
+   shades below are mathematically derived from that same sampled value
+   (darken/lighten), not separately chosen, so the whole palette stays
+   consistent with the one real reference color.
    ========================================================================== */
 :root{
-  --brand-primary:#2563EB;
-  --brand-primary-hover:#1D4ED8;
-  --brand-primary-active:#1E40AF;
-  --brand-primary-light:#DBEAFE;
-  --brand-primary-lighter:#BFDBFE;
-  --brand-primary-smooth:#60A5FA;
+  --brand-primary:#4A8ABA;
+  --brand-primary-hover:#3C7198;
+  --brand-primary-active:#325D7E;
+  --brand-primary-light:#E9F0F6;
+  --brand-primary-lighter:#D7E5EF;
+  --brand-primary-smooth:#7FB2DE;
 
   --surface-page:#ffffff;
   --surface-card:#ffffff;
@@ -35,16 +38,24 @@
 
   --shadow-card:0 8px 24px rgba(32, 32, 36, .08);
   --shadow-overlay:0 24px 70px rgba(32, 32, 36, .16);
+  /* Referenced across several templates/CSS files but never previously
+     defined here (a real pre-existing bug — those box-shadows silently
+     rendered as nothing). Added to match how they're already being used:
+     a lighter resting-state shadow and a more pronounced hover/lift one. */
+  --shadow-soft:0 10px 30px rgba(32, 32, 36, .06);
+  --shadow-lift:0 20px 48px rgba(32, 32, 36, .14);
 
   --ease-previous:cubic-bezier(.16, 1, .3, 1);
-  --brand-primary-dark:#1E40AF;
+  --brand-primary-dark:#325D7E;
   --ease:cubic-bezier(.22,1,.36,1); /* keeping existing for backward compat */
 }
 
-/* Legacy values for gradual migration - will be removed in future */
+/* Legacy variable names kept for backward compatibility with anything still
+   referencing var(--gold) directly — now holding the real brand blue
+   instead of the old gold theme, so nothing renders gold anymore. */
 :root{
-  --gold:#C9A227;
-  --gold-light:#E5C76B;
+  --gold:#4A8ABA;
+  --gold-light:#7FB2DE;
   --grad-gold:linear-gradient(135deg, var(--gold), var(--gold-light));
   --cream:#FCFAF5;
   --white:#FFFFFF;

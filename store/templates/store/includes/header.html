@@ -136,12 +136,16 @@
         <h5>Shop by Category</h5>
 
         {% for cat in nav_categories %}
-        <a
-          class="mega-link"
-          href="{{ cat.get_absolute_url }}"
-        >
+        <a class="mega-link mega-link-parent" href="{{ cat.get_absolute_url }}">
           {{ cat.name }}
         </a>
+        {% for sub in cat.children.all %}
+          {% if sub.is_active %}
+          <a class="mega-link mega-link-child" href="{{ sub.get_absolute_url }}">
+            {{ sub.name }}
+          </a>
+          {% endif %}
+        {% endfor %}
         {% endfor %}
       </div>
 
@@ -192,7 +196,7 @@
 
         <div
           class="bg"
-          style="background:{{ first_cat.hero_gradient|default:'linear-gradient(150deg,#C9A227,#E5C76B)' }}"
+          style="background:{{ first_cat.hero_gradient|default:'linear-gradient(150deg,#4A8ABA,#7FB2DE)' }}"
         ></div>
 
         {% endif %}
@@ -241,7 +245,7 @@
 
   <a href="{% url 'store:home' %}" class="mobile-logo">
     <img
-      src="{% static 'store/images/logo.jpeg' %}"
+      src="{% static 'store/images/logo_bg_r.png' %}"
       alt="Asma Stores"
     >
   </a>
