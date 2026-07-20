@@ -178,6 +178,18 @@ class Product(models.Model):
         return 0
 
     @property
+    def savings(self):
+        """
+        Calculate savings amount when compare_at_price is greater than price.
+        Returns 0 if no savings or invalid data.
+        """
+        if self.compare_at_price is None:
+            return 0
+        if self.compare_at_price <= self.price:
+            return 0
+        return self.compare_at_price - self.price
+
+    @property
     def primary_image_url(self):
         return self.image.url if self.image else None
 
@@ -325,9 +337,12 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity} × {self.product_name}"
+
+
 # ==========================================================================
 # SIGNATURE COLLECTION
 # ==========================================================================
+
 
 class SignatureCollection(models.Model):
     name = models.CharField(

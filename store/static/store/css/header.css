@@ -12,7 +12,7 @@
 
   padding:0;
 
-  background:rgba(255,255,255,.98);
+  background:#7FA3C3;
   border:0;
   box-shadow:none;
 
@@ -22,7 +22,7 @@
 }
 
 .site-header.is-scrolled{
-  background:rgba(255,255,255,.96);
+  background:#397BAF;
   backdrop-filter:blur(16px);
   -webkit-backdrop-filter:blur(16px);
 
