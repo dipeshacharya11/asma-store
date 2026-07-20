@@ -12,12 +12,8 @@
 
   padding:0;
 
-  background:linear-gradient(
-        180deg,
-        #3F7EB1 0%,
-        #5C93BD 45%,
-        #7FA3C3 100%
-    );
+  background:#2e63c1;
+  
   border:0;
   box-shadow:none;
 
@@ -27,12 +23,7 @@
 }
 
 .site-header.is-scrolled{
-  background:linear-gradient(
-        135deg,
-        #3F7EB1 0%,
-        #5C93BD 45%,
-        #7FA3C3 100%
-    );
+  background:#2e63c1;
   backdrop-filter:blur(16px);
   -webkit-backdrop-filter:blur(16px);
 
@@ -225,6 +216,7 @@
   justify-content:flex-end;
 
   gap:26px;
+  color: white;
 }
 
 .icon-btn{
@@ -262,7 +254,7 @@
   height:24px;
 
   fill:none;
-  stroke:currentColor;
+  stroke:white;
 
   stroke-width:1.65;
   stroke-linecap:round;
