@@ -1379,8 +1379,7 @@ body {
 
         <div class="pdp-meta">
           {% if product.sku %}<span>SKU: <b>{{ product.sku }}</b></span>{% endif %}
-          {% if product.brand %}<span>Brand: <b>{{ product.brand }}</b></span>{% endif %}
-          <span>
+                    <span>
             Availability:
             {% if product.is_out_of_stock %}
               <b class="pdp-stock is-out">Out of stock</b>
@@ -1505,8 +1504,7 @@ body {
       <div class="pdp-tab-panel" id="pdp-specifications" role="tabpanel" aria-labelledby="tab-specifications" hidden>
         <div class="pdp-tab-content">
           <p><strong>Product:</strong> {{ product.name }}</p>
-          {% if product.brand %}<p><strong>Brand:</strong> {{ product.brand }}</p>{% endif %}
-          {% if product.sku %}<p><strong>SKU:</strong> {{ product.sku }}</p>{% endif %}
+                    {% if product.sku %}<p><strong>SKU:</strong> {{ product.sku }}</p>{% endif %}
           {% if product.category %}<p><strong>Category:</strong> {{ product.category.name }}</p>{% endif %}
         </div>
       </div>

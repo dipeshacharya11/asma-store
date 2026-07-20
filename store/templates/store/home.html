@@ -249,10 +249,10 @@
 
                 <h2>Our Signature Products</h2>
 
-                <p>
+               <!-- <p>
                     Discover distinctive fragrances and curated essentials
                     selected to define the Asma experience.
-                </p>
+                </p>-->
             </div>
 
             <a href="{% url 'store:collection' %}" class="view-all">
@@ -263,7 +263,7 @@
 
         {% if signature_collections %}
 
-            <!-- Tabs -->
+            <!-- Tabs 
             <div class="signature-tabs">
 
                 {% for collection in signature_collections %}
@@ -279,7 +279,7 @@
 
                 {% endfor %}
 
-            </div>
+            </div>-->
 
             <!-- Collections -->
             <div class="signature-collections">
@@ -292,7 +292,7 @@
 
                         <div class="signature-collection-intro">
 
-                            {% if collection.subtitle %}
+                           <!-- {% if collection.subtitle %}
                                 <span>{{ collection.subtitle }}</span>
                             {% endif %}
 
@@ -300,7 +300,7 @@
 
                             {% if collection.description %}
                                 <p>{{ collection.description }}</p>
-                            {% endif %}
+                            {% endif %}-->
 
                         </div>
 
@@ -596,3 +596,19 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 {% endblock %}
+{% if testimonials %}
+<section>
+  <div class="container">
+    <div class="section-head"><div><div class="eyebrow">Testimonials</div><h2>Loved by collectors</h2></div></div>
+    <div class="testi-track">
+      {% for t in testimonials %}
+      <div class="testi-card">
+        <div class="stars">{% for i in "12345" %}{% if forloop.counter <= t.rating %}★{% else %}☆{% endif %}{% endfor %}</div>
+        <p style="margin-bottom:18px; font-size:14.5px; line-height:1.7;">"{{ t.quote }}"</p>
+        <b>{{ t.name }}</b> <span class="muted" style="font-size:12.5px; display:block;">{{ t.role }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
