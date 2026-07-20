@@ -1,5 +1,6 @@
 {% load static %}
 
+
 <div class="cart-drawer-head">
     <div>
         <span class="drawer-eyebrow">Your selection</span>
@@ -10,7 +11,7 @@
         type="button"
         class="cart-drawer-close"
         aria-label="Close shopping cart"
-        onclick="window.location.href='/'"
+       
     >
         ×
     </button>
@@ -305,3 +306,12 @@
 </div>
 
 {% endif %}
+{% block extra_script %}
+<script>
+const closeBtn = e.target.closest('.cart-drawer-close, #drawerClose, #continueShoppingBtn');
+
+if (closeBtn) {
+  closeCartDrawer();
+}
+ </script>
+{% endblock %}

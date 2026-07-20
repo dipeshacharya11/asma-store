@@ -12,7 +12,12 @@
 
   padding:0;
 
-  background:#7FA3C3;
+  background:linear-gradient(
+        180deg,
+        #3F7EB1 0%,
+        #5C93BD 45%,
+        #7FA3C3 100%
+    );
   border:0;
   box-shadow:none;
 
@@ -22,7 +27,12 @@
 }
 
 .site-header.is-scrolled{
-  background:#397BAF;
+  background:linear-gradient(
+        135deg,
+        #3F7EB1 0%,
+        #5C93BD 45%,
+        #7FA3C3 100%
+    );
   backdrop-filter:blur(16px);
   -webkit-backdrop-filter:blur(16px);
 
@@ -101,6 +111,7 @@
   text-transform:uppercase;
 
   text-decoration:none;
+  color: white;
 
   transition:
     color .3s var(--ease);
@@ -186,6 +197,7 @@
   max-height:70px !important;
 
   object-fit:contain;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45));
 
   transition:
     max-width .35s var(--ease),

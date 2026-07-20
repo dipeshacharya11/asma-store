@@ -148,7 +148,13 @@ section{padding:88px 0;}
 .msg.warning{background:#FFF7ED; color:#92400E;}
 
 /* ---------- Footer ---------- */
-footer{background:#4480B2; color:rgba(255,255,255,.8); padding:76px 0 30px; margin-top:20px;}
+footer{ min-height: 300px;
+  background: linear-gradient(
+    135deg,
+    #3F7EB1 0%,
+    #2E628D 55%,
+    #1E405E 100%
+); color:rgba(255,255,255,.8); padding:76px 0 30px; margin-top:20px;}
 .footer-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:40px; margin-bottom:52px;}
 .footer-grid h5{color:#fff; font-size:13.5px; letter-spacing:.08em; text-transform:uppercase; margin-bottom:18px; font-family:'Poppins'; font-weight:600;}
 .footer-grid ul{list-style:none;}
