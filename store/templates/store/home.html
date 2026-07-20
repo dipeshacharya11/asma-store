@@ -212,11 +212,23 @@
           <div class="quick-actions">
             <a class="qa-btn" href="{{ product.get_absolute_url }}" title="Quick View">👁</a>
           </div>
-          <a href="{{ product.get_absolute_url }}">
-            {% if product.primary_image_url %}<img class="img-a" src="{{ product.primary_image_url }}" alt="{{ product.name }}" loading="lazy">{% else %}<div class="img-a" style="background:{{ product.image_gradient|default:'linear-gradient(160deg,var(--brand-primary-light),var(--brand-primary))' }};"></div>{% endif %}
-            {% if product.secondary_image_url %}<img class="img-b" src="{{ product.secondary_image_url }}" alt="{{ product.name }}" loading="lazy">{% else %}<div class="img-b" style="background:{{ product.image_gradient_secondary|default:'linear-gradient(200deg,#202020,var(--brand-primary))' }};"></div>{% endif %}
-            <div class="prod-frame"></div>
-          </a>
+    <a href="{{ product.get_absolute_url }}">
+    {% if product.primary_image_url %}
+        <img class="img-a" src="{{ product.primary_image_url }}" alt="{{ product.name }}" loading="lazy" decoding="async" style="background: transparent;">
+    {% else %}
+        <div class="img-a img-placeholder">
+            <!-- Optional SVG Placeholder -->
+        </div>
+    {% endif %}
+
+    {% if product.secondary_image_url %}
+        <img class="img-b" src="{{ product.secondary_image_url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
+    {% endif %}
+
+    <div class="prod-frame"></div>
+</a>                                                                                                                       
+
+
           <div class="quick-add-bar">
             <button class="cart-add-btn" data-product-id="{{ product.id }}" {% if product.is_out_of_stock %}disabled{% endif %}>{% if product.is_out_of_stock %}Sold Out{% else %}Quick Add{% endif %}</button>
           </div>

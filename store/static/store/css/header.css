@@ -455,10 +455,76 @@
 
 
 
+.mobile-category-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.mobile-category-item {
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.mobile-category-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: transparent;
+    border: 0;
+    padding: 16px 4px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    position: relative;
+}
+
+.mobile-category-header:hover {
+    color: var(--brand-primary);
+}
+
+.mobile-category-toggle {
+    font-size: 12px;
+    transition: transform 0.2s ease;
+}
+
+.mobile-category-header.active .mobile-category-toggle {
+    transform: rotate(45deg);
+}
+
+.mobile-category-children {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 0;
+    overflow: hidden;
+    background: var(--surface-muted);
+    transition: max-height 0.3s ease;
+}
+
+.mobile-category-children li {
+    border-top: 1px solid var(--border-soft);
+}
+
+.mobile-category-children a {
+    display: block;
+    padding: 12px 4px 12px 24px;
+    color: var(--text-muted);
+    font-size: 13.5px;
+    text-decoration: none;
+}
+
+.mobile-category-children a:hover {
+    color: var(--brand-primary);
+    background: var(--surface-light);
+}
+
 /* ==========================================================================
    DRAWER OVERLAY
    ========================================================================== */
-
 .drawer-overlay{
   position:fixed;
   inset:0;

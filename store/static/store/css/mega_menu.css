@@ -2,11 +2,11 @@
    Mega menu — glass panel, 4 columns (categories / links / product preview / promo)
    ========================================================================== */
 .mega-menu{
-  position:fixed; top:100%; left:0; right:0; z-index:75;
+  position:fixed; top:104px; left:0; right:0; z-index:75;
   background:rgba(255,255,255,.86); backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
   box-shadow:0 30px 70px rgba(32,32,32,.14);
   opacity:0; visibility:hidden; transform:translateY(-8px);
-  transition:opacity .4s var(--ease), transform .4s var(--ease), visibility 0s .4s;
+  transition:opacity .4s var(--ease), transform .4s var(--ease), visibility 0s .4s, top .4s var(--ease);
   padding:44px 0;
 }
 .mega-menu.is-open{opacity:1; visibility:visible; transform:translateY(0); transition:opacity .4s var(--ease), transform .4s var(--ease);}
