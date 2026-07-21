@@ -135,8 +135,9 @@ button, input, select, textarea{font-family:'Poppins',sans-serif; cursor:pointer
 
 /* ---------- Section shell ---------- */
 section{padding:88px 0;}
-.section-head{display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:44px; flex-wrap:wrap; gap:18px;}
+.section-head{display:flex; flex-direction:column; align-items:center; text-align:center; margin-bottom:44px; gap:14px;}
 .section-head h2{font-size:clamp(28px,3.4vw,42px);}
+.section-head .eyebrow{display:block;}
 .view-all{font-size:13.5px; font-weight:600; color:var(--brand-primary); border-bottom:1.5px solid var(--brand-primary-light); padding-bottom:3px; transition:opacity .3s;}
 .view-all:hover{opacity:.7;}
 

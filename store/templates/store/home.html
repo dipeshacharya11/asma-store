@@ -608,19 +608,3 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 {% endblock %}
-{% if testimonials %}
-<section>
-  <div class="container">
-    <div class="section-head"><div><div class="eyebrow">Testimonials</div><h2>Loved by collectors</h2></div></div>
-    <div class="testi-track">
-      {% for t in testimonials %}
-      <div class="testi-card">
-        <div class="stars">{% for i in "12345" %}{% if forloop.counter <= t.rating %}★{% else %}☆{% endif %}{% endfor %}</div>
-        <p style="margin-bottom:18px; font-size:14.5px; line-height:1.7;">"{{ t.quote }}"</p>
-        <b>{{ t.name }}</b> <span class="muted" style="font-size:12.5px; display:block;">{{ t.role }}</span>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-{% endif %}
