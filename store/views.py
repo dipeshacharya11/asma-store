@@ -134,6 +134,10 @@ def product_detail(request, slug):
         'related_products': related_products,
         'signature_products': signature_products,
         'recently_viewed_products': recently_viewed_products,
+        # The template checks `product.id in wishlist_ids` to decide whether
+        # the Wishlist button shows as active — this was missing from context
+        # entirely, so the button never reflected the real session wishlist.
+        'wishlist_ids': request.session.get('wishlist', []),
     })
 
 

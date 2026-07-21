@@ -3,6 +3,8 @@
    ========================================================================== */
 .mega-menu{
   position:fixed; top:104px; left:0; right:0; z-index:75;
+  /* top is overridden to 82px when .site-header.is-scrolled, see below,
+     so the menu always sits flush against the header — no gap/"push down" */
   background:rgba(255,255,255,.86); backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
   box-shadow:0 30px 70px rgba(32,32,32,.14);
   opacity:0; visibility:hidden; transform:translateY(-8px);
@@ -10,6 +12,7 @@
   padding:44px 0;
 }
 .mega-menu.is-open{opacity:1; visibility:visible; transform:translateY(0); transition:opacity .4s var(--ease), transform .4s var(--ease);}
+.site-header.is-scrolled .mega-menu{top:82px;}
 .mega-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:36px; max-width:1360px; margin:0 auto; padding:0 32px;}
 .mega-col h5{font-size:11px; text-transform:uppercase; letter-spacing:.14em; color:var(--brand-primary); margin-bottom:16px; font-weight:600;}
 .mega-col a.mega-link{display:block; font-size:14px; padding:7px 0; color:var(--text-secondary); transition:all .25s var(--ease); border-left:2px solid transparent; padding-left:10px; margin-left:-10px;}
