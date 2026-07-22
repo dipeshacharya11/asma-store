@@ -1,10 +1,206 @@
 {% load static %}
 
 <header id="siteHeader" class="site-header">
-    <div class="header-grid">
-        <!-- LEFT: Logo -->
-        <a href="{% url 'store:home' %}" class="logo">
-            <img src="{% static 'store/images/logo_bg_r.png' %}" alt="Asma Stores">
+  <div class="header-grid">
+
+    <!-- LOGO (left) -->
+    <a
+      href="{% url 'store:home' %}"
+      class="logo"
+      aria-label="Asma Stores home"
+    >
+      <img
+        src="{% static 'store/images/logo_bg_r.png' %}"
+        alt="Asma Stores"
+      >
+    </a>
+
+    <button
+      type="button"
+      class="burger"
+      id="burgerBtn"
+      aria-label="Open menu"
+      aria-controls="mobileDrawer"
+      aria-expanded="false"
+    >
+      <svg viewBox="0 0 24 24">
+        <path d="M4 7h16M4 12h16M4 17h16"/>
+      </svg>
+    </button>
+
+    <!-- CENTER: nav + search bar -->
+    <div class="header-center">
+      <nav class="main-nav" aria-label="Main navigation">
+        <ul>
+          <li>
+            <a href="{% url 'store:home' %}">Home</a>
+          </li>
+
+          <li data-mega-trigger="shop">
+            <a href="{% url 'store:collection' %}" class="shop-link">
+              Shop
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m7 10 5 5 5-5"/>
+              </svg>
+            </a>
+          </li>
+
+          <li>
+            <a href="{% url 'store:blog_list' %}">Blogs</a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- AMAZON-STYLE INLINE SEARCH BAR (desktop) -->
+      <form class="header-search-bar" action="{% url 'store:search' %}" method="get" role="search" aria-label="Search products">
+        <input
+          type="text"
+          name="q"
+          value="{{ query|default:'' }}"
+          placeholder="Search products..."
+          autocomplete="off"
+        >
+        <button type="submit" aria-label="Search">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="10.8" cy="10.8" r="6.6"/>
+            <path d="m16 16 4.2 4.2"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+
+
+    <!-- RIGHT ICONS -->
+    <div class="header-icons">
+
+      <!-- SEARCH (mobile/tablet only — the inline bar above covers desktop) -->
+      <button
+        type="button"
+        class="icon-btn search-trigger-mobile"
+        id="searchTrigger"
+        aria-label="Search"
+      >
+        <svg viewBox="0 0 24 24">
+          <circle cx="10.8" cy="10.8" r="6.6"/>
+          <path d="m16 16 4.2 4.2"/>
+        </svg>
+      </button>
+
+
+      <!-- ACCOUNT -->
+      {% if user.is_authenticated %}
+      <a
+        href="{% url 'store:account' %}"
+        class="icon-btn"
+        aria-label="My account"
+      >
+      {% else %}
+      <a
+        href="{% url 'store:login' %}"
+        class="icon-btn"
+        aria-label="Sign in"
+      >
+      {% endif %}
+
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="7" r="3.8"/>
+          <path d="M4.5 21v-2.2a7.5 7.5 0 0 1 15 0V21"/>
+        </svg>
+
+      </a>
+
+
+      <!-- WISHLIST -->
+      <a
+        href="{% url 'store:wishlist' %}"
+        class="icon-btn"
+        aria-label="Wishlist{% if wishlist_count %} ({{ wishlist_count }} items{% endif %})"
+      >
+        <svg viewBox="0 0 24 24">
+          <path d="M12 20.5s-7.5-4.6-10-9.3C.4 7.8 2 4.5 5.4 4c2.1-.3 4 .8 6.6 3.5C14.6 4.8 16.5 3.7 18.6 4c3.4.5 5 3.8 3.4 7.2C21.5 15.9 12 20.5 12 20.5Z"/>
+        </svg>
+
+        {% if wishlist_count %}
+        <span class="cart-badge" id="wishlistBadge">
+          {{ wishlist_count }}
+        </span>
+        {% endif %}
+      </a>
+
+
+      <!-- CART -->
+      <button
+        type="button"
+        class="icon-btn cart-icon-btn"
+        id="cartTrigger"
+        aria-label="Open cart"
+      >
+        <svg class="cart-bag-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <defs>
+            <linearGradient id="goldBagGradient" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#FCEABB"/>
+              <stop offset="35%" stop-color="#E8C25B"/>
+              <stop offset="70%" stop-color="#C9971F"/>
+              <stop offset="100%" stop-color="#8F6A0F"/>
+            </linearGradient>
+          </defs>
+          <path d="M6.5 8.5h11l.9 12h-12.8l.9-12Z" fill="url(#goldBagGradient)" stroke="#8F6A0F" stroke-width="1"/>
+          <path d="M9 9V6.5a3 3 0 0 1 6 0V9" fill="none" stroke="url(#goldBagGradient)" stroke-width="1.8"/>
+        </svg>
+
+        {% if cart_count %}
+        <span class="cart-badge" id="cartBadge">
+          {{ cart_count }}
+        </span>
+        {% endif %}
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- MEGA MENU -->
+  <div class="mega-menu" data-mega-for="shop">
+
+    <div class="mega-grid">
+
+      <!-- CATEGORIES -->
+      <div class="mega-col">
+        <h5>Shop by Category</h5>
+
+        {% for cat in nav_categories %}
+        <a class="mega-link mega-link-parent" href="{{ cat.get_absolute_url }}">
+          {{ cat.name }}
+        </a>
+        {% for sub in cat.children.all %}
+          {% if sub.is_active %}
+          <a class="mega-link mega-link-child" href="{{ sub.get_absolute_url }}">
+            {{ sub.name }}
+          </a>
+          {% endif %}
+        {% endfor %}
+        {% endfor %}
+      </div>
+
+
+      <!-- COLLECTIONS -->
+      <div class="mega-col">
+        <h5>Collections</h5>
+
+        <a class="mega-link"
+           href="{% url 'store:collection' %}">
+          All Products
+        </a>
+
+        <a class="mega-link"
+           href="{% url 'store:collection' %}?sort=newest">
+          New Arrivals
+        </a>
+
+        <a class="mega-link"
+           href="{% url 'store:collection' %}?sort=price_desc">
+          Best Sellers
         </a>
 
         <!-- CENTER: Search Bar (desktop only) -->

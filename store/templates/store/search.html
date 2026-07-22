@@ -1,16 +1,50 @@
 {% extends "store/base.html" %}
 {% block title %}Search — Asma Stores{% endblock %}
 {% block extra_style %}
-.search-page-wrap{padding:120px 0 90px;}
-.search-page-form{display:flex; border-bottom:2px solid var(--dark); padding-bottom:14px; margin-bottom:40px; max-width:600px;}
-.search-page-form input{flex:1; font-family:'Playfair Display'; font-size:24px; background:none; border:none; outline:none;}
+.search-page-wrap{padding:130px 0 90px;}
+.search-page-head{text-align:center; max-width:640px; margin:0 auto 36px;}
+.search-page-head .eyebrow{justify-content:center;}
+.search-page-head h1{font-size:clamp(28px,3.4vw,42px); margin-bottom:10px;}
+.search-page-sub{font-size:14.5px; color:var(--text-muted);}
+.search-page-sub strong{color:var(--text-primary);}
+.search-page-form{
+  display:flex; align-items:center; gap:8px;
+  height:54px; max-width:600px; margin:0 auto 48px; padding:0 6px 0 22px;
+  background:var(--surface-card); border:1px solid var(--border-default);
+  border-radius:999px; box-shadow:var(--shadow-card);
+  transition:box-shadow .3s var(--ease), border-color .3s var(--ease);
+}
+.search-page-form:focus-within{border-color:var(--brand-primary); box-shadow:0 0 0 4px var(--brand-primary-light), var(--shadow-card);}
+.search-page-form input{flex:1; min-width:0; font-family:inherit; font-size:15px; background:none; border:none; outline:none; color:var(--text-primary);}
+.search-page-form button{
+  flex:0 0 auto; width:42px; height:42px; border-radius:50%; border:none;
+  background:var(--brand-primary); color:#fff; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:background .25s var(--ease);
+}
+.search-page-form button:hover{background:var(--brand-primary-hover);}
+.search-page-form button svg{width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
 {% endblock %}
 {% block content %}
 <div class="container search-page-wrap">
-  <form method="get" class="search-page-form">
+
+  <div class="search-page-head">
+    <div class="eyebrow">Search</div>
+    <h1>Search Results</h1>
+    {% if query %}
+    <p class="search-page-sub">Showing {{ results|length }} result{{ results|length|pluralize }} for <strong>"{{ query }}"</strong></p>
+    {% endif %}
+  </div>
+
+  <form method="get" class="search-page-form" role="search" aria-label="Search products">
     <input type="text" name="q" value="{{ query }}" placeholder="Search products..." autofocus>
-    <button type="submit" class="qa-btn" style="position:static;">⌕</button>
+    <button type="submit" aria-label="Search">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="10.8" cy="10.8" r="6.6"/>
+        <path d="m16 16 4.2 4.2"/>
+      </svg>
+    </button>
   </form>
+
   {% include "store/includes/search_results.html" %}
 </div>
 {% endblock %}

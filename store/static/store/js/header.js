@@ -26,7 +26,7 @@
   (function () {
     if (!header) return;
 
-    const HIDE_DISTANCE = 70;    // net downward distance required before hiding (60-80px range)
+    const HIDE_DISTANCE = 70;    // net downward distance required before hiding
     const REVEAL_TOP_ZONE = 80;  // always show header near the very top
 
     let lastY = window.pageYOffset || document.documentElement.scrollTop;
@@ -48,21 +48,21 @@
       const diff = currentY - lastY;
 
       if (anyOverlayOpen() || currentY <= REVEAL_TOP_ZONE) {
-        header.classList.remove('header-hidden');
+        header.classList.remove('is-hidden');
         downAccum = 0;
       } else if (diff > 0) {
         // Scrolling down: accumulate net distance; only hide once it's a
-        // real, deliberate scroll, not a jittery micro-movement.
+        // real, deliberate scroll (60-80px), not a jittery micro-movement.
         downAccum += diff;
         if (downAccum > HIDE_DISTANCE) {
-          header.classList.add('header-hidden');
+          header.classList.add('is-hidden');
         }
       } else if (diff < 0) {
         // Scrolling up: reveal immediately on ANY upward movement, however
-        // small — this is what makes it feel like Amazon, and it must not
-        // wait for a cumulative threshold the way hiding does.
+        // small — this is what makes it feel like Amazon. Reset the
+        // downward accumulator so the next hide requires a fresh 70px.
         downAccum = 0;
-        header.classList.remove('header-hidden');
+        header.classList.remove('is-hidden');
       }
 
       lastY = currentY;

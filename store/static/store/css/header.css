@@ -106,8 +106,7 @@
 
   transition:
     background .35s var(--ease),
-    box-shadow .35s var(--ease),
-    transform .28s var(--ease); /* 250-300ms per spec */
+    transform .28s var(--ease);
 }
 
 .site-header.is-scrolled{
@@ -128,29 +127,199 @@
   padding:0 32px;
 
   display:grid;
+  grid-template-columns:auto 1fr auto; /* logo | nav+search | icons */
   align-items:center;
   gap:30px;
 
   transition:height .35s var(--ease);
 }
 
-/* Define grid areas for desktop and mobile.
-   NOTE: this breakpoint must match where .burger becomes visible and
-   .mega-menu hides (both at max-width:1100px, further down this file) —
-   they were previously split at 767/1100px, which meant between 768px and
-   1100px the burger button had no "burger" area to sit in (grid-area
-   referencing a name absent from the active grid-template-areas falls back
-   to auto-placement) and could visually overlap the logo/search/icons. */
-@media(min-width: 1101px){
-  .header-grid{
-    grid-template-columns: 1fr 2fr 1fr;
-    grid-template-areas:
-      "logo search icons";
-    height:104px;
-  }
-  .site-header.is-scrolled .header-grid{
-    height:82px;
-  }
+.site-header.is-scrolled .header-grid{
+  height:82px;
+}
+
+
+/* ==========================================================================
+   CENTER: NAV + SEARCH BAR
+   ========================================================================== */
+
+.header-center{
+  display:flex;
+  align-items:center;
+  min-width:0;
+  gap:36px;
+}
+
+.main-nav{
+  flex:0 0 auto;
+}
+
+/* Amazon-style merged search pill: icon + input + submit button as one
+   rounded component, same height family as the navbar. */
+.header-search-bar{
+  display:flex;
+  align-items:center;
+
+  flex:1 1 auto;
+  max-width:480px;
+  min-width:0;
+
+  height:46px;
+
+  background:#fff;
+  border-radius:999px;
+  overflow:hidden;
+
+  box-shadow:0 4px 14px rgba(0,0,0,.12);
+  transition:box-shadow .3s var(--ease);
+}
+
+.header-search-bar:focus-within{
+  box-shadow:0 4px 18px rgba(0,0,0,.22), 0 0 0 3px rgba(255,255,255,.35);
+}
+
+.header-search-bar input{
+  flex:1;
+  min-width:0;
+  height:100%;
+
+  padding:0 18px;
+
+  border:none;
+  outline:none;
+  background:none;
+
+  font-family:inherit;
+  font-size:14px;
+  color:var(--text-primary);
+}
+
+.header-search-bar input::placeholder{
+  color:var(--text-muted);
+}
+
+.header-search-bar button{
+  flex:0 0 auto;
+
+  width:46px;
+  height:46px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:none;
+  background:var(--brand-primary);
+  color:#fff;
+
+  cursor:pointer;
+  transition:background .25s var(--ease);
+}
+
+.header-search-bar button:hover{
+  background:var(--brand-primary-hover);
+}
+
+.header-search-bar button svg{
+  width:19px;
+  height:19px;
+
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.main-nav ul{
+  display:flex;
+  align-items:center;
+
+  gap:42px;
+
+  padding:0;
+  margin:0;
+
+  list-style:none;
+}
+
+.main-nav li{
+  position:relative;
+}
+
+.main-nav a{
+  position:relative;
+
+  display:flex;
+  align-items:center;
+  gap:5px;
+
+  padding:12px 0;
+
+  color:var(--text-primary);
+
+  font-size:13px;
+  font-weight:500;
+  line-height:1;
+
+  letter-spacing:.015em;
+  text-transform:uppercase;
+
+  text-decoration:none;
+  color: white;
+
+  transition:
+    color .3s var(--ease);
+}
+
+.main-nav a::after{
+  content:"";
+
+  position:absolute;
+  left:0;
+  bottom:4px;
+
+  width:0;
+  height:1px;
+
+  background:var(--brand-primary);
+
+  transition:width .35s var(--ease);
+}
+
+.main-nav a:hover{
+  color:var(--brand-primary);
+}
+
+.main-nav a:hover::after{
+  width:100%;
+}
+
+.shop-link svg{
+  width:12px;
+  height:12px;
+
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+
+  stroke-linecap:round;
+  stroke-linejoin:round; 
+    /*------------------------------------------mega---*/
+    [data-mega-trigger="shop"]:hover .mega-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* 3. Rotates the arrow icon smoothly on hover everywhere */
+[data-mega-trigger="shop"]:hover .shop-link svg {
+  transform: rotate(180deg);
+}
+
+.shop-link svg {
+  transition: transform 0.25s var(--ease);
 }
 @media(max-width: 1100px){
   .header-grid{
@@ -178,7 +347,7 @@
 
 
 /* ==========================================================================
-   LOGO
+   LOGO (left)
    ========================================================================== */
 
 .logo{
@@ -333,6 +502,11 @@
   justify-content:flex-end;
   gap:26px;
   color:white;
+}
+
+/* Desktop uses the persistent inline search bar in .header-center instead */
+.search-trigger-mobile{
+  display:none;
 }
 
 .icon-btn{
@@ -628,7 +802,33 @@
    ========================================================================== */
 
 @media(max-width:1100px){
-  /* Logo size */
+
+  .header-grid{
+    height:88px;
+
+    grid-template-columns:auto auto 1fr; /* logo | burger | icons */
+
+    padding:0 24px;
+  }
+
+  .site-header.is-scrolled .header-grid{
+    height:74px;
+  }
+
+  .header-center{
+    display:none;
+  }
+
+  .search-trigger-mobile{
+    display:flex;
+  }
+
+  .burger{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
   .logo{
     width:155px;
     height:70px;

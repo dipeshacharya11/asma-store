@@ -1,5 +1,4 @@
 {% if results %}
-<h6 style="font-size:11px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin-bottom:16px;">{{ results|length }} result{{ results|length|pluralize }} for "{{ query }}"</h6>
 <div class="search-results-grid">
   {% for p in results %}
   <a class="search-result-card" href="{{ p.get_absolute_url }}">
@@ -10,5 +9,14 @@
   {% endfor %}
 </div>
 {% elif query %}
-<p class="search-empty">No products found for "{{ query }}". Try a different search term.</p>
+<div class="search-empty-state">
+  <svg viewBox="0 0 120 120" aria-hidden="true">
+    <circle cx="52" cy="52" r="34" fill="none" stroke="currentColor" stroke-width="4"/>
+    <path d="m77 77 24 24" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+    <path d="M40 52h24M52 40v24" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" opacity=".5"/>
+  </svg>
+  <h3>No products found</h3>
+  <p>Try another keyword or browse our collections.</p>
+  <a href="{% url 'store:collection' %}" class="btn btn-primary">Browse Collections</a>
+</div>
 {% endif %}
