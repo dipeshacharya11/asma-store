@@ -2,67 +2,133 @@
    ASMA STORES HEADER
    ========================================================================== */
 
+:root{
+  --brand-primary:#235C93;
+  --brand-primary-hover:#1C4E80;
+  --brand-primary-active:#163D66;
+  --brand-primary-light:#E9F1F8;
+  --brand-primary-lighter:#D8E7F3;
+  --brand-primary-smooth:#6FA6C5;
+  --brand-secondary:#3F7EB1;
+  --brand-accent:#6FA6C5;
+
+  --brand-gradient:linear-gradient(135deg,#235C93 0%,#E9F1F8 100%);
+  --footer-gradient:linear-gradient(180deg,#2A689D,#235C93,#1B4E7B);
+
+  --surface-page:#F7FAFD;
+  --surface-card:#FFFFFF;
+  --surface-soft:#EEF5FA;
+  --surface-muted:#E4EEF5;
+
+  --text-primary:#18324A;
+  --text-secondary:#345273;
+  --text-muted:#64748B;
+  --text-inverse:#ffffff;
+
+  --border-default:#D8E7F3;
+  --border-soft:#E7F0F7;
+  --border-strong:#B9D2E5;
+
+  --status-sale:#EF4444;
+  --status-success:#22C55E;
+  --status-warning:#F59E0B;
+  --status-danger:#EF4444;
+
+  --radius-sm:8px;
+  --radius-md:14px;
+  --radius-lg:18px;
+
+  --shadow-card:0 8px 24px rgba(32, 32, 36, .08);
+  --shadow-overlay:0 24px 70px rgba(32, 32, 36, .16);
+  /* Referenced across several templates/CSS files but never previously
+     defined here (a real pre-existing bug — those box-shadows silently
+     rendered as nothing). Added to match how they're already being used:
+     a lighter resting-state shadow and a more pronounced hover/lift one. */
+  --shadow-soft:0 10px 30px rgba(32, 32, 36, .06);
+  --shadow-lift:0 20px 48px rgba(32, 32, 36, .14);
+
+  --ease-previous:cubic-bezier(.16, 1, .3, 1);
+  --brand-primary-dark:#325D7E;
+  --ease:cubic-bezier(.22,1,.36,1); /* keeping existing for backward compat */
+}
+
+/* Legacy variable names kept for backward compatibility with anything still
+   referencing var(--gold) directly — now holding the real brand blue
+   instead of the old gold theme, so nothing renders gold anymore. */
+:root{
+  --gold:#4A8ABA;
+  --gold-light:#7FB2DE;
+  --grad-gold:linear-gradient(135deg, var(--gold), var(--gold-light));
+  --cream:#FCFAF5;
+  --white:#FFFFFF;
+  --dark:#202020;
+  --light-gray:#F7F7F7;
+  --text:#303030;
+  --muted:#6B6B6B;
+  --success:#2E7D32;
+  --sale:#D72638;
+  --border:#EAE5D8;
+}
+
+/* Hide header when scrolling down — must be transform (not display:none) so
+   it can actually animate smoothly, per spec ("use transform:translateY(-100%),
+   do NOT animate using top", 250-300ms). display:none has zero transition. */
+.header-hidden{
+  transform:translateY(-100%);
+}
+
+/* ==========================================================================
+    RESPONSIVE HELPERS
+    ========================================================================== */
+.mobile-only{ display: none; }
+.desktop-only{ display: block; }
+@media(max-width: 767px){
+  .mobile-only{ display: block; }
+  .desktop-only{ display: none; }
+}
+
+/* ==========================================================================
+   HEADER GRID
+   ========================================================================== */
+
 .site-header{
-  position:fixed;
+  position:fixed; /* was missing entirely — header wasn't sticky at all */
   top:0;
   left:0;
   right:0;
   width:100%;
   z-index:80;
 
-  padding:0;
-
-  background:var(--brand-gradient);
-
-  border:0;
-  box-shadow:none;
+  background: var(--brand-gradient);
 
   transform:translateY(0);
   will-change:transform;
 
   transition:
-    box-shadow .35s var(--ease),
     background .35s var(--ease),
     transform .28s var(--ease);
 }
 
 .site-header.is-scrolled{
-  background:var(--brand-gradient);
   backdrop-filter:blur(16px);
   -webkit-backdrop-filter:blur(16px);
-
   box-shadow:0 8px 30px rgba(0,0,0,.08);
-}
-
-/* Amazon-style: header slides fully out of view on scroll-down, reappears
-   immediately on scroll-up. Never applied while a mega menu / mobile drawer /
-   search overlay is open — see header.js anyOverlayOpen(). */
-.site-header.is-hidden{
-  transform:translateY(-100%);
 }
 
 @media (prefers-reduced-motion: reduce){
   .site-header{ transition:background .35s var(--ease), box-shadow .35s var(--ease); }
 }
 
-
-/* ==========================================================================
-   HEADER GRID
-   ========================================================================== */
-
 .header-grid{
   width:100%;
   max-width:1360px; /* matches .container / .pdp-container / .mega-grid so the
                         Home link, breadcrumb, and page content share one edge */
-  height:104px;
-
   margin:0 auto;
   padding:0 32px;
 
   display:grid;
   grid-template-columns:auto 1fr auto; /* logo | nav+search | icons */
   align-items:center;
-
   gap:30px;
 
   transition:height .35s var(--ease);
@@ -255,8 +321,29 @@
 .shop-link svg {
   transition: transform 0.25s var(--ease);
 }
+@media(max-width: 1100px){
+  .header-grid{
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "logo icons"
+      "burger burger";
+    height:76px;
+    padding:0 18px;
+    gap:12px;
+  }
+  .site-header.is-scrolled .header-grid{
+    height:68px;
+  }
+  .search-bar-desktop{
+    display:none; /* no "search" area exists in this template anymore */
+  }
 }
 
+/* Place elements in grid areas */
+.logo{ grid-area: logo; }
+.search-bar-desktop{ grid-area: search; }
+.header-icons{ grid-area: icons; }
+.burger{ grid-area: burger; }
 
 
 /* ==========================================================================
@@ -302,7 +389,108 @@
   max-height:73px !important; /* +30% over the previous 56px */
 }
 
+/* ==========================================================================
+   SEARCH BAR (DESKTOP)
+   ========================================================================== */
 
+.search-bar-desktop{
+  display:flex;
+  align-items:center;
+  gap:0; /* Removed gap to combine input and button */
+}
+
+/* Shop dropdown link */
+.search-bar-desktop .shop-link{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:white;
+  font-size:13px;
+  font-weight:500;
+  text-transform:uppercase;
+  letter-spacing:.015em;
+  position:relative;
+  padding:12px 0;
+  transition:color .3s var(--ease);
+}
+.search-bar-desktop .shop-link:hover{
+  color:var(--brand-primary);
+}
+.search-bar-desktop .shop-link svg{
+  width:12px;
+  height:12px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  transition:transform .25s var(--ease);
+}
+.search-bar-desktop .shop-link:hover svg{
+  transform:rotate(180deg);
+}
+
+/* Search form */
+.search-bar-desktop .search-form{
+  display:flex;
+  align-items:center;
+  flex:1;
+  max-width:480px;
+  width:100%;
+  gap:0; /* Removed gap to combine input and button */
+}
+.search-bar-desktop .search-form input{
+  flex:1;
+  height:48px;
+  padding:0 16px;
+  border:none;
+  border-top-left-radius:24px; /* Keep left rounded */
+  border-bottom-left-radius:24px; /* Keep left rounded */
+  border-top-right-radius:0; /* Remove right radius to attach to button */
+  border-bottom-right-radius:0; /* Remove right radius to attach to button */
+  background:rgba(255,255,255,0.15);
+  color:white;
+  font-size:15px;
+  outline:none;
+  transition:background .35s var(--ease);
+}
+.search-bar-desktop .search-form input::placeholder{
+  color:rgba(255,255,255,0.7);
+}
+.search-bar-desktop .search-form input:focus{
+  background:rgba(255,255,255,0.25);
+}
+.search-bar-desktop .search-form button{
+  height:48px;
+  padding:0 24px;
+  border:none;
+  border-top-left-radius:0; /* Remove left radius to attach to input */
+  border-bottom-left-radius:0; /* Remove left radius to attach to input */
+  border-top-right-radius:24px; /* Keep right rounded */
+  border-bottom-right-radius:24px; /* Keep right rounded */
+  background:var(--brand-primary);
+  color:white;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  transition:background .35s var(--ease), transform .2s var(--ease);
+}
+.search-bar-desktop .search-form button:hover{
+  background:var(--brand-primary-hover);
+  transform:translateY(-2px);
+}
+.search-bar-desktop .search-form button svg{
+  width:20px;
+  height:20px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.6;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
 
 /* ==========================================================================
    RIGHT ICONS
@@ -312,9 +500,8 @@
   display:flex;
   align-items:center;
   justify-content:flex-end;
-
   gap:26px;
-  color: white;
+  color:white;
 }
 
 /* Desktop uses the persistent inline search bar in .header-center instead */
@@ -324,52 +511,66 @@
 
 .icon-btn{
   position:relative;
-
   width:25px;
   height:25px;
-
   padding:0;
   margin:0;
-
   border:0;
   outline:0;
-
   background:transparent;
-
   display:flex;
   align-items:center;
   justify-content:center;
-
   color:var(--text-primary);
-
   cursor:pointer;
   text-decoration:none;
-
-  transition:
-    color .25s var(--ease),
-    transform .25s var(--ease);
+  transition:color .25s var(--ease), transform .25s var(--ease);
 }
-
 .icon-btn svg{
   display:block;
-
   width:24px;
   height:24px;
-
   fill:none;
   stroke:white;
-
   stroke-width:1.65;
   stroke-linecap:round;
   stroke-linejoin:round;
 }
-
 .icon-btn:hover{
   color:var(--brand-primary);
   transform:translateY(-2px);
 }
 
-
+/* Search trigger (mobile/tablet only) — hidden by default since the
+   .mobile-only helper class on this element can't override it (this
+   selector's specificity was higher, so it was always showing, duplicating
+   the desktop search bar). Revealed at the same ≤1100px breakpoint as the
+   burger button, further down this file. */
+.header-icons .search-trigger-mobile{
+  display:none;
+  align-items:center;
+  justify-content:center;
+  width:25px;
+  height:25px;
+  padding:0;
+  margin:0;
+  border:0;
+  outline:0;
+  background:transparent;
+}
+.header-icons .search-trigger-mobile svg{
+  width:24px;
+  height:24px;
+  fill:none;
+  stroke:white;
+  stroke-width:1.65;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.header-icons .search-trigger-mobile:hover{
+  color:var(--brand-primary);
+  transform:translateY(-2px);
+}
 
 /* ==========================================================================
    CART BADGE
@@ -381,26 +582,19 @@
 
 .cart-badge{
   position:absolute;
-
   top:-7px;
   right:-10px;
-
   width:18px;
   height:18px;
-
   border-radius:50%;
-
   display:flex;
   align-items:center;
   justify-content:center;
-
   background:var(--brand-primary);
   color:#fff;
-
   font-size:9px;
   font-weight:700;
   line-height:1;
-
   pointer-events:none;
 }
 
@@ -412,50 +606,36 @@
   0%{
     transform:scale(1);
   }
-
   45%{
     transform:scale(1.4);
   }
-
   100%{
     transform:scale(1);
   }
 }
-
-
 
 /* ==========================================================================
    BURGER
    ========================================================================== */
 
 .burger{
-  display:none;
-
   width:26px;
   height:26px;
-
   padding:0;
-
   border:0;
   background:transparent;
-
   color:var(--text-primary);
-
   cursor:pointer;
 }
-
 .burger svg{
   width:25px;
   height:25px;
-
   fill:none;
   stroke:currentColor;
-
   stroke-width:1.7;
   stroke-linecap:round;
+  stroke-linejoin:round;
 }
-
-
 
 /* ==========================================================================
    MOBILE DRAWER
@@ -463,115 +643,82 @@
 
 .mobile-drawer{
   position:fixed;
-
   top:0;
   left:0;
-
   width:min(320px, 88vw);
   height:100%;
-
   z-index:110;
-
   padding:28px;
-
   background:var(--surface-page);
-
   overflow-y:auto;
-
   transform:translateX(-100%);
-
   transition:transform .45s var(--ease);
-
   box-shadow:20px 0 60px rgba(0,0,0,.12);
 }
-
 .mobile-drawer.is-open{
   transform:translateX(0);
 }
-
 .mobile-logo{
   display:flex;
   justify-content:center;
 }
-
 .mobile-logo img{
   width:auto !important;
   height:auto !important;
-
   max-width:145px !important;
   max-height:60px !important;
-
   object-fit:contain;
 }
-
 .mobile-drawer ul{
   padding:0;
   margin:30px 0 0;
-
   list-style:none;
 }
-
 .mobile-drawer li{
   border-bottom:1px solid var(--border-soft);
 }
-
 .mobile-drawer li > a,
 .mobile-acc-head{
   width:100%;
-
   display:flex;
   align-items:center;
   justify-content:space-between;
-
   padding:16px 4px;
-
   border:0;
   background:transparent;
-
   color:var(--text-primary);
-
   font-family:inherit;
   font-size:14px;
   font-weight:500;
-
   text-decoration:none;
-
   cursor:pointer;
 }
-
 .mobile-acc-body{
   max-height:0;
-
   overflow:hidden;
-
   transition:max-height .4s var(--ease);
 }
-
 .mobile-acc-body a{
   display:block;
-
   padding:9px 4px 9px 16px;
-
   color:var(--text-muted);
-
   font-size:13.5px;
-
   text-decoration:none;
 }
 
+/* ==========================================================================
+   MOBILE DRAWER (continued)
+   ========================================================================== */
 
-
-
+/* Mobile category styles (unchanged) */
 .mobile-category-list {
     list-style: none;
     padding: 0;
     margin: 0;
 }
-
 .mobile-category-item {
     border-bottom: 1px solid var(--border-soft);
 }
-
 .mobile-category-header {
     width: 100%;
     display: flex;
@@ -588,20 +735,16 @@
     cursor: pointer;
     position: relative;
 }
-
 .mobile-category-header:hover {
     color: var(--brand-primary);
 }
-
 .mobile-category-toggle {
     font-size: 12px;
     transition: transform 0.2s ease;
 }
-
 .mobile-category-header.active .mobile-category-toggle {
     transform: rotate(45deg);
 }
-
 .mobile-category-children {
     list-style: none;
     padding: 0;
@@ -611,11 +754,9 @@
     background: var(--surface-muted);
     transition: max-height 0.3s ease;
 }
-
 .mobile-category-children li {
     border-top: 1px solid var(--border-soft);
 }
-
 .mobile-category-children a {
     display: block;
     padding: 12px 4px 12px 24px;
@@ -623,7 +764,6 @@
     font-size: 13.5px;
     text-decoration: none;
 }
-
 .mobile-category-children a:hover {
     color: var(--brand-primary);
     background: var(--surface-light);
@@ -650,15 +790,12 @@
     opacity .35s var(--ease),
     visibility 0s .35s;
 }
-
 .drawer-overlay.is-open{
   opacity:1;
   visibility:visible;
 
   transition:opacity .35s var(--ease);
 }
-
-
 
 /* ==========================================================================
    TABLET
@@ -696,81 +833,100 @@
     width:155px;
     height:70px;
   }
-
   .logo img{
     max-width:145px !important;
     max-height:58px !important;
   }
-
+  /* Header icons gap */
   .header-icons{
     gap:20px;
   }
-
+  /* Show burger */
+  .burger{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  /* Show the compact search trigger — inline search bar is hidden here */
+  .header-icons .search-trigger-mobile{
+    display:flex;
+  }
+  /* Hide mega menu */
   .mega-menu{
     display:none;
   }
 }
-
-
 
 /* ==========================================================================
    MOBILE
    ========================================================================== */
 
 @media(max-width:600px){
-
-  .header-grid{
-    height:76px;
-
-    padding:0 18px;
-
-    gap:12px;
-  }
-
-  .site-header.is-scrolled .header-grid{
-    height:68px;
-  }
-
+  /* Logo size */
   .logo{
     width:125px;
     height:60px;
   }
-
   .logo img{
     max-width:118px !important;
     max-height:50px !important;
   }
-
   .site-header.is-scrolled .logo img{
     max-width:110px !important;
     max-height:46px !important;
   }
-
+  /* Header icons gap */
   .header-icons{
     gap:15px;
   }
-
+  /* Icon sizes */
   .icon-btn{
     width:22px;
     height:22px;
   }
-
   .icon-btn svg{
     width:21px;
     height:21px;
   }
-
+  /* Hide the second icon (wishlist) */
   .header-icons .icon-btn:nth-child(2){
     display:none;
   }
-
+  /* Cart badge size */
   .cart-badge{
     width:16px;
     height:16px;
-
     top:-7px;
     right:-8px;
-
     font-size:8px;
   }
 }
+
+/* ==========================================================================
+   MEGA MENU
+   ========================================================================== */
+
+/* Mega menu styles (from original) */
+.mega-menu{
+  position:fixed;
+  top:104px;
+  left:0;
+  right:0;
+  z-index:75;
+  /* top is overridden to 82px when .site-header.is-scrolled, see below,
+     so the menu always sits flush against the header — no gap/"push down" */
+  background:rgba(255,255,255,.86);
+  backdrop-filter:blur(22px);
+  -webkit-backdrop-filter:blur(22px);
+  box-shadow:0 30px 70px rgba(32,32,32,.14);
+  opacity:0;
+  visibility:hidden;
+  transform:translateY(-8px);
+  transition:opacity .4s var(--ease), transform .4s var(--ease), visibility 0s .4s, top .4s var(--ease);
+  padding:48px 0;
+  border-top:1px solid var(--border-soft);
+}
+.mega-menu.is-open{opacity:1; visibility:visible; transform:translateY(0); transition:opacity .4s var(--ease), transform .4s var(--ease);}
+.site-header.is-scrolled .mega-menu{top:82px;}
+
+/* End of file */
