@@ -70,9 +70,11 @@
   --border:#EAE5D8;
 }
 
-/* Hide header when scrolling down */
+/* Hide header when scrolling down — must be transform (not display:none) so
+   it can actually animate smoothly, per spec ("use transform:translateY(-100%),
+   do NOT animate using top", 250-300ms). display:none has zero transition. */
 .header-hidden{
-  display: none;
+  transform:translateY(-100%);
 }
 
 /* ==========================================================================
@@ -89,9 +91,33 @@
    HEADER GRID
    ========================================================================== */
 
-/* Set header background to the brand gradient (now white) */
 .site-header{
+  position:fixed; /* was missing entirely — header wasn't sticky at all */
+  top:0;
+  left:0;
+  right:0;
+  width:100%;
+  z-index:80;
+
   background: var(--brand-gradient);
+
+  transform:translateY(0);
+  will-change:transform;
+
+  transition:
+    background .35s var(--ease),
+    box-shadow .35s var(--ease),
+    transform .28s var(--ease); /* 250-300ms per spec */
+}
+
+.site-header.is-scrolled{
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  box-shadow:0 8px 30px rgba(0,0,0,.08);
+}
+
+@media (prefers-reduced-motion: reduce){
+  .site-header{ transition:background .35s var(--ease), box-shadow .35s var(--ease); }
 }
 
 .header-grid{
@@ -108,8 +134,14 @@
   transition:height .35s var(--ease);
 }
 
-/* Define grid areas for desktop and mobile */
-@media(min-width: 768px){
+/* Define grid areas for desktop and mobile.
+   NOTE: this breakpoint must match where .burger becomes visible and
+   .mega-menu hides (both at max-width:1100px, further down this file) —
+   they were previously split at 767/1100px, which meant between 768px and
+   1100px the burger button had no "burger" area to sit in (grid-area
+   referencing a name absent from the active grid-template-areas falls back
+   to auto-placement) and could visually overlap the logo/search/icons. */
+@media(min-width: 1101px){
   .header-grid{
     grid-template-columns: 1fr 2fr 1fr;
     grid-template-areas:
@@ -120,7 +152,7 @@
     height:82px;
   }
 }
-@media(max-width: 767px){
+@media(max-width: 1100px){
   .header-grid{
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
@@ -132,6 +164,9 @@
   }
   .site-header.is-scrolled .header-grid{
     height:68px;
+  }
+  .search-bar-desktop{
+    display:none; /* no "search" area exists in this template anymore */
   }
 }
 
@@ -284,8 +319,8 @@
   fill:none;
   stroke:currentColor;
   stroke-width:1.6;
-  stroke-linecap=round;
-  stroke-linejoin=round;
+  stroke-linecap:round;
+  stroke-linejoin:round;
 }
 
 /* ==========================================================================
@@ -311,52 +346,56 @@
   background:transparent;
   display:flex;
   align-items:center;
-  justify-content=center;
+  justify-content:center;
   color:var(--text-primary);
-  cursor=pointer;
-  text-decoration=none;
+  cursor:pointer;
+  text-decoration:none;
   transition:color .25s var(--ease), transform .25s var(--ease);
 }
 .icon-btn svg{
   display:block;
-  width=24px;
-  height=24px;
+  width:24px;
+  height:24px;
   fill:none;
-  stroke=white;
-  stroke-width=1.65;
-  stroke-linecap=round;
-  stroke-linejoin=round;
+  stroke:white;
+  stroke-width:1.65;
+  stroke-linecap:round;
+  stroke-linejoin:round;
 }
 .icon-btn:hover{
-  color=var(--brand-primary);
-  translate:translateY(-2px);
+  color:var(--brand-primary);
+  transform:translateY(-2px);
 }
 
-/* Search trigger (mobile only) - inside header-icons */
+/* Search trigger (mobile/tablet only) — hidden by default since the
+   .mobile-only helper class on this element can't override it (this
+   selector's specificity was higher, so it was always showing, duplicating
+   the desktop search bar). Revealed at the same ≤1100px breakpoint as the
+   burger button, further down this file. */
 .header-icons .search-trigger-mobile{
-  display:flex;
+  display:none;
   align-items:center;
   justify-content:center;
-  width=25px;
-  height=25px;
-  padding=0;
-  margin=0;
-  border=0;
-  outline=0;
-  background=transparent;
+  width:25px;
+  height:25px;
+  padding:0;
+  margin:0;
+  border:0;
+  outline:0;
+  background:transparent;
 }
 .header-icons .search-trigger-mobile svg{
-  width=24px;
-  height=24px;
+  width:24px;
+  height:24px;
   fill:none;
-  stroke=white;
-  stroke-width=1.65;
-  stroke-linecap=round;
-  stroke-linejoin=round;
+  stroke:white;
+  stroke-width:1.65;
+  stroke-linecap:round;
+  stroke-linejoin:round;
 }
 .header-icons .search-trigger-mobile:hover{
-  color=var(--brand-primary);
-  translate:translateY(-2px);
+  color:var(--brand-primary);
+  transform:translateY(-2px);
 }
 
 /* ==========================================================================
@@ -364,25 +403,25 @@
    ========================================================================== */
 
 .cart-icon-btn{
-  margin-left=2px;
+  margin-left:2px;
 }
 
 .cart-badge{
-  position=absolute;
-  top=-7px;
-  right=-10px;
-  width=18px;
-  height=18px;
-  border-radius=50%;
-  display=flex;
-  align-items=center;
-  justify-content=center;
-  background=var(--brand-primary);
-  color=#fff;
-  font-size=9px;
-  font-weight=700;
-  line-height=1;
-  pointer-events=none;
+  position:absolute;
+  top:-7px;
+  right:-10px;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--brand-primary);
+  color:#fff;
+  font-size:9px;
+  font-weight:700;
+  line-height:1;
+  pointer-events:none;
 }
 
 .cart-badge.bump{
@@ -391,13 +430,13 @@
 
 @keyframes cartBadgeBump{
   0%{
-    transform=scale(1);
+    transform:scale(1);
   }
   45%{
-    transform=scale(1.4);
+    transform:scale(1.4);
   }
   100%{
-    transform=scale(1);
+    transform:scale(1);
   }
 }
 
@@ -406,22 +445,22 @@
    ========================================================================== */
 
 .burger{
-  width=26px;
-  height=26px;
-  padding=0;
-  border=0;
-  background=transparent;
-  color=var(--text-primary);
-  cursor=pointer;
+  width:26px;
+  height:26px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:var(--text-primary);
+  cursor:pointer;
 }
 .burger svg{
-  width=25px;
-  height=25px;
-  fill=none;
-  stroke=currentColor;
-  stroke-weight=1.7;
-  stroke-linecap=round;
-  stroke-linejoin=round;
+  width:25px;
+  height:25px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.7;
+  stroke-linecap:round;
+  stroke-linejoin:round;
 }
 
 /* ==========================================================================
@@ -451,46 +490,46 @@
 }
 .mobile-logo img{
   width:auto !important;
-  height=auto !important;
+  height:auto !important;
   max-width:145px !important;
   max-height:60px !important;
-  object-fit=contain;
+  object-fit:contain;
 }
 .mobile-drawer ul{
-  padding=0;
-  margin=30px 0 0;
+  padding:0;
+  margin:30px 0 0;
   list-style:none;
 }
 .mobile-drawer li{
-  border-bottom=1px solid var(--border-soft);
+  border-bottom:1px solid var(--border-soft);
 }
 .mobile-drawer li > a,
 .mobile-acc-head{
-  width=100%;
-  display=flex;
-  align-items=center;
-  justify-content=space-between;
-  padding=16px 4px;
-  border=0;
-  background=transparent;
-  color=var(--text-primary);
-  font-family=inherit;
-  font-size=14px;
-  font-weight=500;
-  text-decoration=none;
-  cursor=pointer;
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 4px;
+  border:0;
+  background:transparent;
+  color:var(--text-primary);
+  font-family:inherit;
+  font-size:14px;
+  font-weight:500;
+  text-decoration:none;
+  cursor:pointer;
 }
 .mobile-acc-body{
-  max-height=0;
-  overflow=hidden;
+  max-height:0;
+  overflow:hidden;
   transition:max-height .4s var(--ease);
 }
 .mobile-acc-body a{
-  display=block;
-  padding=9px 4px 9px 16px;
-  color=var(--text-muted);
-  font-size=13.5px;
-  text-decoration=none;
+  display:block;
+  padding:9px 4px 9px 16px;
+  color:var(--text-muted);
+  font-size:13.5px;
+  text-decoration:none;
 }
 
 /* ==========================================================================
@@ -574,7 +613,7 @@
   visibility:hidden;
 
   transition:
-    opacity .35s var(--ease);
+    opacity .35s var(--ease),
     visibility 0s .35s;
 }
 .drawer-overlay.is-open{
@@ -595,7 +634,7 @@
     height:70px;
   }
   .logo img{
-    max-width=145px !important;
+    max-width:145px !important;
     max-height:58px !important;
   }
   /* Header icons gap */
@@ -607,6 +646,10 @@
     display:flex;
     align-items:center;
     justify-content:center;
+  }
+  /* Show the compact search trigger — inline search bar is hidden here */
+  .header-icons .search-trigger-mobile{
+    display:flex;
   }
   /* Hide mega menu */
   .mega-menu{
@@ -625,12 +668,12 @@
     height:60px;
   }
   .logo img{
-    max-width=118px !important;
+    max-width:118px !important;
     max-height:50px !important;
   }
   .site-header.is-scrolled .logo img{
-    max-width=110px !important;
-    max-height=46px !important;
+    max-width:110px !important;
+    max-height:46px !important;
   }
   /* Header icons gap */
   .header-icons{
@@ -642,7 +685,7 @@
     height:22px;
   }
   .icon-btn svg{
-    width=21px;
+    width:21px;
     height:21px;
   }
   /* Hide the second icon (wishlist) */
@@ -651,11 +694,11 @@
   }
   /* Cart badge size */
   .cart-badge{
-    width=16px;
-    height=16px;
+    width:16px;
+    height:16px;
     top:-7px;
-    right=-8px;
-    font-size=8px;
+    right:-8px;
+    font-size:8px;
   }
 }
 
@@ -669,7 +712,7 @@
   top:104px;
   left:0;
   right:0;
-  z-index=75;
+  z-index:75;
   /* top is overridden to 82px when .site-header.is-scrolled, see below,
      so the menu always sits flush against the header — no gap/"push down" */
   background:rgba(255,255,255,.86);
@@ -685,24 +728,5 @@
 }
 .mega-menu.is-open{opacity:1; visibility:visible; transform:translateY(0); transition:opacity .4s var(--ease), transform .4s var(--ease);}
 .site-header.is-scrolled .mega-menu{top:82px;}
-.mega-grid{display:grid; grid-template-columns:repeat(4,1fr); gap=48px; max-width=1360px; margin:0 auto; padding:0 32px;}
-.mega-col{padding:0 4px;}
-.mega-col h5{font-size=11px; text-transform=uppercase; letter-spacing=.14em; color=var(--brand-primary); margin-bottom=18px; font-weight=600;}
-.mega-col a.mega-link{display=flex; align-items=center; gap=8px; font-size=14px; padding=8px 0; color=var(--text-secondary); transition=all .25s var(--ease); border-left=2px solid transparent; padding-left=10px; margin-left=-10px; border-radius=var(--radius-sm);}
-.mega-col a.mega-link-parent{font-weight=700; color=var(--text-primary); margin-top=12px;}
-.mega-col a.mega-link-parent:first-child{margin-top=0;}
-.mega-col a.mega-link-child{font-size=12.5px; padding-left=22px; color=var(--text-muted);}
-.mega-col a.mega-link:hover{color=var(--brand-primary); border-left-color=var(--brand-primary; background=var(--brand-primary-light);}
-.mega-card{border-radius=var(--radius-md); overflow=hidden; position=relative; aspect-ratio=4/5; box-shadow=var(--shadow-soft); display=block;}
-.mega-card img, .mega-card .bg{width=100%; height=100%; object-fit=cover; background-size=cover; background-position=center; transition:transform .8s var(--ease); position=absolute; inset=0;}
-.mega-card:hover img, .mega-card:hover .bg{transform:scale(1.08);}
-.mega-card .mega-card-label{position=absolute; bottom=16px; left=16px; color=#fff; font-family='Playfair Display'; font-size=17px; z-index=2;}
-.mega-card::after{content=''; position=absolute; inset=0; background=linear-gradient(0deg, rgba(32,20,8,.55), transparent 60%); z-index=1;}
-.mega-promo{border-radius=var(--radius-md); background=var(--brand-primary-light); padding=28px; display=flex; flex-direction=column; justify-content=flex-end; min-height=100%; color=var(--brand-primary-active);}
-.mega-promo h4{color=var(--brand-primary-active); font-size=19px; margin-bottom=8px;}
-.mega-promo a{font-size=12.5px; font-weight=700; text-decoration=underline; color=var(--brand-primary-active);}
-@media(max-width:991px){
-  .mega-grid{grid-template-columns=repeat(2,1fr); gap=32px;}
-}
 
 /* End of file */
