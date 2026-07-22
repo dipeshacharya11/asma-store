@@ -47,12 +47,12 @@
       const delta = currentY - lastScrollY;
 
       if (anyOverlayOpen() || currentY <= REVEAL_TOP_ZONE) {
-        header.classList.remove('is-hidden');
+        header.classList.remove('header-hidden');
       } else if (Math.abs(delta) > HIDE_THRESHOLD) {
         if (delta > 0) {
-          header.classList.add('is-hidden');   // scrolling down -> hide
+          header.classList.add('header-hidden');   // scrolling down -> hide
         } else {
-          header.classList.remove('is-hidden'); // scrolling up -> reveal immediately
+          header.classList.remove('header-hidden'); // scrolling up -> reveal immediately
         }
       }
 

@@ -71,7 +71,7 @@
                     class="drawer-thumb drawer-thumb-fallback"
                     style="
                     background:
-                    {{ item.product.image_gradient|default:'linear-gradient(160deg,#235C93,#6FA6C5)' }};
+                    {{ item.product.image_gradient|default:'linear-gradient(160deg,#4A8ABA,#7FB2DE)' }};
                     "
                 ></div>
 
@@ -194,7 +194,7 @@
                         class="drawer-upsell-thumb"
                         style="
                         background:
-                        {{ product.image_gradient|default:'linear-gradient(160deg,#235C93,#6FA6C5)' }};
+                        {{ product.image_gradient|default:'linear-gradient(160deg,#4A8ABA,#7FB2DE)' }};
                         "
                     ></div>
 
@@ -308,10 +308,71 @@
 {% endif %}
 {% block extra_script %}
 <script>
-const closeBtn = e.target.closest('.cart-drawer-close, #drawerClose, #continueShoppingBtn');
+    // 1. Accept 'e' as a parameter in your function
+/**
+ * Safe Cart Drawer Script
+ * Includes safety checks to prevent 'null' element crashes on templates without a cart drawer.
+ */
 
-if (closeBtn) {
-  closeCartDrawer();
+// 1. OPEN CART DRAWER FUNCTION (Fixes the line 20 classList error)
+function openCartDrawer() {
+  // Update '.cart-drawer' to match your actual theme's drawer selector if different
+  const drawer = document.querySelector('.cart-drawer') || document.getElementById('cart-drawer');
+  
+  // Guard Clause: If the drawer HTML doesn't exist on this page, exit gracefully
+  if (!drawer) {
+    console.warn("Cart drawer element not found on this page.");
+    return;
+  }
+  
+  drawer.classList.add('active'); // Or 'open', depending on your CSS framework
 }
+
+// 2. INITIALIZE EVENT LISTENERS (Fixes the addEventListener error)
+function initCartDrawer() {
+  // Select your toggle buttons (e.g., header cart icon)
+  const cartToggleBtns = document.querySelectorAll('.cart-toggle, #cartButton');
+  const drawerContainer = document.querySelector('.cart-drawer') || document.getElementById('cart-drawer');
+
+  // Safely attach click events to open buttons
+  if (cartToggleBtns.length > 0) {
+    cartToggleBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openCartDrawer();
+      });
+    });
+  }
+
+  // Safely attach click event for closing the drawer (Fixes the "e is not defined" error)
+  if (drawerContainer) {
+    drawerContainer.addEventListener('click', (e) => {
+      // Correctly captures 'e' from the event listener context
+      const closeBtn = e.target.closest('.cart-drawer-close, #drawerClose, #continueShoppingBtn');
+      
+      if (closeBtn) {
+        closeCartDrawer();
+      }
+    });
+  }
+}
+
+// 3. CLOSE CART DRAWER FUNCTION
+function closeCartDrawer() {
+  const drawer = document.querySelector('.cart-drawer') || document.getElementById('cart-drawer');
+  
+  if (!drawer) return;
+  
+  drawer.classList.remove('active');
+}
+
+// Ensure the DOM is fully ready before running the setup script
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCartDrawer);
+} else {
+  initCartDrawer();
+}
+
+
  </script>
 {% endblock %}
