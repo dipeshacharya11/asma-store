@@ -1,9 +1,14 @@
 <div class="search-overlay" id="searchOverlay">
-  <span class="search-close" id="searchClose">✕</span>
+  <button type="button" class="search-close" id="searchClose" aria-label="Close search">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+  </button>
   <div class="search-overlay-inner">
     <div class="search-input-row">
-      <span class="ic">⌕</span>
-      <input type="text" id="searchInput" placeholder="Search for canvas art, decor, categories..." autocomplete="off">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="10.8" cy="10.8" r="6.6"/>
+        <path d="m16 16 4.2 4.2"/>
+      </svg>
+      <input type="text" id="searchInput" placeholder="Search products..." autocomplete="off">
     </div>
 
     <div id="searchDefaultState">

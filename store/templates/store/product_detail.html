@@ -432,7 +432,7 @@
     padding:0 28px;
 
     border:none;
-    border-radius:14px;
+    border-radius:12px;
 
     font-size:13px;
     font-weight:700;
@@ -473,18 +473,18 @@
     height:18px;
     flex-shrink:0;
 }
-.pdp-add{background:var(--pdp-ink);color:var(--pdp-ivory)}
-.pdp-add:hover:not(:disabled){box-shadow:var(--shadow-md)}
+.pdp-add{background:#235C93;color:#fff;min-height:56px}
+.pdp-add:hover:not(:disabled){background:#1C4E80;box-shadow:var(--shadow-md)}
 
 .pdp-buy-now{
   width:100%;
   min-height:56px;
   margin-top:12px;
-  background:transparent;
-  color:var(--pdp-ink);
-  border:1px solid var(--pdp-ink) !important;
+  background:#3F7EB1;
+  color:#fff;
+  border:none !important;
 }
-.pdp-buy-now:hover{background:var(--pdp-ink);color:var(--pdp-ivory)}
+.pdp-buy-now:hover{background:#235C93;color:#fff}
 
 .pdp-button:disabled{opacity:.5;cursor:not-allowed}
 
@@ -497,7 +497,7 @@
   animation:pdpRipple .6s ease-out;
   pointer-events:none;
 }
-.pdp-buy-now .pdp-ripple{background:rgba(20,19,15,.18)}
+
 
 .pdp-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .pdp-secondary-action{
@@ -539,7 +539,7 @@
   color:#fff;
   animation:pdpSpin .65s linear infinite;
 }
-.pdp-buy-now .pdp-btn-spinner span{color:var(--pdp-ink)}
+
 
 /* Highlights */
 .pdp-highlights-grid{
