@@ -3,8 +3,33 @@
 <header id="siteHeader" class="site-header">
   <div class="header-grid">
 
-    <!-- LEFT NAVIGATION -->
-    <div class="header-nav-left">
+    <!-- LOGO (left) -->
+    <a
+      href="{% url 'store:home' %}"
+      class="logo"
+      aria-label="Asma Stores home"
+    >
+      <img
+        src="{% static 'store/images/logo_bg_r.png' %}"
+        alt="Asma Stores"
+      >
+    </a>
+
+    <button
+      type="button"
+      class="burger"
+      id="burgerBtn"
+      aria-label="Open menu"
+      aria-controls="mobileDrawer"
+      aria-expanded="false"
+    >
+      <svg viewBox="0 0 24 24">
+        <path d="M4 7h16M4 12h16M4 17h16"/>
+      </svg>
+    </button>
+
+    <!-- CENTER: nav + search bar -->
+    <div class="header-center">
       <nav class="main-nav" aria-label="Main navigation">
         <ul>
           <li>
@@ -20,55 +45,38 @@
             </a>
           </li>
 
-         <!-- <li>
-            <a href="{% url 'store:collection' %}">Products</a>
-          </li>-->
-
           <li>
             <a href="{% url 'store:blog_list' %}">Blogs</a>
           </li>
-
-          <!--<li>
-            <a href="{% url 'store:home' %}#story">Pages</a>
-          </li>-->
         </ul>
       </nav>
 
-      <button
-        type="button"
-        class="burger"
-        id="burgerBtn"
-        aria-label="Open menu"
-        aria-controls="mobileDrawer"
-        aria-expanded="false"
-      >
-        <svg viewBox="0 0 24 24">
-          <path d="M4 7h16M4 12h16M4 17h16"/>
-        </svg>
-      </button>
+      <!-- AMAZON-STYLE INLINE SEARCH BAR (desktop) -->
+      <form class="header-search-bar" action="{% url 'store:search' %}" method="get" role="search" aria-label="Search products">
+        <input
+          type="text"
+          name="q"
+          value="{{ query|default:'' }}"
+          placeholder="Search products..."
+          autocomplete="off"
+        >
+        <button type="submit" aria-label="Search">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="10.8" cy="10.8" r="6.6"/>
+            <path d="m16 16 4.2 4.2"/>
+          </svg>
+        </button>
+      </form>
     </div>
-
-
-    <!-- CENTER LOGO -->
-    <a
-      href="{% url 'store:home' %}"
-      class="logo"
-      aria-label="Asma Stores home"
-    >
-      <img
-        src="{% static 'store/images/logo_bg_r.png' %}"
-        alt="Asma Stores"
-      >
-    </a>
 
 
     <!-- RIGHT ICONS -->
     <div class="header-icons">
 
-      <!-- SEARCH -->
+      <!-- SEARCH (mobile/tablet only — the inline bar above covers desktop) -->
       <button
         type="button"
-        class="icon-btn"
+        class="icon-btn search-trigger-mobile"
         id="searchTrigger"
         aria-label="Search"
       >

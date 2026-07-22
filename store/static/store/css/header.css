@@ -23,7 +23,7 @@
   transition:
     box-shadow .35s var(--ease),
     background .35s var(--ease),
-    transform .35s var(--ease);
+    transform .28s var(--ease);
 }
 
 .site-header.is-scrolled{
@@ -60,7 +60,7 @@
   padding:0 32px;
 
   display:grid;
-  grid-template-columns:1fr auto 1fr;
+  grid-template-columns:auto 1fr auto; /* logo | nav+search | icons */
   align-items:center;
 
   gap:30px;
@@ -74,13 +74,95 @@
 
 
 /* ==========================================================================
-   LEFT NAVIGATION
+   CENTER: NAV + SEARCH BAR
    ========================================================================== */
 
-.header-nav-left{
+.header-center{
   display:flex;
   align-items:center;
   min-width:0;
+  gap:36px;
+}
+
+.main-nav{
+  flex:0 0 auto;
+}
+
+/* Amazon-style merged search pill: icon + input + submit button as one
+   rounded component, same height family as the navbar. */
+.header-search-bar{
+  display:flex;
+  align-items:center;
+
+  flex:1 1 auto;
+  max-width:480px;
+  min-width:0;
+
+  height:46px;
+
+  background:#fff;
+  border-radius:999px;
+  overflow:hidden;
+
+  box-shadow:0 4px 14px rgba(0,0,0,.12);
+  transition:box-shadow .3s var(--ease);
+}
+
+.header-search-bar:focus-within{
+  box-shadow:0 4px 18px rgba(0,0,0,.22), 0 0 0 3px rgba(255,255,255,.35);
+}
+
+.header-search-bar input{
+  flex:1;
+  min-width:0;
+  height:100%;
+
+  padding:0 18px;
+
+  border:none;
+  outline:none;
+  background:none;
+
+  font-family:inherit;
+  font-size:14px;
+  color:var(--text-primary);
+}
+
+.header-search-bar input::placeholder{
+  color:var(--text-muted);
+}
+
+.header-search-bar button{
+  flex:0 0 auto;
+
+  width:46px;
+  height:46px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:none;
+  background:var(--brand-primary);
+  color:#fff;
+
+  cursor:pointer;
+  transition:background .25s var(--ease);
+}
+
+.header-search-bar button:hover{
+  background:var(--brand-primary-hover);
+}
+
+.header-search-bar button svg{
+  width:19px;
+  height:19px;
+
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
 }
 
 .main-nav ul{
@@ -178,7 +260,7 @@
 
 
 /* ==========================================================================
-   CENTER LOGO
+   LOGO (left)
    ========================================================================== */
 
 .logo{
@@ -233,6 +315,11 @@
 
   gap:26px;
   color: white;
+}
+
+/* Desktop uses the persistent inline search bar in .header-center instead */
+.search-trigger-mobile{
+  display:none;
 }
 
 .icon-btn{
@@ -582,7 +669,7 @@
   .header-grid{
     height:88px;
 
-    grid-template-columns:1fr auto 1fr;
+    grid-template-columns:auto auto 1fr; /* logo | burger | icons */
 
     padding:0 24px;
   }
@@ -591,8 +678,12 @@
     height:74px;
   }
 
-  .main-nav{
+  .header-center{
     display:none;
+  }
+
+  .search-trigger-mobile{
+    display:flex;
   }
 
   .burger{
