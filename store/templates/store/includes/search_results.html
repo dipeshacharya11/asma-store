@@ -3,7 +3,7 @@
 <div class="search-results-grid">
   {% for p in results %}
   <a class="search-result-card" href="{{ p.get_absolute_url }}">
-    <div class="search-result-thumb" style="{% if p.primary_image_url %}background-image:url('{{ p.primary_image_url }}');{% else %}background:{{ p.image_gradient|default:'linear-gradient(160deg,#4A8ABA,#7FB2DE)' }};{% endif %}"></div>
+    <div class="search-result-thumb" style="{% if p.primary_image_url %}background-image:url('{{ p.primary_image_url }}');{% else %}background:{{ p.image_gradient|default:'linear-gradient(160deg,#235C93,#6FA6C5)' }};{% endif %}"></div>
     <h6>{{ p.name }}</h6>
     <span>Rs. {{ p.price }}</span>
   </a>

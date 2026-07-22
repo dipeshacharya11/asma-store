@@ -22,6 +22,51 @@
   window.addEventListener('resize', updateHeaderState, { passive: true });
   updateHeaderState();
 
+  // ---------- Amazon-style hide-on-scroll-down / show-on-scroll-up ----------
+  (function () {
+    if (!header) return;
+
+    const HIDE_THRESHOLD = 12;   // ignore tiny/jittery scroll movements
+    const REVEAL_TOP_ZONE = 80;  // always show header near the very top
+
+    let lastScrollY = window.pageYOffset || document.documentElement.scrollTop;
+    let ticking = false;
+
+    function anyOverlayOpen() {
+      const megaOpen = document.querySelector('.mega-menu.is-open');
+      const drawerOpen = document.getElementById('mobileDrawer') &&
+        document.getElementById('mobileDrawer').classList.contains('is-open');
+      const searchOpen = document.getElementById('searchOverlay') &&
+        document.getElementById('searchOverlay').classList.contains('is-open');
+      return !!(megaOpen || drawerOpen || searchOpen);
+    }
+
+    function onScrollFrame() {
+      ticking = false;
+      const currentY = window.pageYOffset || document.documentElement.scrollTop;
+      const delta = currentY - lastScrollY;
+
+      if (anyOverlayOpen() || currentY <= REVEAL_TOP_ZONE) {
+        header.classList.remove('is-hidden');
+      } else if (Math.abs(delta) > HIDE_THRESHOLD) {
+        if (delta > 0) {
+          header.classList.add('is-hidden');   // scrolling down -> hide
+        } else {
+          header.classList.remove('is-hidden'); // scrolling up -> reveal immediately
+        }
+      }
+
+      lastScrollY = currentY;
+    }
+
+    window.addEventListener('scroll', function () {
+      if (!ticking) {
+        window.requestAnimationFrame(onScrollFrame);
+        ticking = true;
+      }
+    }, { passive: true });
+  })();
+
   // Mega menu logic now lives in mega_menu.js
 
   // ---------- Mobile drawer ----------

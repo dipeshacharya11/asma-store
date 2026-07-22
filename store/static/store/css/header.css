@@ -12,22 +12,37 @@
 
   padding:0;
 
-  background:#2e63c1;
-  
+  background:var(--brand-gradient);
+
   border:0;
   box-shadow:none;
 
+  transform:translateY(0);
+  will-change:transform;
+
   transition:
     box-shadow .35s var(--ease),
-    background .35s var(--ease);
+    background .35s var(--ease),
+    transform .35s var(--ease);
 }
 
 .site-header.is-scrolled{
-  background:#2e63c1;
+  background:var(--brand-gradient);
   backdrop-filter:blur(16px);
   -webkit-backdrop-filter:blur(16px);
 
   box-shadow:0 8px 30px rgba(0,0,0,.08);
+}
+
+/* Amazon-style: header slides fully out of view on scroll-down, reappears
+   immediately on scroll-up. Never applied while a mega menu / mobile drawer /
+   search overlay is open — see header.js anyOverlayOpen(). */
+.site-header.is-hidden{
+  transform:translateY(-100%);
+}
+
+@media (prefers-reduced-motion: reduce){
+  .site-header{ transition:background .35s var(--ease), box-shadow .35s var(--ease); }
 }
 
 
@@ -167,8 +182,8 @@
    ========================================================================== */
 
 .logo{
-  width:180px;
-  height:82px;
+  width:234px;   /* +30% over the previous 180px, per spec */
+  height:104px;  /* fills the full un-scrolled header height */
 
   display:flex;
   align-items:center;
@@ -185,8 +200,8 @@
   width:auto !important;
   height:auto !important;
 
-  max-width:165px !important;
-  max-height:70px !important;
+  max-width:215px !important;  /* +30% over the previous 165px */
+  max-height:91px !important;  /* +30% over the previous 70px */
 
   object-fit:contain;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45));
@@ -197,12 +212,12 @@
 }
 
 .site-header.is-scrolled .logo{
-  height:68px;
+  height:82px;
 }
 
 .site-header.is-scrolled .logo img{
-  max-width:145px !important;
-  max-height:56px !important;
+  max-width:188px !important; /* +30% over the previous 145px */
+  max-height:73px !important; /* +30% over the previous 56px */
 }
 
 
