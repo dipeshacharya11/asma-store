@@ -193,16 +193,18 @@ footer{ min-height: 300px;
 
 .signature-section{
   position:relative;
-  padding:110px 0;
+  padding:88px 0; /* was 110px — the only section that didn't match the
+                      site-wide 88px rhythm used by every other section */
   overflow:hidden;
   background:#f7f9fc;
 }
 
 .signature-section-head{
   display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:40px;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  gap:14px;
   margin-bottom:48px;
 }
 
@@ -496,7 +498,6 @@ footer{ min-height: 300px;
   }
 
   .signature-section-head{
-    display:block;
     margin-bottom:35px;
   }
 
