@@ -39,7 +39,7 @@
         document.getElementById('mobileDrawer').classList.contains('is-open');
       const searchOpen = document.getElementById('searchOverlay') &&
         document.getElementById('searchOverlay').classList.contains('is-open');
-      return !!(megaOpen || drawerOpen || searchOpen);
+      return !! (megaOpen || drawerOpen || searchOpen);
     }
 
     function onScrollFrame() {
@@ -48,21 +48,21 @@
       const diff = currentY - lastY;
 
       if (anyOverlayOpen() || currentY <= REVEAL_TOP_ZONE) {
-        header.classList.remove('is-hidden');
+        header.classList.remove('header-hidden');
         downAccum = 0;
       } else if (diff > 0) {
         // Scrolling down: accumulate net distance; only hide once it's a
         // real, deliberate scroll (60-80px), not a jittery micro-movement.
         downAccum += diff;
         if (downAccum > HIDE_DISTANCE) {
-          header.classList.add('is-hidden');
+          header.classList.add('header-hidden');
         }
       } else if (diff < 0) {
         // Scrolling up: reveal immediately on ANY upward movement, however
         // small — this is what makes it feel like Amazon. Reset the
         // downward accumulator so the next hide requires a fresh 70px.
         downAccum = 0;
-        header.classList.remove('is-hidden');
+        header.classList.remove('header-hidden');
       }
 
       lastY = currentY;
@@ -76,7 +76,32 @@
     }, { passive: true });
   })();
 
-  // Mega menu logic now lives in mega_menu.js
+  // Update aria-expanded attribute for shop link based on mega menu state
+  (function () {
+    const shopLink = document.querySelector('.shop-link');
+    const megaMenu = document.querySelector('.mega-menu');
+
+    if (shopLink && megaMenu) {
+      const updateAriaExpanded = () => {
+        const isOpen = megaMenu.classList.contains('is-open');
+        shopLink.setAttribute('aria-expanded', isOpen);
+      };
+
+      // Set initial state
+      updateAriaExpanded();
+
+      // Observe changes to the mega menu's class attribute
+      const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+            updateAriaExpanded();
+          }
+        }
+      });
+
+      observer.observe(megaMenu, { attributes: true, attributeFilter: ['class'] });
+    }
+  })();
 
   // ---------- Mobile drawer ----------
   const burger = document.getElementById('burgerBtn');

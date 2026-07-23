@@ -9,11 +9,9 @@
   --brand-primary-light:#E9F1F8;
   --brand-primary-lighter:#D8E7F3;
   --brand-primary-smooth:#6FA6C5;
-  --brand-secondary:#3F7EB1;
-  --brand-accent:#6FA6C5;
 
-  --brand-gradient:linear-gradient(135deg,#235C93 0%,#E9F1F8 100%);
   --footer-gradient:linear-gradient(180deg,#2A689D,#235C93,#1B4E7B);
+  --header-gradient:linear-gradient(180deg,#2A689D,0,#E9F1F8);
 
   --surface-page:#F7FAFD;
   --surface-card:#FFFFFF;
@@ -40,46 +38,27 @@
 
   --shadow-card:0 8px 24px rgba(32, 32, 36, .08);
   --shadow-overlay:0 24px 70px rgba(32, 32, 36, .16);
-  /* Referenced across several templates/CSS files but never previously
-     defined here (a real pre-existing bug — those box-shadows silently
-     rendered as nothing). Added to match how they're already being used:
-     a lighter resting-state shadow and a more pronounced hover/lift one. */
   --shadow-soft:0 10px 30px rgba(32, 32, 36, .06);
   --shadow-lift:0 20px 48px rgba(32, 32, 36, .14);
 
   --ease-previous:cubic-bezier(.16, 1, .3, 1);
   --brand-primary-dark:#325D7E;
-  --ease:cubic-bezier(.22,1,.36,1); /* keeping existing for backward compat */
+  --ease:cubic-bezier(.22,1,.36,1);
+
+  --search-height-desktop: 56px;
+  --search-height-laptop: 52px;
+  --search-height-tablet: 50px;
+  --search-height-mobile: 48px;
 }
 
-/* Legacy variable names kept for backward compatibility with anything still
-   referencing var(--gold) directly — now holding the real brand blue
-   instead of the old gold theme, so nothing renders gold anymore. */
-:root{
-  --gold:#4A8ABA;
-  --gold-light:#7FB2DE;
-  --grad-gold:linear-gradient(135deg, var(--gold), var(--gold-light));
-  --cream:#FCFAF5;
-  --white:#FFFFFF;
-  --dark:#202020;
-  --light-gray:#F7F7F7;
-  --text:#303030;
-  --muted:#6B6B6B;
-  --success:#2E7D32;
-  --sale:#D72638;
-  --border:#EAE5D8;
-}
-
-/* Hide header when scrolling down — must be transform (not display:none) so
-   it can actually animate smoothly, per spec ("use transform:translateY(-100%),
-   do NOT animate using top", 250-300ms). display:none has zero transition. */
+/* Hide header when scrolling down */
 .header-hidden{
-  transform:translateY(-100%);
+  transform: translateY(-100%);
 }
 
 /* ==========================================================================
-    RESPONSIVE HELPERS
-    ========================================================================== */
+   RESPONSIVE HELPERS
+   ========================================================================== */
 .mobile-only{ display: none; }
 .desktop-only{ display: block; }
 @media(max-width: 767px){
@@ -91,237 +70,41 @@
    HEADER GRID
    ========================================================================== */
 
+/* Set header background to the brand gradient */
 .site-header{
-  position:fixed; /* was missing entirely — header wasn't sticky at all */
-  top:0;
-  left:0;
-  right:0;
-  width:100%;
-  z-index:80;
-
   background: var(--brand-gradient);
-
-  transform:translateY(0);
-  will-change:transform;
-
-  transition:
-    background .35s var(--ease),
-    transform .28s var(--ease);
-}
-
-.site-header.is-scrolled{
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-  box-shadow:0 8px 30px rgba(0,0,0,.08);
-}
-
-@media (prefers-reduced-motion: reduce){
-  .site-header{ transition:background .35s var(--ease), box-shadow .35s var(--ease); }
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  transition: transform .3s var(--ease);
 }
 
 .header-grid{
   width:100%;
-  max-width:1360px; /* matches .container / .pdp-container / .mega-grid so the
-                        Home link, breadcrumb, and page content share one edge */
+  max-width:1360px;
   margin:0 auto;
   padding:0 32px;
-
   display:grid;
-  grid-template-columns:auto 1fr auto; /* logo | nav+search | icons */
   align-items:center;
   gap:30px;
-
   transition:height .35s var(--ease);
 }
 
-.site-header.is-scrolled .header-grid{
-  height:82px;
+/* Define grid areas for desktop and mobile */
+@media(min-width: 768px){
+  .header-grid{
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-areas:
+      "logo search icons";
+    height:104px;
+  }
+  .site-header.is-scrolled .header-grid{
+    height:82px;
+  }
 }
-
-
-/* ==========================================================================
-   CENTER: NAV + SEARCH BAR
-   ========================================================================== */
-
-.header-center{
-  display:flex;
-  align-items:center;
-  min-width:0;
-  gap:36px;
-}
-
-.main-nav{
-  flex:0 0 auto;
-}
-
-/* Amazon-style merged search pill: icon + input + submit button as one
-   rounded component, same height family as the navbar. */
-.header-search-bar{
-  display:flex;
-  align-items:center;
-
-  flex:1 1 auto;
-  max-width:480px;
-  min-width:0;
-
-  height:46px;
-
-  background:#fff;
-  border-radius:999px;
-  overflow:hidden;
-
-  box-shadow:0 4px 14px rgba(0,0,0,.12);
-  transition:box-shadow .3s var(--ease);
-}
-
-.header-search-bar:focus-within{
-  box-shadow:0 4px 18px rgba(0,0,0,.22), 0 0 0 3px rgba(255,255,255,.35);
-}
-
-.header-search-bar input{
-  flex:1;
-  min-width:0;
-  height:100%;
-
-  padding:0 18px;
-
-  border:none;
-  outline:none;
-  background:none;
-
-  font-family:inherit;
-  font-size:14px;
-  color:var(--text-primary);
-}
-
-.header-search-bar input::placeholder{
-  color:var(--text-muted);
-}
-
-.header-search-bar button{
-  flex:0 0 auto;
-
-  width:46px;
-  height:46px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  border:none;
-  background:var(--brand-primary);
-  color:#fff;
-
-  cursor:pointer;
-  transition:background .25s var(--ease);
-}
-
-.header-search-bar button:hover{
-  background:var(--brand-primary-hover);
-}
-
-.header-search-bar button svg{
-  width:19px;
-  height:19px;
-
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.9;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-}
-
-.main-nav ul{
-  display:flex;
-  align-items:center;
-
-  gap:42px;
-
-  padding:0;
-  margin:0;
-
-  list-style:none;
-}
-
-.main-nav li{
-  position:relative;
-}
-
-.main-nav a{
-  position:relative;
-
-  display:flex;
-  align-items:center;
-  gap:5px;
-
-  padding:12px 0;
-
-  color:var(--text-primary);
-
-  font-size:13px;
-  font-weight:500;
-  line-height:1;
-
-  letter-spacing:.015em;
-  text-transform:uppercase;
-
-  text-decoration:none;
-  color: white;
-
-  transition:
-    color .3s var(--ease);
-}
-
-.main-nav a::after{
-  content:"";
-
-  position:absolute;
-  left:0;
-  bottom:4px;
-
-  width:0;
-  height:1px;
-
-  background:var(--brand-primary);
-
-  transition:width .35s var(--ease);
-}
-
-.main-nav a:hover{
-  color:var(--brand-primary);
-}
-
-.main-nav a:hover::after{
-  width:100%;
-}
-
-.shop-link svg{
-  width:12px;
-  height:12px;
-
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.8;
-
-  stroke-linecap:round;
-  stroke-linejoin:round; 
-    /*------------------------------------------mega---*/
-    [data-mega-trigger="shop"]:hover .mega-menu {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transform: translateX(-50%) translateY(0);
-}
-
-/* 3. Rotates the arrow icon smoothly on hover everywhere */
-[data-mega-trigger="shop"]:hover .shop-link svg {
-  transform: rotate(180deg);
-}
-
-.shop-link svg {
-  transition: transform 0.25s var(--ease);
-}
-@media(max-width: 1100px){
+@media(max-width: 767px){
   .header-grid{
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
@@ -334,9 +117,6 @@
   .site-header.is-scrolled .header-grid{
     height:68px;
   }
-  .search-bar-desktop{
-    display:none; /* no "search" area exists in this template anymore */
-  }
 }
 
 /* Place elements in grid areas */
@@ -347,34 +127,27 @@
 
 
 /* ==========================================================================
-   LOGO (left)
+   LOGO
    ========================================================================== */
 
 .logo{
-  width:234px;   /* +30% over the previous 180px, per spec */
-  height:104px;  /* fills the full un-scrolled header height */
-
+  width:234px;
+  height:104px;
   display:flex;
   align-items:center;
   justify-content:center;
-
   overflow:hidden;
-
   text-decoration:none;
 }
 
 .logo img{
   display:block;
-
   width:auto !important;
   height:auto !important;
-
-  max-width:215px !important;  /* +30% over the previous 165px */
-  max-height:91px !important;  /* +30% over the previous 70px */
-
+  max-width:215px !important;
+  max-height:91px !important;
   object-fit:contain;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45));
-
   transition:
     max-width .35s var(--ease),
     max-height .35s var(--ease);
@@ -385,9 +158,10 @@
 }
 
 .site-header.is-scrolled .logo img{
-  max-width:188px !important; /* +30% over the previous 145px */
-  max-height:73px !important; /* +30% over the previous 56px */
+  max-width:188px !important;
+  max-height:73px !important;
 }
+
 
 /* ==========================================================================
    SEARCH BAR (DESKTOP)
@@ -396,7 +170,17 @@
 .search-bar-desktop{
   display:flex;
   align-items:center;
-  gap:0; /* Removed gap to combine input and button */
+  gap:12px; /* Gap between shop link and search form */
+}
+
+/* Search wrapper to combine shop and search */
+.search-bar-desktop .search-wrapper{
+  display:flex;
+  align-items:center;
+  gap:0;
+  flex:1;
+  max-width:480px;
+  width:100%;
 }
 
 /* Shop dropdown link */
@@ -411,10 +195,12 @@
   letter-spacing:.015em;
   position:relative;
   padding:12px 0;
-  transition:color .3s var(--ease);
+  transition:color .3s var(--ease), background .3s var(--ease);
+  border-radius:4px;
 }
 .search-bar-desktop .shop-link:hover{
   color:var(--brand-primary);
+  background:rgba(255,255,255,0.15);
 }
 .search-bar-desktop .shop-link svg{
   width:12px;
@@ -435,19 +221,19 @@
   display:flex;
   align-items:center;
   flex:1;
-  max-width:480px;
+  max-width:none;
   width:100%;
-  gap:0; /* Removed gap to combine input and button */
+  gap:0;
 }
 .search-bar-desktop .search-form input{
   flex:1;
-  height:48px;
+  height:var(--search-height-desktop);
   padding:0 16px;
   border:none;
-  border-top-left-radius:24px; /* Keep left rounded */
-  border-bottom-left-radius:24px; /* Keep left rounded */
-  border-top-right-radius:0; /* Remove right radius to attach to button */
-  border-bottom-right-radius:0; /* Remove right radius to attach to button */
+  border-top-left-radius:24px;
+  border-bottom-left-radius:24px;
+  border-top-right-radius:0;
+  border-bottom-right-radius:0;
   background:rgba(255,255,255,0.15);
   color:white;
   font-size:15px;
@@ -461,13 +247,13 @@
   background:rgba(255,255,255,0.25);
 }
 .search-bar-desktop .search-form button{
-  height:48px;
+  height:var(--search-height-desktop);
   padding:0 24px;
   border:none;
-  border-top-left-radius:0; /* Remove left radius to attach to input */
-  border-bottom-left-radius:0; /* Remove left radius to attach to input */
-  border-top-right-radius:24px; /* Keep right rounded */
-  border-bottom-right-radius:24px; /* Keep right rounded */
+  border-top-left-radius:0;
+  border-bottom-left-radius:0;
+  border-top-right-radius:24px;
+  border-bottom-right-radius:24px;
   background:var(--brand-primary);
   color:white;
   font-size:14px;
@@ -492,6 +278,23 @@
   stroke-linejoin:round;
 }
 
+/* Responsive search height */
+@media (max-width: 1399px) {
+  .search-bar-desktop .search-form input,
+  .search-bar-desktop .search-form button {
+    height:var(--search-height-laptop);
+  }
+}
+@media (max-width: 1023px) {
+  .search-bar-desktop .search-form input,
+  .search-bar-desktop .search-form button {
+    height:var(--search-height-tablet);
+  }
+}
+@media (max-width: 767px) {
+  /* Desktop search bar hidden on mobile */
+}
+
 /* ==========================================================================
    RIGHT ICONS
    ========================================================================== */
@@ -502,11 +305,6 @@
   justify-content:flex-end;
   gap:26px;
   color:white;
-}
-
-/* Desktop uses the persistent inline search bar in .header-center instead */
-.search-trigger-mobile{
-  display:none;
 }
 
 .icon-btn{
@@ -541,13 +339,9 @@
   transform:translateY(-2px);
 }
 
-/* Search trigger (mobile/tablet only) — hidden by default since the
-   .mobile-only helper class on this element can't override it (this
-   selector's specificity was higher, so it was always showing, duplicating
-   the desktop search bar). Revealed at the same ≤1100px breakpoint as the
-   burger button, further down this file. */
+/* Search trigger (mobile only) - inside header-icons */
 .header-icons .search-trigger-mobile{
-  display:none;
+  display:flex;
   align-items:center;
   justify-content:center;
   width:25px;
@@ -624,8 +418,8 @@
   padding:0;
   border:0;
   background:transparent;
-  color:var(--text-primary);
-  cursor:pointer;
+  color=var(--text-primary);
+  cursor=pointer;
 }
 .burger svg{
   width:25px;
@@ -686,24 +480,24 @@
   padding:16px 4px;
   border:0;
   background:transparent;
-  color:var(--text-primary);
-  font-family:inherit;
+  color=var(--text-primary);
+  font-family=inherit;
   font-size:14px;
-  font-weight:500;
+  font-weight=500;
   text-decoration:none;
   cursor:pointer;
 }
 .mobile-acc-body{
-  max-height:0;
-  overflow:hidden;
+  max-height=0;
+  overflow=hidden;
   transition:max-height .4s var(--ease);
 }
 .mobile-acc-body a{
-  display:block;
-  padding:9px 4px 9px 16px;
-  color:var(--text-muted);
-  font-size:13.5px;
-  text-decoration:none;
+  display=block;
+  padding=9px 4px 9px 16px;
+  color=var(--text-muted);
+  font-size=13.5px;
+  text-decoration=none;
 }
 
 /* ==========================================================================
@@ -772,28 +566,23 @@
 /* ==========================================================================
    DRAWER OVERLAY
    ========================================================================== */
+
 .drawer-overlay{
   position:fixed;
   inset:0;
-
   z-index:100;
-
   background:rgba(0,0,0,.45);
-
   backdrop-filter:blur(2px);
   -webkit-backdrop-filter:blur(2px);
-
   opacity:0;
   visibility:hidden;
-
   transition:
-    opacity .35s var(--ease),
+    opacity .35s var(--ease);
     visibility 0s .35s;
 }
 .drawer-overlay.is-open{
   opacity:1;
   visibility:visible;
-
   transition:opacity .35s var(--ease);
 }
 
@@ -802,33 +591,7 @@
    ========================================================================== */
 
 @media(max-width:1100px){
-
-  .header-grid{
-    height:88px;
-
-    grid-template-columns:auto auto 1fr; /* logo | burger | icons */
-
-    padding:0 24px;
-  }
-
-  .site-header.is-scrolled .header-grid{
-    height:74px;
-  }
-
-  .header-center{
-    display:none;
-  }
-
-  .search-trigger-mobile{
-    display:flex;
-  }
-
-  .burger{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-
+  /* Logo size */
   .logo{
     width:155px;
     height:70px;
@@ -846,10 +609,6 @@
     display:flex;
     align-items:center;
     justify-content:center;
-  }
-  /* Show the compact search trigger — inline search bar is hidden here */
-  .header-icons .search-trigger-mobile{
-    display:flex;
   }
   /* Hide mega menu */
   .mega-menu{
@@ -909,24 +668,143 @@
 /* Mega menu styles (from original) */
 .mega-menu{
   position:fixed;
-  top:104px;
+  top:94px; /* 104px - 10px for hover bridge */
   left:0;
   right:0;
   z-index:75;
-  /* top is overridden to 82px when .site-header.is-scrolled, see below,
-     so the menu always sits flush against the header — no gap/"push down" */
   background:rgba(255,255,255,.86);
   backdrop-filter:blur(22px);
   -webkit-backdrop-filter:blur(22px);
   box-shadow:0 30px 70px rgba(32,32,32,.14);
   opacity:0;
   visibility:hidden;
-  transform:translateY(-8px);
+  transform:translateY(-10px);
   transition:opacity .4s var(--ease), transform .4s var(--ease), visibility 0s .4s, top .4s var(--ease);
   padding:48px 0;
   border-top:1px solid var(--border-soft);
 }
-.mega-menu.is-open{opacity:1; visibility:visible; transform:translateY(0); transition:opacity .4s var(--ease), transform .4s var(--ease);}
-.site-header.is-scrolled .mega-menu{top:82px;}
+.mega-menu.is-open{
+  opacity:1;
+  visibility:visible;
+  transform:translateY(0);
+  transition:opacity .4s var(--ease), transform .4s var(--ease);
+}
+.site-header.is-scrolled .mega-menu{
+  top:72px; /* 82px - 10px for hover bridge */
+}
+.mega-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:48px;
+  max-width:1360px;
+  margin:0 auto;
+  padding:0 32px;
+}
+.mega-col{
+  padding:0 4px;
+}
+.mega-col h5{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:0.14em;
+  color:var(--brand-primary);
+  margin-bottom:18px;
+  font-weight:600;
+}
+.mega-col a.mega-link{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:14px;
+  padding:8px 0;
+  color:var(--text-secondary);
+  transition:all .25s var(--ease);
+  border-left:2px solid transparent;
+  padding-left:10px;
+  margin-left:-10px;
+  border-radius:var(--radius-sm);
+}
+.mega-col a.mega-link-parent{
+  font-weight:700;
+  color=var(--text-primary);
+  margin-top:12px;
+}
+.mega-col a.mega-link-parent:first-child{
+  margin-top:0;
+}
+.mega-col a.mega-link-child{
+  font-size:12.5px;
+  padding-left:22px;
+  color=var(--text-muted);
+}
+.mega-col a.mega-link:hover{
+  color=var(--brand-primary);
+  border-left-color=var(--brand-primary);
+  background=var(--brand-primary-light);
+}
+.mega-card{
+  border-radius=var(--radius-md);
+  overflow=hidden;
+  position=relative;
+  aspect-ratio:4/5;
+  box-shadow=var(--shadow-soft);
+  display=block;
+}
+.mega-card img, .mega-card .bg{
+  width:100%;
+  height=100%;
+  object-fit=cover;
+  background-size=cover;
+  background-position=center;
+  transition:transform .8s var(--ease);
+  position=absolute;
+  inset=0;
+}
+.mega-cell:hover img, .mega-cell:hover .bg{
+  transform:scale(1.08);
+}
+.mega-card .mega-card-label{
+  position=absolute;
+  bottom=16px;
+  left=16px;
+  color=#fff;
+  font-family='Playfair Display';
+  font-size=17px;
+  z-index=2;
+}
+.mega-card::after{
+  content='';
+  position=absolute;
+  inset=0;
+  background=linear-gradient(0deg, rgba(32,20,8,.55), transparent 60%);
+  z-index=1;
+}
+.mega-promo{
+  border-radius=var(--radius-md);
+  background=var(--brand-primary-light);
+  padding=28px;
+  display=flex;
+  flex-direction=column;
+  justify-content=flex-end;
+  min-height=100%;
+  color=var(--brand-primary-active);
+}
+.mega-promo h4{
+  color=var(--brand-primary-active);
+  font-size=19px;
+  margin-bottom=8px;
+}
+.mega-promo a{
+  font-size=12.5px;
+  font-weight=700;
+  text-decoration=underline;
+  color=var(--brand-primary-active);
+}
+@media(max-width:991px){
+  .mega-grid{
+    grid-template-columns=repeat(2,1fr);
+    gap=32px;
+  }
+}
 
 /* End of file */
