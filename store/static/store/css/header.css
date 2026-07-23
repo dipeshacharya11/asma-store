@@ -164,43 +164,63 @@
 
 
 /* ==========================================================================
-   SEARCH BAR (DESKTOP)
+   SEARCH BAR (DESKTOP) — one connected Amazon-style pill:
+   [ Shop v | divider | search input.......... | search button ]
    ========================================================================== */
 
 .search-bar-desktop{
   display:flex;
   align-items:center;
-  gap:12px; /* Gap between shop link and search form */
-}
-
-/* Search wrapper to combine shop and search */
-.search-bar-desktop .search-wrapper{
-  display:flex;
-  align-items:center;
-  gap:0;
   flex:1;
   max-width:480px;
   width:100%;
 }
 
-/* Shop dropdown link */
+/* .search-wrapper IS the pill — one shared background, radius, shadow.
+   Shop link + search form are just segments inside it, so there is no
+   visible seam/gap between them. */
+.search-bar-desktop .search-wrapper{
+  display:flex;
+  align-items:stretch;
+  width:100%;
+  height:var(--search-height-desktop);
+
+  background:rgba(255,255,255,.15);
+  border-radius:999px;
+  overflow:hidden;
+
+  transition:background .3s var(--ease), box-shadow .3s var(--ease);
+}
+
+.search-bar-desktop .search-wrapper:focus-within{
+  background:rgba(255,255,255,.22);
+  box-shadow:0 0 0 3px rgba(255,255,255,.25);
+}
+
+/* Shop segment — same height as the pill, own subtle background, divider
+   on its right so it reads as attached but distinct (Amazon's category
+   selector pattern) */
 .search-bar-desktop .shop-link{
+  flex:0 0 auto;
   display:flex;
   align-items:center;
   gap:6px;
-  color:white;
+
+  padding:0 16px;
+  height:100%;
+
+  color:#fff;
   font-size:13px;
   font-weight:500;
   text-transform:uppercase;
   letter-spacing:.015em;
-  position:relative;
-  padding:12px 0;
-  transition:color .3s var(--ease), background .3s var(--ease);
-  border-radius:4px;
+  white-space:nowrap;
+
+  border-right:1px solid rgba(255,255,255,.25);
+  transition:background .3s var(--ease);
 }
 .search-bar-desktop .shop-link:hover{
-  color:var(--brand-primary);
-  background:rgba(255,255,255,0.15);
+  background:rgba(255,255,255,.12);
 }
 .search-bar-desktop .shop-link svg{
   width:12px;
@@ -212,87 +232,66 @@
   stroke-linejoin:round;
   transition:transform .25s var(--ease);
 }
+.search-bar-desktop .shop-link[aria-expanded="true"] svg,
 .search-bar-desktop .shop-link:hover svg{
   transform:rotate(180deg);
 }
 
-/* Search form */
+/* Search form fills the remaining space of the same pill */
 .search-bar-desktop .search-form{
   display:flex;
-  align-items:center;
+  align-items:stretch;
   flex:1;
-  max-width:none;
-  width:100%;
-  gap:0;
+  min-width:0;
 }
 .search-bar-desktop .search-form input{
   flex:1;
-  height:var(--search-height-desktop);
+  min-width:0;
+  height:100%;
   padding:0 16px;
   border:none;
-  border-top-left-radius:24px;
-  border-bottom-left-radius:24px;
-  border-top-right-radius:0;
-  border-bottom-right-radius:0;
-  background:rgba(255,255,255,0.15);
-  color:white;
+  background:none;
+  color:#fff;
   font-size:15px;
   outline:none;
-  transition:background .35s var(--ease);
 }
 .search-bar-desktop .search-form input::placeholder{
-  color:rgba(255,255,255,0.7);
-}
-.search-bar-desktop .search-form input:focus{
-  background:rgba(255,255,255,0.25);
+  color:rgba(255,255,255,.7);
 }
 .search-bar-desktop .search-form button{
-  height:var(--search-height-desktop);
-  padding:0 24px;
+  flex:0 0 auto;
+  width:60px;
+  height:100%;
+  padding:0;
   border:none;
-  border-top-left-radius:0;
-  border-bottom-left-radius:0;
-  border-top-right-radius:24px;
-  border-bottom-right-radius:24px;
   background:var(--brand-primary);
-  color:white;
-  font-size:14px;
-  font-weight:600;
+  color:#fff;
   cursor:pointer;
   display:flex;
   align-items:center;
-  gap:6px;
-  transition:background .35s var(--ease), transform .2s var(--ease);
+  justify-content:center;
+  transition:background .3s var(--ease);
 }
 .search-bar-desktop .search-form button:hover{
   background:var(--brand-primary-hover);
-  transform:translateY(-2px);
 }
 .search-bar-desktop .search-form button svg{
-  width:20px;
-  height:20px;
+  width:19px;
+  height:19px;
   fill:none;
   stroke:currentColor;
-  stroke-width:1.6;
+  stroke-width:1.8;
   stroke-linecap:round;
   stroke-linejoin:round;
 }
 
-/* Responsive search height */
+/* Responsive search height — Shop/search/button all share the same
+   variable so they never fall out of alignment at any breakpoint */
 @media (max-width: 1399px) {
-  .search-bar-desktop .search-form input,
-  .search-bar-desktop .search-form button {
-    height:var(--search-height-laptop);
-  }
+  .search-bar-desktop .search-wrapper{ height:var(--search-height-laptop); }
 }
 @media (max-width: 1023px) {
-  .search-bar-desktop .search-form input,
-  .search-bar-desktop .search-form button {
-    height:var(--search-height-tablet);
-  }
-}
-@media (max-width: 767px) {
-  /* Desktop search bar hidden on mobile */
+  .search-bar-desktop .search-wrapper{ height:var(--search-height-tablet); }
 }
 
 /* ==========================================================================
@@ -319,7 +318,10 @@
   display:flex;
   align-items:center;
   justify-content:center;
-  color:var(--text-primary);
+  color:#fff; /* was var(--text-primary) — never took visible effect anyway
+                 since the svg below used a literal stroke:white, but fixing
+                 both together: dark navy would've been invisible against
+                 the header's own blue gradient */
   cursor:pointer;
   text-decoration:none;
   transition:color .25s var(--ease), transform .25s var(--ease);
@@ -329,13 +331,17 @@
   width:24px;
   height:24px;
   fill:none;
-  stroke:white;
+  stroke:currentColor; /* was a literal "white" — meant the :hover color
+                           change below was silently doing nothing */
   stroke-width:1.65;
   stroke-linecap:round;
   stroke-linejoin:round;
 }
 .icon-btn:hover{
-  color:var(--brand-primary);
+  color:rgba(255,255,255,.7); /* was var(--brand-primary) — a mid-blue on
+                                  this blue-gradient header had low contrast;
+                                  a brightness dim matches how .main-nav
+                                  links already handle hover */
   transform:translateY(-2px);
 }
 
@@ -356,13 +362,13 @@
   width:24px;
   height:24px;
   fill:none;
-  stroke:white;
+  stroke:currentColor;
   stroke-width:1.65;
   stroke-linecap:round;
   stroke-linejoin:round;
 }
 .header-icons .search-trigger-mobile:hover{
-  color:var(--brand-primary);
+  color:rgba(255,255,255,.7);
   transform:translateY(-2px);
 }
 
@@ -418,7 +424,8 @@
   padding:0;
   border:0;
   background:transparent;
-  color:var(--text-primary);
+  color:#fff; /* was var(--text-primary) — dark navy on the dark blue
+                  header background made it nearly invisible */
   cursor:pointer;
 }
 .burger svg{
@@ -590,16 +597,7 @@
    TABLET
    ========================================================================== */
 
-@media(max-width:1100px){
-  /* Logo size */
-  .logo{
-    width:155px;
-    height:70px;
-  }
-  .logo img{
-    max-width:145px !important;
-    max-height:58px !important;
-  }
+@media(max-width:767px){
   /* Header icons gap */
   .header-icons{
     gap:20px;
@@ -610,9 +608,29 @@
     align-items:center;
     justify-content:center;
   }
-  /* Hide mega menu */
+  /* Hide mega menu — its trigger (.search-bar-desktop) is already hidden
+     at this same breakpoint via .desktop-only, so this just prevents a
+     stray :hover/:focus from leaving it visibly stuck open */
   .mega-menu{
     display:none;
+  }
+}
+
+/* Tablet-only cosmetic scaling (768-1100px) — logo/search shrink slightly
+   while remaining the full desktop layout; burger/mega-menu are untouched
+   here since the search bar (and Shop trigger) are still visible in this
+   range. */
+@media(min-width:768px) and (max-width:1100px){
+  .logo{
+    width:155px;
+    height:70px;
+  }
+  .logo img{
+    max-width:145px !important;
+    max-height:58px !important;
+  }
+  .header-icons{
+    gap:22px;
   }
 }
 
