@@ -171,6 +171,9 @@
 .search-bar-desktop{
   display:flex;
   align-items:center;
+  min-width:0; /* grid items default to min-width:auto, which can stop
+                  this from shrinking properly and cause overflow at
+                  narrow tablet widths */
   flex:1;
   max-width:480px;
   width:100%;
@@ -285,13 +288,20 @@
   stroke-linejoin:round;
 }
 
-/* Responsive search height — Shop/search/button all share the same
-   variable so they never fall out of alignment at any breakpoint */
+/* Responsive search height AND width — Shop/search/button all share the
+   same height variable so they never fall out of alignment, and the
+   pill's max-width narrows in step so it doesn't just get shorter, it
+   visibly shrinks as the header gets tighter. */
 @media (max-width: 1399px) {
   .search-bar-desktop .search-wrapper{ height:var(--search-height-laptop); }
+  .search-bar-desktop{ max-width:400px; }
 }
 @media (max-width: 1023px) {
   .search-bar-desktop .search-wrapper{ height:var(--search-height-tablet); }
+  .search-bar-desktop{ max-width:320px; }
+}
+@media (max-width: 860px) {
+  .search-bar-desktop{ max-width:260px; }
 }
 
 /* ==========================================================================
@@ -600,7 +610,7 @@
 @media(max-width:767px){
   /* Header icons gap */
   .header-icons{
-    gap:20px;
+    gap:18px;
   }
   /* Show burger */
   .burger{
@@ -612,6 +622,14 @@
      at this same breakpoint via .desktop-only, so this just prevents a
      stray :hover/:focus from leaving it visibly stuck open */
   .mega-menu{
+    display:none;
+  }
+  /* Simplify to burger + a couple of essentials instead of the full
+     desktop icon row — Account and Wishlist are both already reachable
+     from the mobile drawer's menu list, so keep only Cart (highest-value
+     action) and the compact search trigger visible here. */
+  .header-icons .icon-btn:nth-child(1),  /* Account */
+  .header-icons .icon-btn:nth-child(2){  /* Wishlist */
     display:none;
   }
 }
@@ -664,10 +682,6 @@
   .icon-btn svg{
     width:21px;
     height:21px;
-  }
-  /* Hide the second icon (wishlist) */
-  .header-icons .icon-btn:nth-child(2){
-    display:none;
   }
   /* Cart badge size */
   .cart-badge{
