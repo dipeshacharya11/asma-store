@@ -11,7 +11,7 @@
   --brand-primary-smooth:#6FA6C5;
 
   --footer-gradient:linear-gradient(180deg,#2A689D,#235C93,#1B4E7B);
-  --header-gradient:linear-gradient(180deg,#2A689D,0,#E9F1F8);
+  --brand-gradient:linear-gradient(135deg,#235C93 0%,#3F7EB1 40%,#4F91BC 70%,#6FA6C5 100%);
 
   --surface-page:#F7FAFD;
   --surface-card:#FFFFFF;
@@ -164,43 +164,63 @@
 
 
 /* ==========================================================================
-   SEARCH BAR (DESKTOP)
+   SEARCH BAR (DESKTOP) — one connected Amazon-style pill:
+   [ Shop v | divider | search input.......... | search button ]
    ========================================================================== */
 
 .search-bar-desktop{
   display:flex;
   align-items:center;
-  gap:12px; /* Gap between shop link and search form */
-}
-
-/* Search wrapper to combine shop and search */
-.search-bar-desktop .search-wrapper{
-  display:flex;
-  align-items:center;
-  gap:0;
   flex:1;
   max-width:480px;
   width:100%;
 }
 
-/* Shop dropdown link */
+/* .search-wrapper IS the pill — one shared background, radius, shadow.
+   Shop link + search form are just segments inside it, so there is no
+   visible seam/gap between them. */
+.search-bar-desktop .search-wrapper{
+  display:flex;
+  align-items:stretch;
+  width:100%;
+  height:var(--search-height-desktop);
+
+  background:rgba(255,255,255,.15);
+  border-radius:999px;
+  overflow:hidden;
+
+  transition:background .3s var(--ease), box-shadow .3s var(--ease);
+}
+
+.search-bar-desktop .search-wrapper:focus-within{
+  background:rgba(255,255,255,.22);
+  box-shadow:0 0 0 3px rgba(255,255,255,.25);
+}
+
+/* Shop segment — same height as the pill, own subtle background, divider
+   on its right so it reads as attached but distinct (Amazon's category
+   selector pattern) */
 .search-bar-desktop .shop-link{
+  flex:0 0 auto;
   display:flex;
   align-items:center;
   gap:6px;
-  color:white;
+
+  padding:0 16px;
+  height:100%;
+
+  color:#fff;
   font-size:13px;
   font-weight:500;
   text-transform:uppercase;
   letter-spacing:.015em;
-  position:relative;
-  padding:12px 0;
-  transition:color .3s var(--ease), background .3s var(--ease);
-  border-radius:4px;
+  white-space:nowrap;
+
+  border-right:1px solid rgba(255,255,255,.25);
+  transition:background .3s var(--ease);
 }
 .search-bar-desktop .shop-link:hover{
-  color:var(--brand-primary);
-  background:rgba(255,255,255,0.15);
+  background:rgba(255,255,255,.12);
 }
 .search-bar-desktop .shop-link svg{
   width:12px;
@@ -212,87 +232,66 @@
   stroke-linejoin:round;
   transition:transform .25s var(--ease);
 }
+.search-bar-desktop .shop-link[aria-expanded="true"] svg,
 .search-bar-desktop .shop-link:hover svg{
   transform:rotate(180deg);
 }
 
-/* Search form */
+/* Search form fills the remaining space of the same pill */
 .search-bar-desktop .search-form{
   display:flex;
-  align-items:center;
+  align-items:stretch;
   flex:1;
-  max-width:none;
-  width:100%;
-  gap:0;
+  min-width:0;
 }
 .search-bar-desktop .search-form input{
   flex:1;
-  height:var(--search-height-desktop);
+  min-width:0;
+  height:100%;
   padding:0 16px;
   border:none;
-  border-top-left-radius:24px;
-  border-bottom-left-radius:24px;
-  border-top-right-radius:0;
-  border-bottom-right-radius:0;
-  background:rgba(255,255,255,0.15);
-  color:white;
+  background:none;
+  color:#fff;
   font-size:15px;
   outline:none;
-  transition:background .35s var(--ease);
 }
 .search-bar-desktop .search-form input::placeholder{
-  color:rgba(255,255,255,0.7);
-}
-.search-bar-desktop .search-form input:focus{
-  background:rgba(255,255,255,0.25);
+  color:rgba(255,255,255,.7);
 }
 .search-bar-desktop .search-form button{
-  height:var(--search-height-desktop);
-  padding:0 24px;
+  flex:0 0 auto;
+  width:60px;
+  height:100%;
+  padding:0;
   border:none;
-  border-top-left-radius:0;
-  border-bottom-left-radius:0;
-  border-top-right-radius:24px;
-  border-bottom-right-radius:24px;
   background:var(--brand-primary);
-  color:white;
-  font-size:14px;
-  font-weight:600;
+  color:#fff;
   cursor:pointer;
   display:flex;
   align-items:center;
-  gap:6px;
-  transition:background .35s var(--ease), transform .2s var(--ease);
+  justify-content:center;
+  transition:background .3s var(--ease);
 }
 .search-bar-desktop .search-form button:hover{
   background:var(--brand-primary-hover);
-  transform:translateY(-2px);
 }
 .search-bar-desktop .search-form button svg{
-  width:20px;
-  height:20px;
+  width:19px;
+  height:19px;
   fill:none;
   stroke:currentColor;
-  stroke-width:1.6;
+  stroke-width:1.8;
   stroke-linecap:round;
   stroke-linejoin:round;
 }
 
-/* Responsive search height */
+/* Responsive search height — Shop/search/button all share the same
+   variable so they never fall out of alignment at any breakpoint */
 @media (max-width: 1399px) {
-  .search-bar-desktop .search-form input,
-  .search-bar-desktop .search-form button {
-    height:var(--search-height-laptop);
-  }
+  .search-bar-desktop .search-wrapper{ height:var(--search-height-laptop); }
 }
 @media (max-width: 1023px) {
-  .search-bar-desktop .search-form input,
-  .search-bar-desktop .search-form button {
-    height:var(--search-height-tablet);
-  }
-}
-@media (max-width: 767px) {
-  /* Desktop search bar hidden on mobile */
+  .search-bar-desktop .search-wrapper{ height:var(--search-height-tablet); }
 }
 
 /* ==========================================================================
@@ -319,7 +318,10 @@
   display:flex;
   align-items:center;
   justify-content:center;
-  color:var(--text-primary);
+  color:#fff; /* was var(--text-primary) — never took visible effect anyway
+                 since the svg below used a literal stroke:white, but fixing
+                 both together: dark navy would've been invisible against
+                 the header's own blue gradient */
   cursor:pointer;
   text-decoration:none;
   transition:color .25s var(--ease), transform .25s var(--ease);
@@ -329,13 +331,17 @@
   width:24px;
   height:24px;
   fill:none;
-  stroke:white;
+  stroke:currentColor; /* was a literal "white" — meant the :hover color
+                           change below was silently doing nothing */
   stroke-width:1.65;
   stroke-linecap:round;
   stroke-linejoin:round;
 }
 .icon-btn:hover{
-  color:var(--brand-primary);
+  color:rgba(255,255,255,.7); /* was var(--brand-primary) — a mid-blue on
+                                  this blue-gradient header had low contrast;
+                                  a brightness dim matches how .main-nav
+                                  links already handle hover */
   transform:translateY(-2px);
 }
 
@@ -356,13 +362,13 @@
   width:24px;
   height:24px;
   fill:none;
-  stroke:white;
+  stroke:currentColor;
   stroke-width:1.65;
   stroke-linecap:round;
   stroke-linejoin:round;
 }
 .header-icons .search-trigger-mobile:hover{
-  color:var(--brand-primary);
+  color:rgba(255,255,255,.7);
   transform:translateY(-2px);
 }
 
@@ -418,8 +424,9 @@
   padding:0;
   border:0;
   background:transparent;
-  color=var(--text-primary);
-  cursor=pointer;
+  color:#fff; /* was var(--text-primary) — dark navy on the dark blue
+                  header background made it nearly invisible */
+  cursor:pointer;
 }
 .burger svg{
   width:25px;
@@ -480,24 +487,24 @@
   padding:16px 4px;
   border:0;
   background:transparent;
-  color=var(--text-primary);
-  font-family=inherit;
+  color:var(--text-primary);
+  font-family:inherit;
   font-size:14px;
-  font-weight=500;
+  font-weight:500;
   text-decoration:none;
   cursor:pointer;
 }
 .mobile-acc-body{
-  max-height=0;
-  overflow=hidden;
+  max-height:0;
+  overflow:hidden;
   transition:max-height .4s var(--ease);
 }
 .mobile-acc-body a{
-  display=block;
-  padding=9px 4px 9px 16px;
-  color=var(--text-muted);
-  font-size=13.5px;
-  text-decoration=none;
+  display:block;
+  padding:9px 4px 9px 16px;
+  color:var(--text-muted);
+  font-size:13.5px;
+  text-decoration:none;
 }
 
 /* ==========================================================================
@@ -560,7 +567,7 @@
 }
 .mobile-category-children a:hover {
     color: var(--brand-primary);
-    background: var(--surface-light);
+    background: var(--surface-soft);
 }
 
 /* ==========================================================================
@@ -590,16 +597,7 @@
    TABLET
    ========================================================================== */
 
-@media(max-width:1100px){
-  /* Logo size */
-  .logo{
-    width:155px;
-    height:70px;
-  }
-  .logo img{
-    max-width:145px !important;
-    max-height:58px !important;
-  }
+@media(max-width:767px){
   /* Header icons gap */
   .header-icons{
     gap:20px;
@@ -610,9 +608,29 @@
     align-items:center;
     justify-content:center;
   }
-  /* Hide mega menu */
+  /* Hide mega menu — its trigger (.search-bar-desktop) is already hidden
+     at this same breakpoint via .desktop-only, so this just prevents a
+     stray :hover/:focus from leaving it visibly stuck open */
   .mega-menu{
     display:none;
+  }
+}
+
+/* Tablet-only cosmetic scaling (768-1100px) — logo/search shrink slightly
+   while remaining the full desktop layout; burger/mega-menu are untouched
+   here since the search bar (and Shop trigger) are still visible in this
+   range. */
+@media(min-width:768px) and (max-width:1100px){
+  .logo{
+    width:155px;
+    height:70px;
+  }
+  .logo img{
+    max-width:145px !important;
+    max-height:58px !important;
+  }
+  .header-icons{
+    gap:22px;
   }
 }
 
@@ -726,7 +744,7 @@
 }
 .mega-col a.mega-link-parent{
   font-weight:700;
-  color=var(--text-primary);
+  color:var(--text-primary);
   margin-top:12px;
 }
 .mega-col a.mega-link-parent:first-child{
@@ -735,75 +753,75 @@
 .mega-col a.mega-link-child{
   font-size:12.5px;
   padding-left:22px;
-  color=var(--text-muted);
+  color:var(--text-muted);
 }
 .mega-col a.mega-link:hover{
-  color=var(--brand-primary);
-  border-left-color=var(--brand-primary);
-  background=var(--brand-primary-light);
+  color:var(--brand-primary);
+  border-left-color:var(--brand-primary);
+  background:var(--brand-primary-light);
 }
 .mega-card{
-  border-radius=var(--radius-md);
-  overflow=hidden;
-  position=relative;
+  border-radius:var(--radius-md);
+  overflow:hidden;
+  position:relative;
   aspect-ratio:4/5;
-  box-shadow=var(--shadow-soft);
-  display=block;
+  box-shadow:var(--shadow-soft);
+  display:block;
 }
 .mega-card img, .mega-card .bg{
   width:100%;
-  height=100%;
-  object-fit=cover;
-  background-size=cover;
-  background-position=center;
+  height:100%;
+  object-fit:cover;
+  background-size:cover;
+  background-position:center;
   transition:transform .8s var(--ease);
-  position=absolute;
-  inset=0;
+  position:absolute;
+  inset:0;
 }
-.mega-cell:hover img, .mega-cell:hover .bg{
+.mega-card:hover img, .mega-card:hover .bg{
   transform:scale(1.08);
 }
 .mega-card .mega-card-label{
-  position=absolute;
-  bottom=16px;
-  left=16px;
-  color=#fff;
-  font-family='Playfair Display';
-  font-size=17px;
-  z-index=2;
+  position:absolute;
+  bottom:16px;
+  left:16px;
+  color:#fff;
+  font-family:'Playfair Display';
+  font-size:17px;
+  z-index:2;
 }
 .mega-card::after{
-  content='';
-  position=absolute;
-  inset=0;
-  background=linear-gradient(0deg, rgba(32,20,8,.55), transparent 60%);
-  z-index=1;
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(0deg, rgba(32,20,8,.55), transparent 60%);
+  z-index:1;
 }
 .mega-promo{
-  border-radius=var(--radius-md);
-  background=var(--brand-primary-light);
-  padding=28px;
-  display=flex;
-  flex-direction=column;
-  justify-content=flex-end;
-  min-height=100%;
-  color=var(--brand-primary-active);
+  border-radius:var(--radius-md);
+  background:var(--brand-primary-light);
+  padding:28px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  min-height:100%;
+  color:var(--brand-primary-active);
 }
 .mega-promo h4{
-  color=var(--brand-primary-active);
-  font-size=19px;
-  margin-bottom=8px;
+  color:var(--brand-primary-active);
+  font-size:19px;
+  margin-bottom:8px;
 }
 .mega-promo a{
-  font-size=12.5px;
-  font-weight=700;
-  text-decoration=underline;
-  color=var(--brand-primary-active);
+  font-size:12.5px;
+  font-weight:700;
+  text-decoration:underline;
+  color:var(--brand-primary-active);
 }
 @media(max-width:991px){
   .mega-grid{
-    grid-template-columns=repeat(2,1fr);
-    gap=32px;
+    grid-template-columns:repeat(2,1fr);
+    gap:32px;
   }
 }
 

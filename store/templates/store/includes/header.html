@@ -101,4 +101,78 @@
             </svg>
         </button>
     </div>
+
+    <!-- SHOP MEGA MENU (desktop) -->
+    <div class="mega-menu" data-mega-for="shop">
+        <div class="mega-grid">
+            {% for cat in nav_categories|slice:":3" %}
+            <div class="mega-col">
+                <h5>{{ cat.name }}</h5>
+                <a class="mega-link mega-link-parent" href="{{ cat.get_absolute_url }}">
+                    All {{ cat.name }}
+                </a>
+                {% for sub in cat.children.all %}
+                    {% if sub.is_active %}
+                    <a class="mega-link mega-link-child" href="{{ sub.get_absolute_url }}">
+                        {{ sub.name }}
+                    </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            {% with featured=nav_categories.0 %}
+            {% if featured %}
+            <a class="mega-card" href="{{ featured.get_absolute_url }}" style="{% if not featured.image %}background:{{ featured.hero_gradient|default:'linear-gradient(160deg,#235C93,#6FA6C5)' }};{% endif %}">
+                {% if featured.image %}<img src="{{ featured.image.url }}" alt="{{ featured.name }}">{% endif %}
+                <span class="mega-card-label">{{ featured.name }}</span>
+            </a>
+            {% endif %}
+            {% endwith %}
+        </div>
+    </div>
 </header>
+
+<!-- MOBILE NAVIGATION DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<nav class="mobile-drawer" id="mobileDrawer" aria-label="Mobile navigation">
+    <div class="mobile-logo">
+        <img src="{% static 'store/images/logo_bg_r.png' %}" alt="Asma Stores">
+    </div>
+    <ul>
+        <li><a href="{% url 'store:home' %}">Home</a></li>
+        <li>
+            <div class="mobile-acc-head">Shop by Category</div>
+            <div class="mobile-acc-body">
+                <ul class="mobile-category-list">
+                    {% for cat in nav_categories %}
+                    <li class="mobile-category-item">
+                        <button type="button" class="mobile-category-header">
+                            <span>{{ cat.name }}</span>
+                            {% if cat.children.all %}<span class="mobile-category-toggle">+</span>{% endif %}
+                        </button>
+                        {% if cat.children.all %}
+                        <ul class="mobile-category-children">
+                            <li><a href="{{ cat.get_absolute_url }}">All {{ cat.name }}</a></li>
+                            {% for sub in cat.children.all %}
+                                {% if sub.is_active %}
+                                <li><a href="{{ sub.get_absolute_url }}">{{ sub.name }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </li>
+        <li><a href="{% url 'store:collection' %}">Shop All</a></li>
+        <li><a href="{% url 'store:blog_list' %}">Blogs</a></li>
+        <li><a href="{% url 'store:wishlist' %}">Wishlist{% if wishlist_count %} ({{ wishlist_count }}){% endif %}</a></li>
+        {% if user.is_authenticated %}
+        <li><a href="{% url 'store:account' %}">My Account</a></li>
+        {% else %}
+        <li><a href="{% url 'store:login' %}">Sign In</a></li>
+        {% endif %}
+    </ul>
+</nav>
