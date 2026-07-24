@@ -628,6 +628,83 @@
 .pdp-tab-content p{margin:0 0 14px}
 .pdp-tab-content strong{color:var(--pdp-ink)}
 
+/* Description — rich text / bullet list support */
+.pdp-description-content ul,
+.pdp-description-content ol{margin:0 0 14px;padding-left:22px}
+.pdp-description-content li{margin-bottom:6px}
+.pdp-description-content h1,
+.pdp-description-content h2,
+.pdp-description-content h3,
+.pdp-description-content h4{color:var(--pdp-ink);margin:22px 0 10px;font-size:16px}
+.pdp-description-content h1:first-child,
+.pdp-description-content h2:first-child,
+.pdp-description-content h3:first-child,
+.pdp-description-content h4:first-child{margin-top:0}
+
+/* Highlights tab — premium feature cards, two columns on desktop */
+.pdp-feature-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:14px;
+}
+.pdp-feature-card{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:18px 20px;
+  background:var(--pdp-surface);
+  border:1px solid var(--pdp-border);
+  border-radius:var(--radius-md);
+  box-shadow:0 8px 24px rgba(0,0,0,.04);
+}
+.pdp-feature-icon{
+  flex:0 0 32px;
+  width:32px;
+  height:32px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:var(--pdp-soft);
+  color:var(--pdp-brass);
+}
+.pdp-feature-icon svg{width:16px;height:16px}
+.pdp-feature-text{font-size:13.5px;color:var(--pdp-ink);line-height:1.5}
+
+/* Fragrance Notes tab — one card per layer */
+.pdp-notes-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+.pdp-note-card{
+  padding:22px 20px;
+  background:var(--pdp-surface);
+  border:1px solid var(--pdp-border);
+  border-radius:var(--radius-md);
+  box-shadow:0 8px 24px rgba(0,0,0,.04);
+}
+.pdp-note-card h4{
+  margin:0 0 14px;
+  color:var(--pdp-ink);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+}
+.pdp-note-list{list-style:none;margin:0;padding:0}
+.pdp-note-list li{
+  padding:6px 0;
+  border-top:1px solid var(--pdp-border);
+  font-size:13.5px;
+}
+.pdp-note-list li:first-child{border-top:none;padding-top:0}
+.pdp-notes-evolution{
+  margin:22px 0 0;
+  padding-top:20px;
+  border-top:1px solid var(--pdp-border);
+  font-style:italic;
+}
+
 /* Reviews */
 .pdp-review-layout{display:grid;grid-template-columns:280px minmax(0,1fr);gap:56px}
 .pdp-rating-summary{padding:28px;border-radius:var(--radius-md);background:var(--pdp-soft)}
@@ -1112,6 +1189,8 @@ body.pdp-sticky-bar-active{padding-bottom:calc(78px + env(safe-area-inset-bottom
   .pdp-title{font-size:28px;margin-top:12px}
   .pdp-price{font-size:24px}
   .pdp-tab-list{gap:24px}
+  .pdp-feature-grid{grid-template-columns:1fr;gap:10px}
+  .pdp-notes-grid{grid-template-columns:1fr;gap:12px}
   .pdp-products-section{padding:54px 0}
   .pdp-signature-section{padding:64px 0}
   .pdp-newsletter{padding:64px 0}
@@ -1375,15 +1454,16 @@ body.pdp-sticky-bar-active{padding-bottom:calc(78px + env(safe-area-inset-bottom
     <section class="pdp-tabs-section">
       <div class="pdp-tab-list" role="tablist" aria-label="Product information">
         <button class="pdp-tab is-active" role="tab" aria-selected="true" aria-controls="pdp-description" id="tab-description" data-tab="pdp-description">Description</button>
-        <button class="pdp-tab" role="tab" aria-selected="false" aria-controls="pdp-specifications" id="tab-specifications" data-tab="pdp-specifications" tabindex="-1">Specifications</button>
-        <button class="pdp-tab" role="tab" aria-selected="false" aria-controls="pdp-shipping" id="tab-shipping" data-tab="pdp-shipping" tabindex="-1">Shipping</button>
-        <button class="pdp-tab" role="tab" aria-selected="false" aria-controls="pdp-returns" id="tab-returns" data-tab="pdp-returns" tabindex="-1">Returns</button>
+        <button class="pdp-tab" role="tab" aria-selected="false" aria-controls="pdp-highlights" id="tab-highlights" data-tab="pdp-highlights" tabindex="-1">Highlights</button>
+        <button class="pdp-tab" role="tab" aria-selected="false" aria-controls="pdp-fragrance-notes" id="tab-fragrance-notes" data-tab="pdp-fragrance-notes" tabindex="-1">Fragrance Notes</button>
         <button class="pdp-tab" role="tab" aria-selected="false" aria-controls="pdp-reviews" id="tab-reviews" data-tab="pdp-reviews" tabindex="-1">Reviews</button>
       </div>
 
       <div class="pdp-tab-panel is-active" id="pdp-description" role="tabpanel" aria-labelledby="tab-description" tabindex="0">
-        <div class="pdp-tab-content">
-          {% if product.description %}
+        <div class="pdp-tab-content pdp-description-content">
+          {% if product.description_full %}
+            {{ product.description_full|safe }}
+          {% elif product.description %}
             {{ product.description|linebreaks }}
           {% else %}
             <div class="pdp-empty-state">
@@ -1394,24 +1474,76 @@ body.pdp-sticky-bar-active{padding-bottom:calc(78px + env(safe-area-inset-bottom
         </div>
       </div>
 
-      <div class="pdp-tab-panel" id="pdp-specifications" role="tabpanel" aria-labelledby="tab-specifications" tabindex="0" hidden>
+      <div class="pdp-tab-panel" id="pdp-highlights" role="tabpanel" aria-labelledby="tab-highlights" tabindex="0" hidden>
         <div class="pdp-tab-content">
-          <p><strong>Product:</strong> {{ product.name }}</p>
-          {% if product.brand %}<p><strong>Brand:</strong> {{ product.brand }}</p>{% endif %}
-          {% if product.sku %}<p><strong>SKU:</strong> {{ product.sku }}</p>{% endif %}
-          {% if product.category %}<p><strong>Category:</strong> {{ product.category.name }}</p>{% endif %}
+          {% with highlight_list=product.highlights|json_loads %}
+            {% if highlight_list %}
+              <div class="pdp-feature-grid">
+                {% for item in highlight_list %}
+                  {% if item.text %}
+                  <div class="pdp-feature-card">
+                    <span class="pdp-feature-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                    <span class="pdp-feature-text">{{ item.text }}</span>
+                  </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="pdp-empty-state">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <strong>No highlights yet</strong>Key features for this product will be added soon.
+              </div>
+            {% endif %}
+          {% endwith %}
         </div>
       </div>
 
-      <div class="pdp-tab-panel" id="pdp-shipping" role="tabpanel" aria-labelledby="tab-shipping" tabindex="0" hidden>
+      <div class="pdp-tab-panel" id="pdp-fragrance-notes" role="tabpanel" aria-labelledby="tab-fragrance-notes" tabindex="0" hidden>
         <div class="pdp-tab-content">
-          <p>Orders are carefully packed and prepared for delivery. Estimated delivery time is typically <strong>3–5 business days</strong>, depending on your location and available courier services.</p>
-        </div>
-      </div>
-
-      <div class="pdp-tab-panel" id="pdp-returns" role="tabpanel" aria-labelledby="tab-returns" tabindex="0" hidden>
-        <div class="pdp-tab-content">
-          <p>Eligible products may be returned within <strong>7 days of purchase</strong>. Products must be unused, in their original condition, and returned with their original packaging.</p>
+          {% if product.fragrance_notes_top or product.fragrance_notes_middle or product.fragrance_notes_base %}
+            <div class="pdp-notes-grid">
+              {% if product.fragrance_notes_top %}
+              <div class="pdp-note-card">
+                <h4>Top Notes</h4>
+                <ul class="pdp-note-list">
+                  {% for note in product.fragrance_notes_top|split %}
+                    <li>{{ note|trim }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endif %}
+              {% if product.fragrance_notes_middle %}
+              <div class="pdp-note-card">
+                <h4>Middle Notes</h4>
+                <ul class="pdp-note-list">
+                  {% for note in product.fragrance_notes_middle|split %}
+                    <li>{{ note|trim }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endif %}
+              {% if product.fragrance_notes_base %}
+              <div class="pdp-note-card">
+                <h4>Base Notes</h4>
+                <ul class="pdp-note-list">
+                  {% for note in product.fragrance_notes_base|split %}
+                    <li>{{ note|trim }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endif %}
+            </div>
+            {% if product.fragrance_layers %}
+              <p class="pdp-notes-evolution">{{ product.fragrance_layers }}</p>
+            {% endif %}
+          {% else %}
+            <div class="pdp-empty-state">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <strong>Fragrance notes unavailable</strong>Note breakdown for this product will be added soon.
+            </div>
+          {% endif %}
         </div>
       </div>
 
