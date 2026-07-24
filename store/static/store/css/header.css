@@ -100,6 +100,9 @@
       "logo search icons";
     height:104px;
   }
+  .search-bar-desktop{
+    display:flex;
+  }
   .site-header.is-scrolled .header-grid{
     height:82px;
   }
@@ -169,7 +172,6 @@
    ========================================================================== */
 
 .search-bar-desktop{
-  display:flex;
   align-items:center;
   min-width:0; /* grid items default to min-width:auto, which can stop
                   this from shrinking properly and cause overflow at
