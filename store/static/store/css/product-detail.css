@@ -426,3 +426,143 @@ body {
   outline: 2px solid var(--brand-primary);
   outline-offset: 2px;
 }
+
+/* Fragrance Notes */
+.pdp-fragrance-notes {
+  .pdp-note-category {
+    margin-bottom: 1.5rem;
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    p {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+  }
+}
+
+/* Fragrance Layers Timeline */
+.pdp-fragrance-layers {
+  .pdp-layers-timeline {
+    position: relative;
+    padding: 2rem 0;
+    max-width: 600px;
+    margin: 0 auto;
+    .pdp-layers-track {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--border-default);
+      transform: translateX(-50%);
+    }
+    .pdp-layer-point {
+      position: relative;
+      width: 100%;
+      text-align: center;
+      padding: 0 1rem;
+      &:nth-child(1) { transform: translateY(-50%); }
+      &:nth-child(2) { transform: translateY(0); }
+      &:nth-child(3) { transform: translateY(50%); }
+      .pdp-layer-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+      }
+      .pdp-layer-dot {
+        width: 12px;
+        height: 12px;
+        background: var(--brand-primary);
+        border-radius: 50%;
+        display: inline-block;
+        position: relative;
+        z-index: 2;
+      }
+    }
+    .pdp-layer-description {
+      margin-top: 2rem;
+      text-align: center;
+      p {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--text-muted);
+        max-width: 500px;
+        margin: 0 auto;
+      }
+    }
+  }
+}
+
+/* Product Highlights Tab */
+.pdp-highlights {
+  .pdp-highlights-list {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    .pdp-highlight-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      .pdp-highlight-icon {
+        width: 3rem;
+        height: 3rem;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--surface-soft);
+        border-radius: 50%;
+        color: var(--brand-primary);
+        font-size: 1.4rem;
+        svg {
+          width: 1.8rem;
+          height: 1.8rem;
+        }
+      }
+      .pdp-highlight-text {
+        display: flex;
+        flex-direction: column;
+        strong {
+          font-size: 1rem;
+          display: block;
+          margin-bottom: 0.25rem;
+        }
+        span {
+          font-size: 0.875rem;
+          color: var(--text-muted);
+        }
+      }
+    }
+  }
+  .pdp-highlights-fallback {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+}
+
+/* Responsive adjustments for timeline */
+@media (max-width: 767px) {
+  .pdp-fragrance-layers {
+    .pdp-layers-timeline {
+      padding: 1.5rem 0;
+      .pdp-layer-point {
+        &:nth-child(1) { transform: translateY(0); }
+        &:nth-child(2) { transform: translateY(0); }
+        &:nth-child(3) { transform: translateY(0); }
+      }
+      .pdp-layers-track {
+        display: none;
+      }
+    }
+  }
+}

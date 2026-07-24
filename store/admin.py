@@ -100,6 +100,31 @@ class ProductAdmin(admin.ModelAdmin):
         "slug": ("name",),
     }
 
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'slug', 'category', 'sku', 'description', 'description_short', 'description_full')
+        }),
+        ('Fragrance Information', {
+            'fields': ('fragrance_notes_top', 'fragrance_notes_middle', 'fragrance_notes_base', 'fragrance_layers'),
+            'classes': ('collapse',),
+        }),
+        ('Product Highlights', {
+            'fields': ('highlights',),
+            'classes': ('collapse',),
+            'description': 'Enter highlights as JSON array: [{"icon": "shipping", "text": "Free Shipping"}, {"icon": "gift", "text": "Free Gift Wrapping"}]'
+        }),
+        ('Pricing', {
+            'fields': ('price', 'compare_at_price', 'stock')
+        }),
+        ('Media', {
+            'fields': ('image', 'image_secondary', 'image_gradient', 'image_gradient_secondary')
+        }),
+        ('SEO & Metadata', {
+            'fields': ('rating', 'rating_count', 'is_active', 'is_featured', 'is_new'),
+            'classes': ('collapse',),
+        }),
+    )
+
     @admin.display(description="Photo")
     def thumbnail(self, obj):
         if obj.image:

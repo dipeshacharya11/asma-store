@@ -111,6 +111,20 @@ class Product(models.Model):
     sku = models.CharField(max_length=40, unique=True)
     description = models.TextField(blank=True)
 
+    # Enhanced description fields for better formatting
+    description_short = models.TextField(blank=True, help_text="Short description shown in product grid")
+    description_full = models.TextField(blank=True, help_text="Full description with rich text support (HTML allowed)")
+
+    # Fragrance-specific fields
+    fragrance_notes_top = models.CharField(max_length=200, blank=True, help_text="Top notes (e.g., Bergamot, Lemon)")
+    fragrance_notes_middle = models.CharField(max_length=200, blank=True, help_text="Middle/Heart notes (e.g., Jasmine, Rose)")
+    fragrance_notes_base = models.CharField(max_length=200, blank=True, help_text="Base notes (e.g., Sandalwood, Vanilla)")
+
+    fragrance_layers = models.TextField(blank=True, help_text="Fragrance evolution description (e.g., 'Opens with citrus, settles to warm amber')")
+
+    # Product highlights as structured data
+    highlights = models.TextField(blank=True, help_text="Product highlights as JSON array of objects with icon and text")
+
     price = models.DecimalField(max_digits=10, decimal_places=2)
     compare_at_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 

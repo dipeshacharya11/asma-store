@@ -1,10 +1,16 @@
 {% extends "store/base.html" %}
 {% block title %}Sign In — Asma Stores{% endblock %}
 {% block extra_style %}
-.auth-box{max-width:400px; margin:130px auto 100px; padding:0 20px;}
+.auth-box{max-width:400px; margin:100px auto 60px; padding:0 20px;}
 .form-group{display:flex; flex-direction:column; gap:6px; margin-bottom:16px;}
 .form-group label{font-size:12.5px; font-weight:600; color:var(--muted);}
 .form-group input{padding:13px 16px; border-radius:11px; border:1.5px solid var(--border); font-size:13.5px;}
+@media(max-width: 480px){
+  .auth-box{margin:60px auto 40px; padding:0 15px;}
+  .form-group{margin-bottom:12px;}
+  .form-group label{font-size:11px;}
+  .form-group input{padding:10px 12px; border-radius:8px; font-size:12px;}
+}
 {% endblock %}
 {% block content %}
 <div class="auth-box">
