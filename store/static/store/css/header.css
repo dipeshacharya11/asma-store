@@ -396,7 +396,6 @@
 
 /* Search trigger (mobile only) - inside header-icons */
 .header-icons .search-trigger-mobile{
-  display:flex;
   align-items:center;
   justify-content:center;
   width:25px;
@@ -661,6 +660,12 @@
     align-items:center;
     justify-content:center;
   }
+  /* Show the compact search trigger — was previously unconditional with
+     higher specificity than .mobile-only, so it was visible at every
+     width including desktop */
+  .header-icons .search-trigger-mobile{
+    display:flex;
+  }
   /* Hide mega menu — its trigger (.search-bar-desktop) is already hidden
      at this same breakpoint via .desktop-only, so this just prevents a
      stray :hover/:focus from leaving it visibly stuck open */
@@ -882,10 +887,7 @@
 @media(max-width:991px){
   .mega-grid{
     grid-template-columns:repeat(2,1fr);
-    gap:32px:32px;
-}
-
-/* Search S2px;
+    gap:32px;
   }
 }
 
