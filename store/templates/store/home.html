@@ -24,17 +24,10 @@
 .hero-progress span{width:30px; height:2px; background:rgba(255,255,255,.3); position:relative; overflow:hidden;}
 .hero-progress span::after{content:''; position:absolute; inset:0; background:var(--brand-primary); transform:scaleX(0); transform-origin:left;}
 .hero-progress span.active::after{transform:scaleX(1); transition:transform 5s linear;}
-/* Tablet: exactly one slide visible, no adjacent-panel strips, no clipping */
-@media(max-width:991px) and (min-width:768px){
-  .hero{height:520px; overflow:hidden;}
-  .acc-panel{display:none; height:100%; flex:none; width:100%;}
-  .acc-panel.active{display:block; height:100%; width:100%;}
-  .acc-content{left:32px; bottom:44px; max-width:70%;}
-  .acc-vtext{display:none;}
-}
-
-/* Mobile: exactly one slide visible, responsive height, no overflow */
-@media(max-width:767px){
+/* Mobile: exactly one slide visible, responsive height, no overflow.
+   Scoped to <500px only — 500px and up keep the full multi-panel
+   "4 images" desktop accordion view. */
+@media(max-width:499px){
   .hero{height:clamp(320px,58vw,400px); flex-direction:row; overflow:hidden;}
   .acc-panel{display:none; height:100%; flex:none; width:100%;}
   .acc-panel.active{display:block; height:100%; width:100%;}
