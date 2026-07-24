@@ -140,7 +140,7 @@ button, input, select, textarea{font-family:'Poppins',sans-serif; cursor:pointer
 @keyframes ripple{ to{ transform:scale(3); opacity:0; } }
 
 /* ---------- Section shell ---------- */
-section{padding:88px 0;}
+section{padding:40px 0;}
 .section-head{display:flex; flex-direction:column; align-items:center; text-align:center; margin-bottom:44px; gap:14px;}
 .section-head h2{font-size:clamp(28px,3.4vw,42px);}
 .section-head .eyebrow{display:block;}
@@ -193,7 +193,7 @@ footer{ min-height: 300px;
 
 .signature-section{
   position:relative;
-  padding:88px 0; /* was 110px — the only section that didn't match the
+  padding:40px 0; /* was 110px — the only section that didn't match the
                       site-wide 88px rhythm used by every other section */
   overflow:hidden;
   background:#f7f9fc;

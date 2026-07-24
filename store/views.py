@@ -7,12 +7,15 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Q, F, Sum
+from django.db.models import Q, F, Sum, Value, Case, When, IntegerField, CharField
+from django.db.models.functions import Lower, Replace
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
 from datetime import timedelta
+import re
+from rapidfuzz import fuzz, process
 
 from .models import Category, Product, HeroSlide, Testimonial, Coupon, Order, OrderItem, BlogPost
 from .signals import FEATURED_PRODUCTS_CACHE_KEY, HERO_SLIDES_CACHE_KEY
@@ -403,18 +406,210 @@ def wishlist_view(request):
 # ---------------------------------------------------------------------------
 def search_view(request):
     query = request.GET.get('q', '').strip()
-    results = []
-    if query:
-        results = list(
+
+    # Handle empty search - show popular products
+    if not query:
+        # Get popular products (featured or recently added)
+        popular_products = list(
             Product.objects.filter(
-                Q(name__icontains=query) | Q(description__icontains=query) | Q(sku__icontains=query),
-                is_active=True,
-            ).select_related('category')[:24]
+                is_active=True, stock__gt=0
+            ).select_related('category').order_by('-is_featured', '-created_at')[:24]
         )
 
-    if _is_ajax(request):
-        html = render_to_string('store/includes/search_results.html', {'results': results, 'query': query}, request=request)
-        return JsonResponse({'html': html, 'count': len(results)})
+        if _is_ajax(request):
+            html = render_to_string('store/includes/search_results.html',
+                                  {'results': popular_products, 'query': ''}, request=request)
+            return JsonResponse({'html': html, 'count': len(popular_products), 'is_empty_search': True})
 
-    return render(request, 'store/search.html', {'results': results, 'query': query})
-    #------------------------------------------------------signature---------------------
+        return render(request, 'store/search.html', {
+            'results': popular_products,
+            'query': '',
+            'is_empty_search': True
+        })
+
+    # Normalize query: remove extra spaces, handle hyphens/underscores
+    normalized_query = re.sub(r'[-\s_]+', ' ', query.lower().strip())
+
+    # Get all active products with related category for efficient querying
+    products_qs = Product.objects.filter(is_active=True, stock__gt=0).select_related('category')
+
+    # Convert queryset to list for processing
+    products_list = list(products_qs)
+
+    # If no products, return empty results
+    if not products_list:
+        results = []
+    else:
+        # Implement intelligent search ranking
+        scored_results = []
+
+        for product in products_list:
+            score = 0
+            match_type = 0  # Lower number = higher priority
+
+            # Prepare fields for comparison
+            name_lower = product.name.lower()
+            description_lower = product.description.lower() if product.description else ""
+            sku_lower = product.sku.lower() if product.sku else ""
+            category_name_lower = product.category.name.lower() if product.category else ""
+
+            # 1. Product Name Exact Match (highest priority)
+            if normalized_query == name_lower:
+                score = 1000
+                match_type = 1
+
+            # 2. Product Name Starts With
+            elif name_lower.startswith(normalized_query):
+                score = 900
+                match_type = 2
+
+            # 3. Product Name Contains
+            elif normalized_query in name_lower:
+                score = 800
+                match_type = 3
+
+            # 4. Category Name Exact Match
+            elif normalized_query == category_name_lower:
+                score = 700
+                match_type = 4
+
+            # 5. Category Name Starts With
+            elif category_name_lower.startswith(normalized_query):
+                score = 600
+                match_type = 5
+
+            # 6. Category Name Contains
+            elif normalized_query in category_name_lower:
+                score = 500
+                match_type = 6
+
+            # 7. SKU Exact Match
+            elif normalized_query == sku_lower:
+                score = 400
+                match_type = 7
+
+            # 8. SKU Starts With
+            elif sku_lower.startswith(normalized_query):
+                score = 300
+                match_type = 8
+
+            # 9. SKU Contains
+            elif normalized_query in sku_lower:
+                score = 200
+                match_type = 9
+
+            # 10. Description Contains (lower priority)
+            elif normalized_query in description_lower:
+                score = 100
+                match_type = 10
+
+            # If no direct matches, try fuzzy matching
+            if score == 0:
+                # Use fuzzy matching on product name
+                name_fuzzy_score = fuzz.partial_ratio(normalized_query, name_lower)
+                if name_fuzzy_score >= 60:  # Minimum threshold for fuzzy match
+                    score = name_fuzzy_score
+                    match_type = 11  # Fuzzy match
+
+                # Also check category name for fuzzy match
+                elif category_name_lower:
+                    category_fuzzy_score = fuzz.partial_ratio(normalized_query, category_name_lower)
+                    if category_fuzzy_score >= 60:
+                        score = category_fuzzy_score
+                        match_type = 12  # Fuzzy category match
+
+            # Only include results with a meaningful score
+            if score > 0:
+                scored_results.append((score, match_type, product))
+
+        # Sort by score (descending) then by match_type (ascending for tie-breaking)
+        scored_results.sort(key=lambda x: (-x[0], x[1]))
+
+        # Extract just the products, limit to 24 results
+        results = [item[2] for item in scored_results[:24]]
+
+    # Handle AJAX request for autocomplete/live search
+    if _is_ajax(request):
+        html = render_to_string('store/includes/search_results.html',
+                              {'results': results, 'query': query}, request=request)
+        return JsonResponse({
+            'html': html,
+            'count': len(results),
+            'query': query,
+            'has_exact_matches': any(
+                result.name.lower() == query.lower() or
+                result.name.lower().startswith(query.lower())
+                for result in results
+            ) if results else False
+        })
+
+    # For full search results page, also get suggestions if no exact matches
+    has_exact_matches = False
+    suggestions = []
+
+    if results:
+        has_exact_matches = any(
+            result.name.lower() == query.lower() or
+            result.name.lower().startswith(query.lower())
+            for result in results
+        )
+
+    # If no exact matches, generate suggestions from product names, categories, etc.
+    if not has_exact_matches and results:
+        # Get some related products for suggestions
+        suggestions = list(
+            Product.objects.filter(
+                is_active=True, stock__gt=0
+            ).select_related('category').exclude(
+                id__in=[r.id for r in results]
+            ).order_by('?')[:6]  # Random 6 products for suggestion
+        )
+
+    return render(request, 'store/search.html', {
+        'results': results,
+        'query': query,
+        'has_exact_matches': has_exact_matches,
+        'suggestions': suggestions,
+        'is_empty_search': False
+    })
+
+
+def search_suggestions(request):
+    """AJAX endpoint for search autocomplete suggestions"""
+    query = request.GET.get('q', '').strip()
+
+    if not query or len(query) < 2:
+        return JsonResponse({'suggestions': []})
+
+    # Normalize query
+    normalized_query = re.sub(r'[-\s_]+', ' ', query.lower().strip())
+
+    # Get products for suggestions
+    products = Product.objects.filter(
+        is_active=True, stock__gt=0
+    ).select_related('category')[:50]  # Limit for performance
+
+    suggestions = set()
+
+    # Add product names that match
+    for product in products:
+        if product.name.lower().startswith(normalized_query):
+            suggestions.add(product.name)
+        elif normalized_query in product.name.lower():
+            suggestions.add(product.name)
+
+    # Add category names that match
+    categories = Category.objects.filter(
+        is_active=True
+    ).values_list('name', flat=True)
+
+    for category_name in categories:
+        if category_name.lower().startswith(normalized_query):
+            suggestions.add(category_name)
+        elif normalized_query in category_name.lower():
+            suggestions.add(category_name)
+
+    # Convert to sorted list and limit
+    suggestions_list = sorted(list(suggestions))[:10]
+
+    return JsonResponse({'suggestions': suggestions_list})

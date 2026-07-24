@@ -23,6 +23,135 @@
 }
 .search-page-form button:hover{background:var(--brand-primary-hover);}
 .search-page-form button svg{width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+
+/* Enhanced search results styling */
+.search-results-section{
+  margin-bottom:48px;
+}
+.search-results-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:16px;
+  margin-bottom:24px;
+}
+.search-results-count{
+  font-size:16px;
+  font-weight:600;
+  color:var(--text-primary);
+}
+.search-results-summary{
+  font-size:14px;
+  color:var(--text-muted);
+}
+.search-results-summary strong{
+  color:var(--text-primary);
+  font-weight:600;
+}
+.search-sort-options{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.sort-select{
+  padding:8px 16px;
+  border:1px solid var(--border-default);
+  border-radius:var(--radius-sm);
+  background:var(--surface-card);
+  color:var(--text-primary);
+  font-size:14px;
+  cursor:pointer;
+}
+.sort-select:focus{
+  outline:none;
+  border-color:var(--brand-primary);
+  box-shadow:0 0 0 2px var(--brand-primary-light);
+}
+
+/* Empty search state - show popular products */
+.empty-search-state{
+  text-align:center;
+  padding:48px 0;
+}
+.empty-search-state h3{
+  font-size:24px;
+  margin-bottom:16px;
+  color:var(--text-primary);
+}
+.empty-search-state p{
+  font-size:16px;
+  color:var(--text-muted);
+  margin-bottom:32px;
+}
+.popular-products-title{
+  font-size:20px;
+  font-weight:600;
+  text-align:left;
+  margin-bottom:24px;
+  color:var(--text-primary);
+}
+
+/* No matches state - show suggestions */
+.no-matches-state{
+  text-align:center;
+  padding:48px 0;
+}
+.no-matches-state h3{
+  font-size:24px;
+  margin-bottom:16px;
+  color:var(--text-primary);
+}
+.no-matches-state p{
+  font-size:16px;
+  color:var(--text-muted);
+  margin-bottom:24px;
+}
+.suggestions-title{
+  font-size:18px;
+  font-weight:600;
+  text-align:left;
+  margin-bottom:16px;
+  color:var(--text-primary);
+}
+.suggestion-tag{
+  display:inline-block;
+  background:var(--surface-soft);
+  color:var(--text-primary);
+  padding:6px 12px;
+  border-radius:20px;
+  font-size:14px;
+  margin:4px;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+}
+
+/* Related products section */
+.related-products-section{
+  margin-top:48px;
+  padding-top:32px;
+  border-top:1px solid var(--border-soft);
+}
+.related-products-title{
+  font-size:20px;
+  font-weight:600;
+  margin-bottom:24px;
+  color:var(--text-primary);
+  text-align:left;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .search-results-header{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .search-sort-options{
+    width:100%;
+    justify-content:flex-start;
+  }
+}
 {% endblock %}
 {% block content %}
 <div class="container search-page-wrap">
@@ -30,11 +159,14 @@
   <div class="search-page-head">
     <div class="eyebrow">Search</div>
     <h1>Search Results</h1>
-    {% if query %}
+    {% if is_empty_search %}
+    <p class="search-page-sub">Explore our popular collections</p>
+    {% elif query %}
     <p class="search-page-sub">Showing {{ results|length }} result{{ results|length|pluralize }} for <strong>"{{ query }}"</strong></p>
     {% endif %}
   </div>
 
+  {% if not is_empty_search %}
   <form method="get" class="search-page-form" role="search" aria-label="Search products">
     <input type="text" name="q" value="{{ query }}" placeholder="Search products..." autofocus>
     <button type="submit" aria-label="Search">
@@ -44,7 +176,94 @@
       </svg>
     </button>
   </form>
+  {% endif %}
 
-  {% include "store/includes/search_results.html" %}
+  {% if is_empty_search %}
+  <!-- Empty search - show popular products -->
+  <div class="empty-search-state">
+    <h3>Explore Popular Products</h3>
+    <p>Start typing to search or browse our featured collections below</p>
+
+    <div class="popular-products-title">Featured Collections</div>
+    <div class="search-results-grid">
+      {% for product in results %}
+      <a class="search-result-card" href="{{ product.get_absolute_url }}">
+        <div class="search-result-thumb" style="{% if product.primary_image_url %}background-image:url('{{ product.primary_image_url }}');{% else %}background:{{ product.image_gradient|default:'linear-gradient(160deg,#235C93,#6FA6C5)' }};{% endif %}"></div>
+        <h6>{{ product.name }}</h6>
+        <span>Rs. {{ product.price }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% elif results|length > 0 %}
+  <!-- Search results found -->
+  <div class="search-results-section">
+    <div class="search-results-header">
+      <div class="search-results-count">
+        {{ results|length }} result{{ results|length|pluralize }} found
+      </div>
+      {% if not has_exact_matches %}
+      <div class="search-results-summary">
+        Showing related results for <strong>"{{ query }}"</strong>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="search-results-grid">
+      {% for product in results %}
+      <a class="search-result-card" href="{{ product.get_absolute_url }}">
+        <div class="search-result-thumb" style="{% if product.primary_image_url %}background-image:url('{{ product.primary_image_url }}');{% else %}background:{{ product.image_gradient|default:'linear-gradient(160deg,#235C93,#6FA6C5)' }};{% endif %}"></div>
+        <h6>{{ product.name }}</h6>
+        <span>Rs. {{ product.price }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Related products after results -->
+  <div class="related-products-section">
+    <h2 class="related-products-title">You May Also Like</h2>
+    <div class="search-results-grid">
+      {% for product in results|slice:":4" %}
+      <a class="search-result-card" href="{{ product.get_absolute_url }}">
+        <div class="search-result-thumb" style="{% if product.primary_image_url %}background-image:url('{{ product.primary_image_url }}');{% else %}background:{{ product.image_gradient|default:'linear-gradient(160deg,#235C93,#6FA6C5)' }};{% endif %}"></div>
+        <h6>{{ product.name }}</h6>
+        <span>Rs. {{ product.price }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% else %}
+  <!-- No matches found -->
+  <div class="no-matches-state">
+    <h3>No exact matches found for "<strong>{{ query }}</strong>"</h3>
+    <p>Try broadening your search or check your spelling</p>
+
+    {% if suggestions %}
+    <div class="suggestions-title">Did you mean:</div>
+    <div class="suggestions-container">
+      {% for suggestion in suggestions %}
+      <span class="suggestion-tag">
+        {{ suggestion.name }}
+      </span>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <h3 class="popular-products-title mt-4">Popular Products</h3>
+    <div class="search-results-grid">
+      {% for product in suggestions|slice:":6" %}
+      <a class="search-result-card" href="{{ product.get_absolute_url }}">
+        <div class="search-result-thumb" style="{% if product.primary_image_url %}background-image:url('{{ product.primary_image_url }}');{% else %}background:{{ product.image_gradient|default:'linear-gradient(160deg,#235C93,#6FA6C5)' }};{% endif %}"></div>
+        <h6>{{ product.name }}</h6>
+        <span>Rs. {{ product.price }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
 </div>
 {% endblock %}

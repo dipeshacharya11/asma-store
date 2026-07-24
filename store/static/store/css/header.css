@@ -177,8 +177,11 @@
                   this from shrinking properly and cause overflow at
                   narrow tablet widths */
   flex:1;
-  max-width:480px;
-  width:100%;
+  /* Removed max-width:480px as per requirements */
+  /* Use flex:1 and margin-inline:auto to center and make it flexible */
+  margin-inline: auto;
+  width: 100%;
+  /* Make it take up available space while keeping shop and icons at their natural widths */
 }
 
 /* .search-wrapper IS the pill — one shared background, radius, shadow.
@@ -202,14 +205,15 @@
   box-shadow:0 0 0 3px rgba(255,255,255,.25);
 }
 
-/* Shop segment — same height as the pill, own subtle background, divider
-   on its right so it reads as attached but distinct (Amazon's category
-   selector pattern) */
+/* Shop segment — fixed width as per requirements */
 .search-bar-desktop .shop-link{
   flex:0 0 auto;
   display:flex;
   align-items:center;
   gap:6px;
+
+  /* Fixed width as per requirements */
+  width: 140px;
 
   padding:0 16px;
   height:100%;
@@ -253,11 +257,13 @@
   flex:1;
   min-width:0;
   height:100%;
-  padding:0 16px;
+  /* Padding 22px as per requirements */
+  padding:0 22px;
   border:none;
   background:none;
   color:#fff;
-  font-size:15px;
+  /* Font 16px as per requirements */
+  font-size:16px;
   outline:none;
 }
 .search-bar-desktop .search-form input::placeholder{
@@ -265,7 +271,8 @@
 }
 .search-bar-desktop .search-form button{
   flex:0 0 auto;
-  width:60px;
+  /* Width 64px as per requirements */
+  width:64px;
   height:100%;
   padding:0;
   border:none;
@@ -276,6 +283,7 @@
   align-items:center;
   justify-content:center;
   transition:background .3s var(--ease);
+  /* Premium focus animation will be handled by focus-within on the wrapper */
 }
 .search-bar-desktop .search-form button:hover{
   background:var(--brand-primary-hover);
@@ -290,17 +298,38 @@
   stroke-linejoin:round;
 }
 
-/* Responsive search height AND width — Shop/search/button all share the
-   same height variable so they never fall out of alignment, and the
-   pill's max-width narrows in step so it doesn't just get shorter, it
-   visibly shrinks as the header gets tighter. */
+/* Responsive search width - matching Amazon's proportions as per requirements */
+@media (min-width: 1921px) {
+  .search-bar-desktop{ max-width:760px; }
+}
+@media (min-width: 1601px) and (max-width: 1920px) {
+  .search-bar-desktop{ max-width:720px; }
+}
+@media (min-width: 1441px) and (max-width: 1600px) {
+  .search-bar-desktop{ max-width:700px; }
+}
+@media (min-width: 1367px) and (max-width: 1440px) {
+  .search-bar-desktop{ max-width:650px; }
+}
+@media (min-width: 1281px) and (max-width: 1366px) {
+  .search-bar-desktop{ max-width:620px; }
+}
+@media (min-width: 1025px) and (max-width: 1280px) {
+  .search-bar-desktop{ max-width:540px; }
+}
+@media (max-width: 1024px) and (min-width: 993px) {
+  .search-bar-desktop{ max-width:500px; }
+}
+@media (max-width: 992px) {
+  .search-bar-desktop{ max-width:440px; }
+}
+
+/* Keep existing breakpoints for height adjustments */
 @media (max-width: 1399px) {
   .search-bar-desktop .search-wrapper{ height:var(--search-height-laptop); }
-  .search-bar-desktop{ max-width:400px; }
 }
 @media (max-width: 1023px) {
   .search-bar-desktop .search-wrapper{ height:var(--search-height-tablet); }
-  .search-bar-desktop{ max-width:320px; }
 }
 @media (max-width: 860px) {
   .search-bar-desktop{ max-width:260px; }
@@ -336,7 +365,7 @@
                  the header's own blue gradient */
   cursor:pointer;
   text-decoration:none;
-  transition:color .25s var(--ease), transform .25s var(--ease);
+  transition:color .25s var(--ease), transform .25s var(--ease), background-color .25s var(--ease);
 }
 .icon-btn svg{
   display:block;
@@ -354,7 +383,15 @@
                                   this blue-gradient header had low contrast;
                                   a brightness dim matches how .main-nav
                                   links already handle hover */
-  transform:translateY(-2px);
+  transform:translateY(-2px) scale(1.05);
+  /* Background fade effect on hover */
+  background-color:rgba(255,255,255,.08);
+}
+.icon-btn:active{
+  transform:translateY(0) scale(0.95);
+}
+.icon-btn:active{
+  transform:translateY(0) scale(0.95);
 }
 
 /* Search trigger (mobile only) - inside header-icons */
@@ -381,7 +418,11 @@
 }
 .header-icons .search-trigger-mobile:hover{
   color:rgba(255,255,255,.7);
-  transform:translateY(-2px);
+  transform:translateY(-2px) scale(1.05);
+  background-color:rgba(255,255,255,.08);
+}
+.header-icons .search-trigger-mobile:active{
+  transform:translateY(0) scale(0.95);
 }
 
 /* ==========================================================================
@@ -716,6 +757,10 @@
   transition:opacity .4s var(--ease), transform .4s var(--ease), visibility 0s .4s, top .4s var(--ease);
   padding:48px 0;
   border-top:1px solid var(--border-soft);
+  border-radius:var(--radius-md); /* Added rounded corners */
+  /* Ensure width constraints - mega menu should be 350-420px or use grid width */
+  max-width:1400px;
+  margin:0 auto;
 }
 .mega-menu.is-open{
   opacity:1;
@@ -837,8 +882,45 @@
 @media(max-width:991px){
   .mega-grid{
     grid-template-columns:repeat(2,1fr);
-    gap:32px;
+    gap:32px:32px;
+}
+
+/* Search S2px;
   }
+}
+
+/* Search Suggestions */
+.search-suggestions {
+  position: absolute;
+  top: 100%; /* Position below the input */
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid var(--border-default);
+  border-top: none;
+  z-index: 1000;
+  box-shadow: var(--shadow-card);
+  margin-top: -1px; /* Prevent double border */
+}
+
+.suggestion-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.suggestion-item:hover,
+.suggestion-item.active {
+  background-color: var(--surface-soft);
+  color: var(--brand-primary);
+}
+
+.suggestion-item mark {
+  background-color: rgba(255, 255, 0, 0.2);
+  color: inherit;
+  font-weight: bold;
 }
 
 /* End of file */
