@@ -149,7 +149,6 @@
     <div class="prod-card" data-reveal>
       <div class="prod-media">
         <div class="badge-row">
-          {% if product.discount_percent %}<span class="pbadge sale">-{{ product.discount_percent }}%</span>{% endif %}
           {% if product.is_new %}<span class="pbadge new">New</span>{% endif %}
           {% if product.is_low_stock %}<span class="pbadge low">Only {{ product.stock }} left</span>{% endif %}
         </div>
