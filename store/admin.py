@@ -80,6 +80,33 @@ class ProductAdmin(admin.ModelAdmin):
         "is_featured",
     )
 
+    actions = [
+        "mark_as_featured",
+        "remove_from_featured",
+        "activate_products",
+        "deactivate_products",
+    ]
+
+    @admin.action(description="Mark selected products as Featured")
+    def mark_as_featured(self, request, queryset):
+        updated = queryset.update(is_featured=True)
+        self.message_user(request, f"{updated} product(s) marked as featured.")
+
+    @admin.action(description="Remove selected products from Featured")
+    def remove_from_featured(self, request, queryset):
+        updated = queryset.update(is_featured=False)
+        self.message_user(request, f"{updated} product(s) removed from featured.")
+
+    @admin.action(description="Activate selected products (re-establish)")
+    def activate_products(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f"{updated} product(s) activated.")
+
+    @admin.action(description="Deactivate selected products")
+    def deactivate_products(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f"{updated} product(s) deactivated.")
+
     list_filter = (
         "category",
         "is_active",
