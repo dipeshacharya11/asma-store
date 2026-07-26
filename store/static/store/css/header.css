@@ -82,10 +82,9 @@
 }
 
 .header-grid{
-  width:100%;
-  max-width:1360px;
+  width:min(100%,1360px);
   margin:0 auto;
-  padding:0 32px;
+  padding-inline:clamp(16px,2vw,32px);
   display:grid;
   align-items:center;
   gap:30px;
@@ -775,14 +774,6 @@
 }
 .site-header.is-scrolled .mega-menu{
   top:72px; /* 82px - 10px for hover bridge */
-}
-.mega-grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:48px;
-  max-width:1360px;
-  margin:0 auto;
-  padding:0 32px;
 }
 .mega-col{
   padding:0 4px;

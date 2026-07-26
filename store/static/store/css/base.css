@@ -76,6 +76,9 @@
 
 *{box-sizing:border-box; margin:0; padding:0;}
 html{scroll-behavior:smooth;}
+html{
+  overflow-x:hidden;
+}
 body{
   font-family:'Poppins',sans-serif;
   color:var(--text-primary);
@@ -86,7 +89,7 @@ body{
 h1,h2,h3,h4{font-family:'Playfair Display',serif; font-weight:700; letter-spacing:-0.01em; color:var(--text-primary);}
 a{text-decoration:none; color:inherit;}
 button, input, select, textarea{font-family:'Poppins',sans-serif; cursor:pointer; border:none; background:none; color:inherit;}
-.container{max-width:1360px; margin:0 auto; padding:0 32px;}
+.container{width:min(100%,1360px); margin:0 auto; padding-inline:clamp(16px,2vw,32px);}
 .muted{color:var(--text-muted);}
 .eyebrow{display:flex; align-items:center; gap:10px; font-size:12px; letter-spacing:.24em; text-transform:uppercase; color:var(--brand-primary); font-weight:600; margin-bottom:14px;}
 .eyebrow::before{content:''; width:28px; height:1px; background:var(--brand-primary-light);}
@@ -148,7 +151,7 @@ section{padding:40px 0;}
 .view-all:hover{opacity:.7;}
 
 /* ---------- Messages ---------- */
-.messages{max-width:1360px; margin:14px auto 0; padding:0 32px;}
+.messages{width:min(100%,1360px); margin:14px auto 0; padding-inline:clamp(16px,2vw,32px);}
 .msg{padding:13px 18px; border-radius:12px; font-size:13.5px; margin-bottom:8px;}
 .msg.success{background:#EFF6FF; color:var(--status-success);}
 .msg.error{background:#FEE2E2; color:var(--status-sale);}

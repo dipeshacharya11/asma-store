@@ -14,7 +14,7 @@
 }
 .mega-menu.is-open{opacity:1; visibility:visible; transform:translateY(0); transition:opacity .4s var(--ease), transform .4s var(--ease);}
 .site-header.is-scrolled .mega-menu{top:82px;}
-.mega-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:48px; max-width:1360px; margin:0 auto; padding:0 32px;}
+.mega-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:48px; width:min(100%,1360px); margin:0 auto; padding-inline:clamp(16px,2vw,32px);}
 .mega-col{padding:0 4px;}
 .mega-col h5{font-size:11px; text-transform:uppercase; letter-spacing:.14em; color:var(--brand-primary); margin-bottom:18px; font-weight:600;}
 .mega-col a.mega-link{display:flex; align-items:center; gap:8px; font-size:14px; padding:8px 0; color:var(--text-secondary); transition:all .25s var(--ease); border-left:2px solid transparent; padding-left:10px; margin-left:-10px; border-radius:var(--radius-sm);}
