@@ -12,9 +12,6 @@
     {% for product in products %}
     <div class="prod-card" data-reveal>
       <div class="prod-media">
-        <div class="badge-row">
-          {% if product.discount_percent %}<span class="pbadge sale">-{{ product.discount_percent }}%</span>{% endif %}
-        </div>
         <div class="quick-actions">
           <button class="qa-btn wishlist-toggle-btn is-active" data-product-id="{{ product.id }}">♥</button>
         </div>
