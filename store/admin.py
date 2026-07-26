@@ -111,7 +111,7 @@ class ProductAdmin(admin.ModelAdmin):
         ('Product Highlights', {
             'fields': ('highlights',),
             'classes': ('collapse',),
-            'description': 'Enter highlights as JSON array: [{"icon": "shipping", "text": "Free Shipping"}, {"icon": "gift", "text": "Free Gift Wrapping"}]'
+            'description': 'Enter one highlight per line, e.g.:\nWoody & Floral fragrance family\nLong-lasting Eau de Parfum\nMade in Turkey'
         }),
         ('Pricing', {
             'fields': ('price', 'compare_at_price', 'stock')

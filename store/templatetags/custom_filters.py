@@ -15,6 +15,16 @@ def split(value, delimiter=","):
 
 
 @register.filter
+def splitlines(value):
+    """
+    Split a string into a list of non-empty, trimmed lines.
+    """
+    if not value:
+        return []
+    return [line.strip() for line in str(value).splitlines() if line.strip()]
+
+
+@register.filter
 def trim(value):
     """
     Remove leading and trailing whitespace.

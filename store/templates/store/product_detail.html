@@ -1199,7 +1199,7 @@ body.pdp-sticky-bar-active{padding-bottom:calc(78px + env(safe-area-inset-bottom
   .pdp-slider-nav{align-self:flex-end}
 }
 
-@media(max-width:575px){
+@media(max-width:600px){
   .pdp-thumbnail{width:66px;height:66px;flex-basis:66px}
   .pdp-buy-row{grid-template-columns:110px minmax(0,1fr)}
   .pdp-highlights-grid{grid-template-columns:1fr}
@@ -1476,18 +1476,16 @@ body.pdp-sticky-bar-active{padding-bottom:calc(78px + env(safe-area-inset-bottom
 
       <div class="pdp-tab-panel" id="pdp-highlights" role="tabpanel" aria-labelledby="tab-highlights" tabindex="0" hidden>
         <div class="pdp-tab-content">
-          {% with highlight_list=product.highlights|json_loads %}
+          {% with highlight_list=product.highlights|splitlines %}
             {% if highlight_list %}
               <div class="pdp-feature-grid">
-                {% for item in highlight_list %}
-                  {% if item.text %}
+                {% for line in highlight_list %}
                   <div class="pdp-feature-card">
                     <span class="pdp-feature-icon" aria-hidden="true">
                       <svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </span>
-                    <span class="pdp-feature-text">{{ item.text }}</span>
+                    <span class="pdp-feature-text">{{ line }}</span>
                   </div>
-                  {% endif %}
                 {% endfor %}
               </div>
             {% else %}
