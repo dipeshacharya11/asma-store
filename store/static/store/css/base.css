@@ -180,7 +180,7 @@ footer{ min-height: 300px;
 .newsletter-form button:hover{background:#fff; color:var(--brand-primary);}
 .newsletter-form button svg{width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
 
-@media(max-width:980px){ .footer-grid{grid-template-columns:1fr 1fr;} }
+@media(max-width:991px){ .footer-grid{grid-template-columns:1fr 1fr;} }
 
 /* Scroll reveal (paired with animations.js) */
 [data-reveal]{opacity:0; transform:translateY(28px); transition:opacity .7s var(--ease), transform .7s var(--ease);}
@@ -476,7 +476,7 @@ footer{ min-height: 300px;
 
 /* TABLET */
 
-@media(max-width:1000px){
+@media(max-width:991px){
 
   .signature-grid{
     grid-template-columns:repeat(2, minmax(0, 1fr));

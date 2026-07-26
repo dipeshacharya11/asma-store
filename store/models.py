@@ -122,8 +122,8 @@ class Product(models.Model):
 
     fragrance_layers = models.TextField(blank=True, help_text="Fragrance evolution description (e.g., 'Opens with citrus, settles to warm amber')")
 
-    # Product highlights as structured data
-    highlights = models.TextField(blank=True, help_text="Product highlights as JSON array of objects with icon and text")
+    # Product highlights as plain text, one per line
+    highlights = models.TextField(blank=True, help_text="Product highlights, one per line (e.g. 'Long-lasting Eau de Parfum')")
 
     price = models.DecimalField(max_digits=10, decimal_places=2)
     compare_at_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
