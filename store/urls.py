@@ -1,5 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
+from django.views.generic import RedirectView
 from . import views
 
 app_name = 'store'
@@ -25,6 +26,8 @@ urlpatterns = [
     path('blog/', views.blog_list, name='blog_list'),
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
 
+    path('about/', views.about, name='about'),
+    path('aboutus', RedirectView.as_view(pattern_name='store:about', permanent=False), name='aboutus_redirect'),
     path('dashboard/', views.staff_dashboard, name='staff_dashboard'),
 
     path('register/', views.register, name='register'),
