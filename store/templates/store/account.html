@@ -1,0 +1,32 @@
+{% extends "store/base.html" %}
+{% block title %}My Account — Asma Stores{% endblock %}
+{% block extra_style %}
+.order-card{border:1px solid #EEF2F6; border-radius:16px; padding:22px; margin-bottom:16px;}
+.order-top{display:flex; justify-content:space-between; margin-bottom:12px;}
+.status{font-size:11px; font-weight:700; padding:4px 12px; border-radius:100px; text-transform:capitalize;}
+.status.pending{background:#FFF6E5; color:#8A5E10;}
+.status.paid, .status.delivered{background:#EAF4EB; color:var(--success);}
+.status.shipped{background:var(--brand-primary-light); color:var(--brand-primary);}
+.status.cancelled{background:#FBEAEC; color:var(--sale);}
+{% endblock %}
+{% block content %}
+<div class="container" style="padding:120px 0 90px;">
+  <h1 style="margin-bottom:6px;">Welcome back, {{ user.username }}</h1>
+  <p class="muted" style="margin-bottom:32px;">{{ orders|length }} order{{ orders|length|pluralize }} placed with Asma Store.</p>
+
+  {% for order in orders %}
+  <div class="order-card">
+    <div class="order-top">
+      <div><b>Order #{{ order.id }}</b><br><span class="muted" style="font-size:12.5px;">Placed {{ order.created_at|date:"M j, Y" }}</span></div>
+      <span class="status {{ order.status }}">{{ order.status }}</span>
+    </div>
+    {% for item in order.items.all %}
+    <div class="muted" style="font-size:13px;">{{ item.quantity }} × {{ item.product_name }} — Rs. {{ item.line_total }}</div>
+    {% endfor %}
+    <div style="margin-top:12px; font-weight:700;">Total: Rs. {{ order.total }}</div>
+  </div>
+  {% empty %}
+  <p class="muted">You haven't placed any orders yet. <a href="{% url 'store:collection' %}" style="color:var(--brand-primary); font-weight:600;">Start shopping →</a></p>
+  {% endfor %}
+</div>
+{% endblock %}

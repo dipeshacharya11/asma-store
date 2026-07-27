@@ -1,0 +1,175 @@
+/* ==========================================================================
+   header.js — sticky header state, mobile drawer, mega menu open/close
+   ========================================================================== */
+(function () {
+  const header = document.getElementById('siteHeader');
+
+  function updateHeaderState() {
+    if (!header) return;
+
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+    const isScrolled = scrollY > 40;
+    header.classList.toggle('is-scrolled', isScrolled);
+
+    // Update mega-menu top position based on header height
+    const megaMenu = document.querySelector('.mega-menu');
+    if (megaMenu) {
+      // Header height is 104px when not scrolled, 82px when scrolled
+      megaMenu.style.top = isScrolled ? '82px' : '104px';
+    }
+  }
+  window.addEventListener('scroll', updateHeaderState, { passive: true });
+  window.addEventListener('resize', updateHeaderState, { passive: true });
+  updateHeaderState();
+
+  // ---------- Amazon-style hide-on-scroll-down / show-on-scroll-up ----------
+  (function () {
+    if (!header) return;
+
+    const HIDE_DISTANCE = 70;    // net downward distance required before hiding
+    const REVEAL_TOP_ZONE = 80;  // always show header near the very top
+
+    let lastY = window.pageYOffset || document.documentElement.scrollTop;
+    let downAccum = 0;           // net downward distance since the last direction change
+    let ticking = false;
+
+    function anyOverlayOpen() {
+      const megaOpen = document.querySelector('.mega-menu.is-open');
+      const drawerOpen = document.getElementById('mobileDrawer') &&
+        document.getElementById('mobileDrawer').classList.contains('is-open');
+      const searchOpen = document.getElementById('searchOverlay') &&
+        document.getElementById('searchOverlay').classList.contains('is-open');
+      return !! (megaOpen || drawerOpen || searchOpen);
+    }
+
+    function onScrollFrame() {
+      ticking = false;
+      const currentY = window.pageYOffset || document.documentElement.scrollTop;
+      const diff = currentY - lastY;
+
+      if (anyOverlayOpen() || currentY <= REVEAL_TOP_ZONE) {
+        header.classList.remove('header-hidden');
+        downAccum = 0;
+      } else if (diff > 0) {
+        // Scrolling down: accumulate net distance; only hide once it's a
+        // real, deliberate scroll (60-80px), not a jittery micro-movement.
+        downAccum += diff;
+        if (downAccum > HIDE_DISTANCE) {
+          header.classList.add('header-hidden');
+        }
+      } else if (diff < 0) {
+        // Scrolling up: reveal immediately on ANY upward movement, however
+        // small — this is what makes it feel like Amazon. Reset the
+        // downward accumulator so the next hide requires a fresh 70px.
+        downAccum = 0;
+        header.classList.remove('header-hidden');
+      }
+
+      lastY = currentY;
+    }
+
+    window.addEventListener('scroll', function () {
+      if (!ticking) {
+        window.requestAnimationFrame(onScrollFrame);
+        ticking = true;
+      }
+    }, { passive: true });
+  })();
+
+  // Update aria-expanded attribute for shop link based on mega menu state
+  (function () {
+    const shopLink = document.querySelector('.shop-link');
+    const megaMenu = document.querySelector('.mega-menu');
+
+    if (shopLink && megaMenu) {
+      const updateAriaExpanded = () => {
+        const isOpen = megaMenu.classList.contains('is-open');
+        shopLink.setAttribute('aria-expanded', isOpen);
+      };
+
+      // Set initial state
+      updateAriaExpanded();
+
+      // Observe changes to the mega menu's class attribute
+      const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+            updateAriaExpanded();
+          }
+        }
+      });
+
+      observer.observe(megaMenu, { attributes: true, attributeFilter: ['class'] });
+    }
+  })();
+
+  // ---------- Mobile drawer ----------
+  const burger = document.getElementById('burgerBtn');
+  const mobileDrawer = document.getElementById('mobileDrawer');
+  const drawerOverlay = document.getElementById('drawerOverlay');
+
+  function closeAllOverlays() {
+    mobileDrawer && mobileDrawer.classList.remove('is-open');
+    drawerOverlay && drawerOverlay.classList.remove('is-open');
+    document.getElementById('cartDrawer') && document.getElementById('cartDrawer').classList.remove('is-open');
+    document.getElementById('searchOverlay') && document.getElementById('searchOverlay').classList.remove('is-open');
+  }
+
+  if (burger) {
+    burger.addEventListener('click', () => {
+      mobileDrawer.classList.add('is-open');
+      drawerOverlay.classList.add('is-open');
+    });
+  }
+  if (drawerOverlay) {
+    drawerOverlay.addEventListener('click', closeAllOverlays);
+  }
+  document.querySelectorAll('.mobile-acc-head').forEach((head) => {
+    head.addEventListener('click', () => {
+      const body = head.nextElementSibling;
+      const isOpen = body.style.maxHeight;
+      document.querySelectorAll('.mobile-acc-body').forEach((b) => (b.style.maxHeight = null));
+      if (!isOpen) body.style.maxHeight = body.scrollHeight + 'px';
+    });
+  });
+
+  // Mobile category toggles for shop menu
+  document.querySelectorAll('.mobile-category-header').forEach((header) => {
+    header.addEventListener('click', () => {
+      const item = header.parentElement;
+      const isOpen = item.classList.contains('active');
+      const children = item.querySelector('.mobile-category-children');
+      const toggle = header.querySelector('.mobile-category-toggle');
+
+      // Close all other categories
+      document.querySelectorAll('.mobile-category-item').forEach((item) => {
+        item.classList.remove('active');
+        const childList = item.querySelector('.mobile-category-children');
+        if (childList) {
+          childList.style.maxHeight = null;
+        }
+      });
+
+      // Toggle current category
+      if (!isOpen) {
+        item.classList.add('active');
+        if (children) {
+          children.style.maxHeight = children.scrollHeight + 'px';
+        }
+        if (toggle) {
+          toggle.textContent = '−';
+        }
+      } else {
+        item.classList.remove('active');
+        if (children) {
+          children.style.maxHeight = null;
+        }
+        if (toggle) {
+          toggle.textContent = '+';
+        }
+      }
+    });
+  });
+
+  window.closeAllOverlays = closeAllOverlays;
+})();

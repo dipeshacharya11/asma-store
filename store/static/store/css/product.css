@@ -1,0 +1,444 @@
+/* ==========================================================================
+   PRODUCT CARDS (Premium Shopify Style)
+   ========================================================================== */
+
+.prod-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:28px;
+}
+
+.prod-card{
+    position:relative;
+    transition:
+        transform .45s cubic-bezier(.22,.61,.36,1),
+        opacity .3s ease;
+    will-change:transform;
+}
+
+.prod-card:hover{
+    transform:translateY(-8px);
+}
+
+.prod-media{
+    position:relative;
+    aspect-ratio:4/5;
+    overflow:hidden;
+    border-radius:var(--radius-md);
+
+    background:transparent;
+
+    box-shadow:var(--shadow-soft);
+
+    isolation:isolate;
+
+    transition:
+        box-shadow .45s ease,
+        transform .45s ease;
+}
+
+.prod-card:hover .prod-media{
+    box-shadow:
+        0 18px 45px rgba(0,0,0,.12);
+}
+
+/* Images */
+
+.prod-media img,
+.prod-media .img-a,
+.prod-media .img-b{
+
+    position:absolute;
+    inset:0;
+
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+    object-position:center;
+
+    background:transparent !important;
+    background-size:cover;
+    background-position:center;
+
+    transition:
+        opacity .45s ease,
+        transform .85s cubic-bezier(.22,.61,.36,1),
+        filter .45s ease;
+
+    will-change:transform,opacity;
+}
+
+/* Primary */
+
+.prod-media .img-a{
+    opacity:1;
+    z-index:2;
+}
+
+/* Secondary */
+
+.prod-media .img-b{
+    opacity:0;
+    z-index:3;
+}
+
+/* Hover */
+
+.prod-card:hover .img-a{
+    transform:scale(1.07);
+    filter:brightness(.98);
+}
+
+.prod-card:hover img.img-b{
+    opacity:1;
+    transform:scale(1.07);
+}
+
+/* Decorative Frame */
+
+.prod-frame{
+
+    position:absolute;
+    inset:12px;
+
+    border:1px solid rgba(255,255,255,0);
+
+    border-radius:10px;
+
+    pointer-events:none;
+
+    z-index:5;
+
+    transition:
+        border-color .35s ease,
+        transform .35s ease;
+}
+
+.prod-card:hover .prod-frame{
+
+    border-color:rgba(255,255,255,.45);
+
+    transform:scale(.985);
+}
+
+/* =====================================================
+   Badges
+===================================================== */
+
+.badge-row{
+    position:absolute;
+    top:16px;
+    left:16px;
+    z-index:10;
+
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+
+.pbadge{
+
+    padding:5px 11px;
+
+    border-radius:100px;
+
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.06em;
+
+    text-transform:uppercase;
+
+    color:#fff;
+
+    backdrop-filter:blur(10px);
+}
+
+.pbadge.sale{
+    background:var(--status-sale);
+}
+
+.pbadge.new{
+    background:var(--brand-primary);
+}
+
+.pbadge.low{
+    background:var(--status-warning);
+}
+
+/* =====================================================
+   Quick Actions
+===================================================== */
+
+.quick-actions{
+
+    position:absolute;
+
+    top:16px;
+    right:16px;
+
+    z-index:12;
+
+    display:flex;
+    flex-direction:column;
+
+    gap:10px;
+
+    opacity:0;
+
+    transform:
+        translateX(14px);
+
+    transition:
+        opacity .35s ease,
+        transform .35s ease;
+}
+
+.prod-card:hover .quick-actions{
+
+    opacity:1;
+
+    transform:translateX(0);
+}
+
+.qa-btn{
+
+    width:38px;
+    height:38px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.95);
+
+    backdrop-filter:blur(12px);
+
+    box-shadow:
+        0 10px 25px rgba(0,0,0,.12);
+
+    transition:
+        transform .3s ease,
+        background .3s ease,
+        color .3s ease;
+}
+
+.qa-btn:hover{
+
+    transform:scale(1.08);
+
+    background:var(--brand-primary);
+
+    color:#fff;
+}
+
+.qa-btn.is-active{
+
+    background:var(--brand-primary);
+
+    color:#fff;
+}
+
+/* =====================================================
+   Quick Add
+===================================================== */
+
+.quick-add-bar{
+
+    position:absolute;
+
+    left:12px;
+    right:12px;
+    bottom:12px;
+
+    z-index:12;
+
+    opacity:0;
+
+    transform:
+        translateY(16px);
+
+    transition:
+        opacity .35s ease,
+        transform .35s ease;
+}
+
+.prod-card:hover .quick-add-bar{
+
+    opacity:1;
+
+    transform:translateY(0);
+}
+
+.quick-add-bar button{
+
+    width:100%;
+
+    padding:12px;
+
+    border-radius:999px;
+
+    background:rgba(255,255,255,.94);
+
+    backdrop-filter:blur(12px);
+
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.06em;
+
+    text-transform:uppercase;
+
+    transition:
+        background .3s ease,
+        color .3s ease,
+        transform .3s ease;
+}
+
+.quick-add-bar button:hover{
+
+    background:var(--brand-primary);
+
+    color:#fff;
+
+    transform:translateY(-1px);
+}
+
+.quick-add-bar button:disabled{
+
+    opacity:.6;
+
+    cursor:not-allowed;
+}
+
+/* =====================================================
+   Product Info
+===================================================== */
+
+.prod-info{
+
+    padding:18px 4px 0;
+}
+
+.prod-cat{
+
+    margin-bottom:6px;
+
+    font-size:11px;
+
+    letter-spacing:.12em;
+
+    text-transform:uppercase;
+
+    color:var(--text-muted);
+}
+
+.prod-info h4{
+
+    margin-bottom:8px;
+
+    font-size:15.5px;
+
+    font-family:'Playfair Display';
+
+    font-weight:600;
+
+    line-height:1.45;
+
+    transition:color .3s ease;
+}
+
+.prod-card:hover h4{
+
+    color:var(--brand-primary);
+}
+
+.rating-row{
+
+    display:flex;
+
+    gap:2px;
+
+    margin-bottom:8px;
+
+    color:var(--brand-primary);
+
+    font-size:12px;
+}
+
+.price-row{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+}
+
+.price{
+
+    font-size:15.5px;
+
+    font-weight:700;
+
+    font-family:'Poppins';
+}
+
+.price-old{
+
+    text-decoration:line-through;
+
+    color:var(--text-muted);
+
+    font-size:13px;
+}
+
+/* =====================================================
+   Responsive
+===================================================== */
+
+@media(max-width:1100px){
+
+    .prod-grid{
+
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .quick-actions{
+
+        opacity:1;
+
+        transform:none;
+    }
+
+    .quick-add-bar{
+
+        opacity:1;
+
+        transform:none;
+    }
+
+}
+
+@media(max-width:560px){
+
+    .prod-grid{
+
+        grid-template-columns:1fr;
+
+        gap:22px;
+    }
+
+    .prod-card:hover{
+
+        transform:none;
+    }
+
+    .prod-card:hover .img-a,
+    .prod-card:hover img.img-b{
+
+        transform:scale(1.03);
+    }
+
+}

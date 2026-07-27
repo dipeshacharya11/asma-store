@@ -1,0 +1,550 @@
+/* ==========================================================================
+   ASMA STORES — Design tokens & base styles
+   Primary blue sampled directly from the brand reference photo (a blue-
+   gradient canvas mockup) via PIL pixel sampling: #4A8ABA. All other blue
+   shades below are mathematically derived from that same sampled value
+   (darken/lighten), not separately chosen, so the whole palette stays
+   consistent with the one real reference color.
+   ========================================================================== */
+:root{
+  --brand-primary:#235C93;
+  --brand-primary-hover:#1C4E80;
+  --brand-primary-active:#163D66;
+  --brand-primary-light:#E9F1F8;
+  --brand-primary-lighter:#D8E7F3;
+  --brand-primary-smooth:#6FA6C5;
+  --brand-secondary:#3F7EB1;
+  --brand-accent:#6FA6C5;
+
+  --brand-gradient:linear-gradient(135deg,#235C93 0%,#3F7EB1 40%,#4F91BC 70%,#6FA6C5 100%);
+  --footer-gradient:linear-gradient(180deg,#2A689D,#235C93,#1B4E7B);
+
+  --surface-page:#F7FAFD;
+  --surface-card:#FFFFFF;
+  --surface-soft:#EEF5FA;
+  --surface-muted:#E4EEF5;
+
+  --text-primary:#18324A;
+  --text-secondary:#345273;
+  --text-muted:#64748B;
+  --text-inverse:#ffffff;
+
+  --border-default:#D8E7F3;
+  --border-soft:#E7F0F7;
+  --border-strong:#B9D2E5;
+
+  --status-sale:#EF4444;
+  --status-success:#22C55E;
+  --status-warning:#F59E0B;
+  --status-danger:#EF4444;
+
+  --radius-sm:8px;
+  --radius-md:14px;
+  --radius-lg:18px;
+
+  --shadow-card:0 8px 24px rgba(32, 32, 36, .08);
+  --shadow-overlay:0 24px 70px rgba(32, 32, 36, .16);
+  /* Referenced across several templates/CSS files but never previously
+     defined here (a real pre-existing bug — those box-shadows silently
+     rendered as nothing). Added to match how they're already being used:
+     a lighter resting-state shadow and a more pronounced hover/lift one. */
+  --shadow-soft:0 10px 30px rgba(32, 32, 36, .06);
+  --shadow-lift:0 20px 48px rgba(32, 32, 36, .14);
+
+  --ease-previous:cubic-bezier(.16, 1, .3, 1);
+  --brand-primary-dark:#325D7E;
+  --ease:cubic-bezier(.22,1,.36,1); /* keeping existing for backward compat */
+}
+
+/* Legacy variable names kept for backward compatibility with anything still
+   referencing var(--gold) directly — now holding the real brand blue
+   instead of the old gold theme, so nothing renders gold anymore. */
+:root{
+  --gold:#4A8ABA;
+  --gold-light:#7FB2DE;
+  --grad-gold:linear-gradient(135deg, var(--gold), var(--gold-light));
+  --cream:#FCFAF5;
+  --white:#FFFFFF;
+  --dark:#202020;
+  --light-gray:#F7F7F7;
+  --text:#303030;
+  --muted:#6B6B6B;
+  --success:#2E7D32;
+  --sale:#D72638;
+  --border:#EAE5D8;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+html{
+  overflow-x:hidden;
+}
+body{
+  font-family:'Poppins',sans-serif;
+  color:var(--text-primary);
+  background:var(--surface-page);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+h1,h2,h3,h4{font-family:'Playfair Display',serif; font-weight:700; letter-spacing:-0.01em; color:var(--text-primary);}
+a{text-decoration:none; color:inherit;}
+button, input, select, textarea{font-family:'Poppins',sans-serif; cursor:pointer; border:none; background:none; color:inherit;}
+.container{width:min(100%,1360px); margin:0 auto; padding-inline:clamp(16px,2vw,32px);}
+.muted{color:var(--text-muted);}
+.eyebrow{display:flex; align-items:center; gap:10px; font-size:12px; letter-spacing:.24em; text-transform:uppercase; color:var(--brand-primary); font-weight:600; margin-bottom:14px;}
+.eyebrow::before{content:''; width:28px; height:1px; background:var(--brand-primary-light);}
+
+/* ---------- Buttons ---------- */
+.btn{
+  font-family:'Montserrat','Poppins',sans-serif;
+  padding:16px 34px; border-radius:100px; font-weight:600; font-size:13.5px; letter-spacing:.02em;
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  transition:transform .4s var(--ease), box-shadow .4s var(--ease), background .4s var(--ease), color .4s var(--ease);
+  position:relative; overflow:hidden;
+}
+.btn-primary{background:#FDD245; color:#c72020;}
+.btn-primary:hover{transform:translateY(-3px); box-shadow:0 20px 44px rgba(35, 92, 147, .45);}
+.btn-primary:active{transform:scale(.97);}
+.btn-secondary{
+  background:transparent;
+  color:var(--brand-primary);
+  border:2px solid var(--brand-primary);
+}
+.btn-secondary:hover{
+  background:var(--brand-primary-light);
+}
+.btn-secondary:active{
+  transform:scale(.97);
+}
+.btn-ghost{
+  background:transparent;
+  color:var(--text-primary);
+  border:1px solid var(--border-soft);
+}
+.btn-ghost:hover{
+  background:var(--brand-primary-light);
+}
+.btn-ghost:active{
+  transform:scale(.97);
+}
+.btn-danger{
+  background:var(--status-sale);
+  color:#fff;
+}
+.btn-danger:hover{
+  background:#b91c1c;
+}
+.btn-danger:active{
+  transform:scale(.97);
+}
+
+/* Ripple micro-interaction */
+.btn .ripple{position:absolute; border-radius:50%; background:rgba(255,255,255,.5); transform:scale(0); animation:ripple .6s var(--ease);}
+@keyframes ripple{ to{ transform:scale(3); opacity:0; } }
+
+/* ---------- Section shell ---------- */
+section{padding:40px 0;}
+.section-head{display:flex; flex-direction:column; align-items:center; text-align:center; margin-bottom:44px; gap:14px;}
+.section-head h2{font-size:clamp(28px,3.4vw,42px);}
+.section-head .eyebrow{display:block;}
+.view-all{font-size:13.5px; font-weight:600; color:var(--brand-primary); border-bottom:1.5px solid var(--brand-primary-light); padding-bottom:3px; transition:opacity .3s;}
+.view-all:hover{opacity:.7;}
+
+/* ---------- Messages ---------- */
+.messages{width:min(100%,1360px); margin:14px auto 0; padding-inline:clamp(16px,2vw,32px);}
+.msg{padding:13px 18px; border-radius:12px; font-size:13.5px; margin-bottom:8px;}
+.msg.success{background:#EFF6FF; color:var(--status-success);}
+.msg.error{background:#FEE2E2; color:var(--status-sale);}
+.msg.warning{background:#FFF7ED; color:#92400E;}
+
+/* ---------- Footer ---------- */
+footer{ min-height: 300px;
+  background: var(--footer-gradient);
+  color:rgba(255,255,255,.8); padding:76px 0 30px; margin-top:20px;}
+.footer-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr 1.3fr; gap:40px; margin-bottom:52px;}
+.footer-grid h5{color:#fff; font-size:13.5px; letter-spacing:.08em; text-transform:uppercase; margin-bottom:18px; font-family:'Poppins'; font-weight:600;}
+.footer-grid ul{list-style:none;}
+.footer-grid li{margin-bottom:11px; font-size:13.5px;}
+.footer-grid li a:hover{color:var(--brand-primary-light);}
+.footer-logo img{height:38px; margin-bottom:14px;}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.1); padding-top:22px; text-align:center; font-size:12.5px;}
+.social-row{display:flex; gap:10px; margin-top:18px;}
+.social-row a{width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,.08); display:flex; align-items:center; justify-content:center; transition:all .3s var(--ease);}
+.social-row a svg{width:17px; height:17px; fill:none; stroke:#fff; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; transition:stroke .3s var(--ease);}
+.social-row a:hover{background:#fff;}
+.social-row a:hover svg{stroke:var(--brand-primary);}
+
+.footer-newsletter p{margin:0 0 16px;}
+.newsletter-form{display:flex; align-items:center; height:48px; border-radius:999px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); padding:0 4px 0 18px; transition:border-color .3s var(--ease), background .3s var(--ease);}
+.newsletter-form:focus-within{border-color:rgba(255,255,255,.5); background:rgba(255,255,255,.12);}
+.newsletter-form input{flex:1; min-width:0; background:none; border:none; outline:none; color:#fff; font-size:13.5px; font-family:inherit;}
+.newsletter-form input::placeholder{color:rgba(255,255,255,.55);}
+.newsletter-form button{width:38px; height:38px; flex:0 0 auto; border-radius:50%; border:none; background:rgba(255,255,255,.16); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background .3s var(--ease);}
+.newsletter-form button:hover{background:#fff; color:var(--brand-primary);}
+.newsletter-form button svg{width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+
+@media(max-width:991px){ .footer-grid{grid-template-columns:1fr 1fr;} }
+
+/* Scroll reveal (paired with animations.js) */
+[data-reveal]{opacity:0; transform:translateY(28px); transition:opacity .7s var(--ease), transform .7s var(--ease);}
+[data-reveal].is-visible{opacity:1; transform:translateY(0);}
+
+@media(prefers-reduced-motion: reduce){ *{transition-duration:.01ms !important; animation-duration:.01ms !important;} }
+/* ==============================================================================================================
+   SIGNATURE PRODUCTS
+   ========================================================================== */
+
+.signature-section{
+  position:relative;
+  padding:40px 0; /* was 110px — the only section that didn't match the
+                      site-wide 88px rhythm used by every other section */
+  overflow:hidden;
+  background:#f7f9fc;
+}
+
+.signature-section-head{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  gap:14px;
+  margin-bottom:48px;
+}
+
+.signature-section-head > div{
+  max-width:620px;
+}
+
+.signature-section-head .eyebrow{
+  margin-bottom:13px;
+  color:var(--brand-primary, #3f6f9f);
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+
+.signature-section-head h2{
+  margin:0;
+  color:var(--dark);
+  font-family:"Playfair Display", serif;
+  font-size:clamp(34px, 4vw, 58px);
+  font-weight:600;
+  line-height:1.08;
+}
+
+.signature-section-head p{
+  max-width:520px;
+  margin:18px 0 0;
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.8;
+}
+
+
+/* TABS */
+
+.signature-tabs{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:42px;
+  padding-bottom:15px;
+  overflow-x:auto;
+  border-bottom:1px solid var(--border);
+}
+
+.signature-tab{
+  flex:0 0 auto;
+  padding:10px 19px;
+  border:1px solid var(--border);
+  border-radius:100px;
+  background:transparent;
+  color:var(--muted);
+  font-family:inherit;
+  font-size:12px;
+  font-weight:500;
+  cursor:pointer;
+  transition:
+    background .3s ease,
+    border-color .3s ease,
+    color .3s ease;
+}
+
+.signature-tab:hover,
+.signature-tab.is-active{
+  border-color:var(--brand-primary, #3f6f9f);
+  background:var(--brand-primary, #3f6f9f);
+  color:#fff;
+}
+
+
+/* COLLECTION */
+
+.signature-collection{
+  display:none;
+}
+
+.signature-collection.is-active{
+  display:block;
+}
+
+.signature-collection-intro{
+  margin-bottom:30px;
+}
+
+.signature-collection-intro span{
+  color:var(--brand-primary, #3f6f9f);
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+.signature-collection-intro h3{
+  margin:7px 0 8px;
+  color:var(--dark);
+  font-family:"Playfair Display", serif;
+  font-size:30px;
+  font-weight:600;
+}
+
+.signature-collection-intro p{
+  max-width:600px;
+  margin:0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.7;
+}
+
+
+/* PRODUCT GRID */
+
+.signature-grid{
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0, 1fr));
+  gap:30px 22px;
+}
+
+.signature-card{
+  min-width:0;
+}
+
+.signature-media{
+  position:relative;
+  height:410px;
+  overflow:hidden;
+  background:#eef2f6;
+}
+
+.signature-media > a{
+  display:block;
+  width:100%;
+  height:100%;
+}
+
+.signature-media img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  transition:transform .8s var(--ease);
+}
+
+.signature-card:hover .signature-media img{
+  transform:scale(1.055);
+}
+
+.signature-placeholder{
+  width:100%;
+  height:100%;
+  background-size:cover;
+}
+
+
+/* BADGE */
+
+.signature-badge{
+  position:absolute;
+  top:16px;
+  left:16px;
+  z-index:2;
+  padding:7px 11px;
+  background:#fff;
+  color:var(--dark);
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+
+/* QUICK ADD */
+
+.signature-add{
+  position:absolute;
+  right:16px;
+  bottom:16px;
+  left:16px;
+  z-index:3;
+  opacity:0;
+  transform:translateY(15px);
+  transition:
+    opacity .35s ease,
+    transform .35s ease;
+}
+
+.signature-card:hover .signature-add{
+  opacity:1;
+  transform:none;
+}
+
+.signature-add .cart-add-btn{
+  width:100%;
+  min-height:48px;
+  border:0;
+  background:#fff;
+  color:var(--dark);
+  font-family:inherit;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+
+.signature-add .cart-add-btn:hover{
+  background:var(--brand-primary, #3f6f9f);
+  color:#fff;
+}
+
+
+/* PRODUCT INFO */
+
+.signature-info{
+  padding:19px 3px 0;
+}
+
+.signature-category{
+  display:block;
+  margin-bottom:7px;
+  color:var(--brand-primary, #3f6f9f);
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+.signature-info h4{
+  margin:0 0 10px;
+  font-family:"Playfair Display", serif;
+  font-size:19px;
+  font-weight:600;
+  line-height:1.3;
+}
+
+.signature-info h4 a{
+  color:var(--dark);
+  text-decoration:none;
+}
+
+.signature-info h4 a:hover{
+  color:var(--brand-primary, #3f6f9f);
+}
+
+.signature-price{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.signature-price strong{
+  color:var(--dark);
+  font-size:14px;
+  font-weight:600;
+}
+
+.signature-price del{
+  color:var(--muted);
+  font-size:12px;
+}
+
+.signature-empty{
+  grid-column:1 / -1;
+  padding:50px;
+  color:var(--muted);
+  text-align:center;
+}
+
+
+/* TABLET */
+
+@media(max-width:991px){
+
+  .signature-grid{
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+
+  .signature-section{
+    padding:80px 0;
+  }
+
+}
+
+
+/* MOBILE */
+
+@media(max-width:600px){
+
+  .signature-section{
+    padding:65px 0;
+  }
+
+  .signature-section-head{
+    margin-bottom:35px;
+  }
+
+  .signature-section-head .view-all{
+    display:inline-block;
+    margin-top:20px;
+  }
+
+  .signature-tabs{
+    margin-bottom:30px;
+  }
+
+  .signature-grid{
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:25px 12px;
+  }
+
+  .signature-media{
+    height:260px;
+  }
+
+  .signature-add{
+    right:8px;
+    bottom:8px;
+    left:8px;
+    opacity:1;
+    transform:none;
+  }
+
+  .signature-add .cart-add-btn{
+    min-height:40px;
+    font-size:9px;
+  }
+
+  .signature-info h4{
+    font-size:16px;
+  }
+
+}
+
+@media(max-width:390px){
+
+  .signature-media{
+    height:230px;
+  }
+
+}

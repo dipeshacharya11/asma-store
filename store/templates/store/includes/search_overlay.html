@@ -1,0 +1,42 @@
+<div class="search-overlay" id="searchOverlay">
+  <button type="button" class="search-close" id="searchClose" aria-label="Close search">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+  </button>
+  <div class="search-overlay-inner">
+    <div class="search-input-row">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="10.8" cy="10.8" r="6.6"/>
+        <path d="m16 16 4.2 4.2"/>
+      </svg>
+      <input type="text" id="searchInput" placeholder="Search products..." autocomplete="off">
+    </div>
+
+    <div id="searchDefaultState">
+      <div class="search-section">
+        <h6>Popular Searches</h6>
+        <div class="search-chip-row">
+          <span class="search-chip search-chip-fill">Canvas Painting</span>
+          <span class="search-chip search-chip-fill">Mithila Art</span>
+          <span class="search-chip search-chip-fill">Wall Decor</span>
+          <span class="search-chip search-chip-fill">Gift Set</span>
+        </div>
+      </div>
+      <div class="search-section">
+        <h6>Shop by Category</h6>
+        <div class="search-chip-row">
+          {% for cat in nav_categories %}
+          <a href="{{ cat.get_absolute_url }}" class="search-chip">{{ cat.name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div id="searchResultsState" style="display:none;">
+      <div id="searchResultsTarget"></div>
+    </div>
+
+    <!-- Suggestions container -->
+    <div id="searchSuggestions" class="search-suggestions" style="display:none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; max-height: 200px; overflow-y: auto; z-index: 1000;">
+    </div>
+  </div>
+</div>

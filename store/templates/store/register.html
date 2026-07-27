@@ -1,0 +1,26 @@
+{% extends "store/base.html" %}
+{% block title %}Create Account — Asma Stores{% endblock %}
+{% block extra_style %}
+.auth-box{max-width:400px; margin:130px auto 100px; padding:0 20px;}
+.form-group{display:flex; flex-direction:column; gap:6px; margin-bottom:16px;}
+.form-group label{font-size:12.5px; font-weight:600; color:var(--muted);}
+.form-group input{padding:13px 16px; border-radius:11px; border:1.5px solid var(--border); font-size:13.5px; width:100%;}
+{% endblock %}
+{% block content %}
+<div class="auth-box">
+  <h1 style="margin-bottom:8px;">Create your account</h1>
+  <p class="muted" style="margin-bottom:28px;">Join Asma Store for faster checkout and order tracking.</p>
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="form-group">
+      <label>{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}<p style="color:var(--sale); font-size:12.5px;">{{ field.errors.0 }}</p>{% endif %}
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-gold" style="width:100%;">Create Account</button>
+  </form>
+  <p class="muted" style="text-align:center; margin-top:24px; font-size:13px;">Already have an account? <a href="{% url 'store:login' %}" style="color:var(--primary); font-weight:600;">Sign in</a></p>
+</div>
+{% endblock %}
