@@ -59,12 +59,12 @@
 /* ==========================================================================
    RESPONSIVE HELPERS
    ========================================================================== */
-.mobile-only{ display: none; }
-.desktop-only{ display: block; }
+.mobile-only{ display: none !important; }
+.desktop-only{ display: block !important; }
 @media(max-width: 767px){
-  .mobile-only{ display: block; }
-  .desktop-only{ display: none; }
-  .header-icons .search-trigger-mobile{ display: flex; }
+  .mobile-only{ display: block !important; }
+  .desktop-only{ display: none !important; }
+  .header-icons .search-trigger-mobile{ display: flex !important; }
 }
 
 /* ==========================================================================
