@@ -24,23 +24,45 @@
 .hero-progress span{width:30px; height:2px; background:rgba(255,255,255,.3); position:relative; overflow:hidden;}
 .hero-progress span::after{content:''; position:absolute; inset:0; background:var(--brand-primary); transform:scaleX(0); transform-origin:left;}
 .hero-progress span.active::after{transform:scaleX(1); transition:transform 5s linear;}
-/* Tablet: exactly one slide visible, no adjacent-panel strips, no clipping */
-@media(max-width:991px) and (min-width:768px){
-  .hero{height:520px; overflow:hidden;}
-  .acc-panel{display:none; height:100%; flex:none; width:100%;}
-  .acc-panel.active{display:block; height:100%; width:100%;}
-  .acc-content{left:32px; bottom:44px; max-width:70%;}
-  .acc-vtext{display:none;}
-}
-
-/* Mobile: exactly one slide visible, responsive height, no overflow */
-@media(max-width:767px){
+/* Large Mobile (376-500px): single slide, 100% width, consistent padding.
+   Desktop's multi-panel accordion is preserved above 500px — untouched. */
+@media(min-width:376px) and (max-width:500px){
   .hero{height:clamp(320px,58vw,400px); flex-direction:row; overflow:hidden;}
   .acc-panel{display:none; height:100%; flex:none; width:100%;}
-  .acc-panel.active{display:block; height:100%; width:100%;}
+  .acc-panel.active{display:block; height:100%; width:100%; flex:1 1 100%;}
   .acc-content{left:20px; right:20px; bottom:28px; max-width:none;}
   .acc-vtext{display:none;}
   .hero-progress{left:20px; bottom:14px;}
+}
+
+/* Small Mobile (<=375px): same single-slide behavior, but forced to
+   genuinely fill the full viewport width with no gaps/margins — this is
+   the tier that was previously leaving unused space on the sides. */
+@media(max-width:375px){
+  .hero{
+    height:clamp(300px,62vw,380px);
+    flex-direction:row;
+    overflow:hidden;
+    width:100vw;
+    max-width:100vw;
+    margin-left:calc(50% - 50vw);
+    margin-right:calc(50% - 50vw);
+  }
+  .acc-panel{display:none; height:100%; flex:none; width:100%;}
+  .acc-panel.active{
+    display:block;
+    height:100%;
+    width:100%;
+    flex:1 1 100%;
+    max-width:none;
+  }
+  .acc-panel.active img,
+  .acc-panel.active .bg{width:100%; height:100%; object-fit:cover;}
+  .acc-content{left:16px; right:16px; bottom:22px; max-width:none;}
+  .acc-content h1{font-size:clamp(22px,7vw,28px);}
+  .acc-content p{font-size:13px;}
+  .acc-vtext{display:none;}
+  .hero-progress{left:16px; bottom:12px;}
 }
 
 /* Circular category quick-nav (Netro-style) */
@@ -64,7 +86,7 @@
 .testi-track{display:grid; grid-template-columns:repeat(3,1fr); gap:26px;}
 .testi-card{background:var(--surface-soft); border-radius:var(--radius-lg); padding:32px;}
 .testi-card .stars{color:var(--brand-primary); margin-bottom:14px;}
-@media(max-width:980px){ .cat-grid{grid-template-columns:repeat(2,1fr);} .testi-track{grid-template-columns:1fr;} .circle-cat-row{gap:22px;} .circle-cat-thumb{width:80px; height:80px;} }
+@media(max-width:991px){ .cat-grid{grid-template-columns:repeat(2,1fr);} .testi-track{grid-template-columns:1fr;} .circle-cat-row{gap:22px;} .circle-cat-thumb{width:80px; height:80px;} }
 .chosen-tabs{display:flex; justify-content:center; gap:28px; margin-bottom:36px;}
 .chosen-tab{font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); font-weight:600; padding-bottom:8px; border-bottom:2px solid transparent; cursor:pointer; transition:all .3s var(--ease-previous);}
 .chosen-tab.is-active, .chosen-tab:hover{color:var(--brand-primary); border-color:var(--brand-primary);}
@@ -172,7 +194,7 @@
             <h3>{{ cat.name }}</h3>
 
             <span>
-              {{ cat.product_count }} products
+              {{ cat.total_product_count }} products
             </span>
 
           </div>
@@ -219,13 +241,13 @@
     </div>
     <div class="prod-grid">
       {% for product in featured_products %}
-      <div class="prod-card" data-reveal data-chosen-item data-is-new="{{ product.is_new|yesno:'1,0' }}" data-rating="{{ product.rating }}">
-        <div class="prod-media">
-          <div class="badge-row">
-            {% if product.discount_percent %}<span class="pbadge sale">-{{ product.discount_percent }}%</span>{% endif %}
-            {% if product.is_new %}<span class="pbadge new">New</span>{% endif %}
-            {% if product.is_low_stock %}<span class="pbadge low">Only {{ product.stock }} left</span>{% endif %}
-          </div>
+     <div class="prod-card" data-reveal data-chosen-item data-is-new="{{ product.is_new|yesno:'1,0' }}" data-rating="{{ product.rating }}">
+    <div class="prod-media">
+        <div class="badge-row">
+            {% if product.discount_percent %}
+                <span class="pbadge sale">-{{ product.discount_percent }}%</span>
+            {% endif %}
+        </div>
           <div class="quick-actions">
             <a class="qa-btn" href="{{ product.get_absolute_url }}" title="Quick View">👁</a>
           </div>
