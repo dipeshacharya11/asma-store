@@ -333,6 +333,8 @@ class OrderItem(models.Model):
 
     @property
     def line_total(self):
+        if self.unit_price is None:
+            return 0
         return self.quantity * self.unit_price
 
     def __str__(self):
