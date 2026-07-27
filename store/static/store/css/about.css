@@ -1,0 +1,468 @@
+/* About Page Styles - Asma Stores */
+
+/* Hero Section */
+.about-hero {
+  background: linear-gradient(135deg, var(--brand-primary-light) 0%, var(--brand-primary) 100%);
+  color: #fff;
+  padding: 120px 0 80px;
+  position: relative;
+  overflow: hidden;
+}
+.about-hero::before,
+.about-hero::after {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 50%;
+  filter: blur(30px);
+}
+.about-hero::before {
+  top: -100px;
+  left: -100px;
+}
+.about-hero::after {
+  bottom: -100px;
+  right: -100px;
+}
+.about-hero-content {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+.about-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.about-title {
+  font-size: clamp(32px, 5vw, 48px);
+  margin-bottom: 24px;
+  line-height: 1.2;
+}
+.about-description {
+  font-size: 18px;
+  opacity: 0.9;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Story Section */
+.about-story {
+  padding: 80px 0;
+  background-color: var(--surface-page);
+}
+.story-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+}
+.story-image {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+.story-img-fluid {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.5s ease;
+}
+.story-image:hover .story-img-fluid {
+  transform: scale(1.05);
+}
+.story-text {
+  padding: 0 20px;
+}
+.story-text h2 {
+  font-size: clamp(28px, 4vw, 36px);
+  margin-bottom: 20px;
+  color: var(--text-primary);
+}
+.story-text p {
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+.story-text .about-btn {
+  margin-top: 10px;
+}
+
+/* Why Choose Us Section */
+.about-why {
+  padding: 80px 0;
+  background-color: var(--surface-page);
+}
+.about-why .section-title {
+  text-align: center;
+  margin-bottom: 40px;
+  font-size: clamp(28px, 4vw, 36px);
+}
+.why-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+}
+.card {
+  background: var(--surface-card);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  text-align: center;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lift);
+}
+.card-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-primary-light);
+  border-radius: 50%;
+}
+.card-icon svg {
+  width: 28px;
+  height: 28px;
+  color: var(--brand-primary);
+}
+.card-title {
+  font-size: 20px;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+.card-text {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* Stats Section */
+.about-stats {
+  padding: 80px 0;
+  background-color: var(--surface-page);
+}
+.about-stats .section-title {
+  text-align: center;
+  margin-bottom: 50px;
+  font-size: clamp(28px, 4vw, 36px);
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 30px;
+  text-align: center;
+}
+.stat {
+  background: var(--surface-card);
+  padding: 30px 20px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.3s ease;
+}
+.stat:hover {
+  transform: translateY(-5px);
+}
+.stat-number {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  font-weight: 600;
+  color: var(--brand-primary);
+  display: block;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+.stat-label {
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+/* Quote Section */
+.about-quote {
+  padding: 60px 0;
+  background-color: var(--brand-primary-light);
+}
+.about-quote blockquote {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  font-style: italic;
+  color: var(--text-primary);
+  position: relative;
+  padding: 0 40px;
+}
+.about-quote blockquote p {
+  font-size: 22px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+.about-quote cite {
+  display: block;
+  font-size: 16px;
+  color: var(--text-muted);
+  font-style: normal;
+}
+
+/* Contact Section */
+.about-contact {
+  padding: 80px 0;
+  background-color: var(--surface-page);
+}
+.about-contact .section-title {
+  text-align: center;
+  margin-bottom: 40px;
+  font-size: clamp(28px, 4vw, 36px);
+}
+.contact-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+  text-align: center;
+}
+.contact-cards .card {
+  background: var(--surface-card);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.contact-cards .card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lift);
+}
+.contact-cards .card-icon {
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-primary-light);
+  border-radius: 50%;
+}
+.contact-cards .card-icon svg {
+  width: 24px;
+  height: 24px;
+  color: var(--brand-primary);
+}
+.contact-cards .card-title {
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+.contact-cards .card-text {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.contact-cards .card-text a {
+  color: var(--brand-primary);
+  text-decoration: underline;
+}
+
+/* Social Section */
+.about-social {
+  padding: 80px 0;
+  background-color: var(--surface-page);
+}
+.about-social .section-title {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: clamp(28px, 4vw, 36px);
+}
+.social-icons {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+}
+.social-link:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift);
+}
+.social-link:hover svg {
+  /* Will be overridden per platform via specific classes if needed */
+}
+.social-link svg {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.3s ease;
+}
+.social-link:hover svg {
+  transform: scale(1.2);
+}
+
+/* Individual platform colors on hover */
+.social-link:nth-child(1):hover { /* Instagram */
+  background: #E4405F;
+}
+.social-link:nth-child(1):hover svg {
+  color: #fff;
+}
+.social-link:nth-child(2):hover { /* Facebook */
+  background: #1877F2;
+}
+.social-link:nth-child(2):hover svg {
+  color: #fff;
+}
+.social-link:nth-child(3):hover { /* WhatsApp */
+  background: #25D366;
+}
+.social-link:nth-child(3):hover svg {
+  color: #fff;
+}
+
+/* CTA Section */
+.about-cta {
+  padding: 80px 0;
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+  color: #fff;
+  text-align: center;
+}
+.about-cta .section-title {
+  font-size: clamp(28px, 4vw, 36px);
+  margin-bottom: 30px;
+}
+.cta-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+}
+.cta-buttons .btn {
+  min-width: 180px;
+  padding: 16px 32px;
+  font-size: 16px;
+}
+.btn-whatsapp {
+  background: #25D366;
+  color: #fff;
+}
+.btn-whatsapp:hover {
+  background: #1ebe5d;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 991px) {
+  .story-grid {
+    grid-template-columns: 1fr;
+  }
+  .story-text {
+    text-align: center;
+  }
+  .story-text .about-btn {
+    margin: 0 auto;
+  }
+  .about-hero {
+    padding: 100px 0 60px;
+  }
+}
+@media (max-width: 768px) {
+  .about-title {
+    font-size: 28px;
+  }
+  .about-description {
+    font-size: 16px;
+  }
+  .story-text h2 {
+    font-size: 24px;
+  }
+  .story-text p {
+    font-size: 15px;
+  }
+  .about-quote blockquote p {
+    font-size: 18px;
+  }
+}
+@media (max-width: 480px) {
+  .about-hero {
+    padding: 80px 0 40px;
+  }
+  .about-badge {
+    font-size: 12px;
+    padding: 3px 10px;
+  }
+  .about-title {
+    font-size: 24px;
+  }
+  .about-description {
+    font-size: 14px;
+  }
+  .story-text h2 {
+    font-size: 22px;
+  }
+  .story-text p {
+    font-size: 14px;
+  }
+  .story-text .about-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+  .card, .contact-cards .card {
+    padding: 20px;
+  }
+  .card-title {
+    font-size: 18px;
+  }
+  .card-text {
+    font-size: 14px;
+  }
+  .stat-number {
+    font-size: 30px;
+  }
+  .stat-label {
+    font-size: 14px;
+  }
+  .about-quote blockquote p {
+    font-size: 16px;
+  }
+  .social-icons {
+    gap: 16px;
+  }
+  .social-link {
+    width: 48px;
+    height: 48px;
+  }
+  .social-link svg {
+    width: 20px;
+    height: 20px;
+  }
+  .cta-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .cta-buttons .btn {
+    width: 100%;
+  }
+}
+
+/* Counter Animation (JS will update) */
+.stat-number {
+  transition: opacity 0.3s ease;
+}
