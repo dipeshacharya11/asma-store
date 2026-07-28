@@ -124,6 +124,7 @@ class Product(models.Model):
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     is_new = models.BooleanField(default=False)
+    is_top_rated = models.BooleanField(default=False, help_text="Manually tag as Top Rated for the homepage 'Chosen For You' section")
 
     image = models.ImageField(upload_to='products/', blank=True, null=True,
                                help_text="Primary photo — automatically compressed and resized on save.")
