@@ -78,11 +78,17 @@ class ProductAdmin(admin.ModelAdmin):
         "stock_status",
         "is_active",
         "is_featured",
+        "is_new",
+        "is_top_rated",
     )
 
     actions = [
         "mark_as_featured",
         "remove_from_featured",
+        "mark_as_new",
+        "remove_from_new",
+        "mark_as_top_rated",
+        "remove_from_top_rated",
         "activate_products",
         "deactivate_products",
     ]
@@ -96,6 +102,26 @@ class ProductAdmin(admin.ModelAdmin):
     def remove_from_featured(self, request, queryset):
         updated = queryset.update(is_featured=False)
         self.message_user(request, f"{updated} product(s) removed from featured.")
+
+    @admin.action(description="Mark selected products as New Arrivals")
+    def mark_as_new(self, request, queryset):
+        updated = queryset.update(is_new=True)
+        self.message_user(request, f"{updated} product(s) marked as new arrivals.")
+
+    @admin.action(description="Remove selected products from New Arrivals")
+    def remove_from_new(self, request, queryset):
+        updated = queryset.update(is_new=False)
+        self.message_user(request, f"{updated} product(s) removed from new arrivals.")
+
+    @admin.action(description="Mark selected products as Top Rated")
+    def mark_as_top_rated(self, request, queryset):
+        updated = queryset.update(is_top_rated=True)
+        self.message_user(request, f"{updated} product(s) marked as top rated.")
+
+    @admin.action(description="Remove selected products from Top Rated")
+    def remove_from_top_rated(self, request, queryset):
+        updated = queryset.update(is_top_rated=False)
+        self.message_user(request, f"{updated} product(s) removed from top rated.")
 
     @admin.action(description="Activate selected products (re-establish)")
     def activate_products(self, request, queryset):
@@ -112,6 +138,7 @@ class ProductAdmin(admin.ModelAdmin):
         "is_active",
         "is_featured",
         "is_new",
+        "is_top_rated",
     )
 
     search_fields = (

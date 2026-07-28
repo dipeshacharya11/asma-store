@@ -253,7 +253,7 @@
     </div>
     <div class="prod-grid">
       {% for product in featured_products %}
-     <div class="prod-card" data-reveal data-chosen-item data-is-new="{{ product.is_new|yesno:'1,0' }}" data-rating="{{ product.rating }}">
+     <div class="prod-card" data-reveal data-chosen-item data-is-new="{{ product.is_new|yesno:'1,0' }}" data-rating="{{ product.rating }}" data-top-rated="{{ product.is_top_rated|yesno:'1,0' }}">
     <div class="prod-media">
         <div class="badge-row">
             {% if product.discount_percent %}
@@ -556,7 +556,7 @@ document.querySelectorAll('.chosen-tab').forEach(tab=>{
     document.querySelectorAll('[data-chosen-item]').forEach(card=>{
       if(filter === 'all'){ card.style.display=''; }
       else if(filter === 'new'){ card.style.display = card.dataset.isNew === '1' ? '' : 'none'; }
-      else if(filter === 'top'){ card.style.display = parseFloat(card.dataset.rating) >= 4.5 ? '' : 'none'; }
+      else if(filter === 'top'){ card.style.display = card.dataset.topRated === '1' ? '' : 'none'; }
     });
   });
 });
@@ -601,7 +601,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
           } else if (filter === "top") {
             card.style.display =
-              parseFloat(card.dataset.rating) >= 4.5
+              card.dataset.topRated === "1"
                 ? ""
                 : "none";
           }
