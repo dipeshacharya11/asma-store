@@ -488,20 +488,18 @@
 
 .mobile-drawer{
   position:fixed;
-  top:0;
-  left:0;
-  width:min(320px, 88vw);
-  height:100%;
+  inset:0;
   z-index:110;
-  padding:28px;
   background:var(--surface-page);
   overflow-y:auto;
-  transform:translateX(-100%);
-  transition:transform .45s var(--ease);
-  box-shadow:20px 0 60px rgba(0,0,0,.12);
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .35s var(--ease);
+  padding:28px;
 }
 .mobile-drawer.is-open{
-  transform:translateX(0);
+  opacity:1;
+  visibility:visible;
 }
 .mobile-logo{
   display:flex;
