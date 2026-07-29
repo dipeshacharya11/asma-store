@@ -106,10 +106,7 @@
                 <span class="cart-badge" id="cartBadge">{{ cart_count }}</span>
                 {% endif %}
             </button>
-
-        </div>
-
-        <!-- Burger button (mobile only) -->
+             <!-- Burger button (mobile only) -->
         <button
             type="button"
             class="burger mobile-only"
@@ -122,6 +119,10 @@
                 <path d="M4 7h16M4 12h16M4 17h16"/>
             </svg>
         </button>
+
+        </div>
+
+       
     </div>
 
     <!-- SHOP MEGA MENU (desktop) -->
@@ -158,13 +159,13 @@
 <!-- MOBILE NAVIGATION DRAWER -->
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <nav class="mobile-drawer" id="mobileDrawer" aria-label="Mobile navigation">
-    <div class="mobile-logo">
+   <!-- <div class="mobile-logo">
         <img src="{% static 'store/images/logo_bg_r.png' %}" alt="Asma Stores">
-    </div>
+    </div>-->
     <ul>
-        <li><a href="{% url 'store:home' %}">Home</a></li>
+       <!-- <li><a href="{% url 'store:home' %}">Home</a></li>-->
         <li>
-            <div class="mobile-acc-head">Shop by Category</div>
+            <div class="mobile-acc-head" style="margin-top: 50px;">Shop by Category</div>
             <div class="mobile-acc-body">
                 <ul class="mobile-category-list">
                     {% for cat in nav_categories %}
