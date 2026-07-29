@@ -95,7 +95,11 @@
           return;
         }
         renderDrawer(data.html, data.count);
-        openCartDrawer();
+        if (addBtn.classList.contains('pdp-buy-now')) {
+          window.location.href = addBtn.dataset.checkoutUrl;
+        } else {
+          openCartDrawer();
+        }
       });
     }
 

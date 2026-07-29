@@ -1309,7 +1309,7 @@ body.pdp-sticky-bar-active{padding-bottom:calc(78px + env(safe-area-inset-bottom
           </div>
 
           {% if not product.is_out_of_stock %}
-            <a href="{% url 'store:checkout' %}" class="pdp-button pdp-buy-now">Buy It Now</a>
+            <button type="button" class="pdp-button pdp-buy-now cart-add-btn" data-product-id="{{ product.id }}" data-checkout-url="{% url 'store:checkout' %}">Buy It Now</button>
           {% endif %}
 
           <div class="pdp-actions">
