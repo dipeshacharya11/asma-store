@@ -109,18 +109,49 @@
   const drawerOverlay = document.getElementById('drawerOverlay');
 
   function closeAllOverlays() {
-    mobileDrawer && mobileDrawer.classList.remove('is-open');
-    drawerOverlay && drawerOverlay.classList.remove('is-open');
-    document.getElementById('cartDrawer') && document.getElementById('cartDrawer').classList.remove('is-open');
-    document.getElementById('searchOverlay') && document.getElementById('searchOverlay').classList.remove('is-open');
+  mobileDrawer && mobileDrawer.classList.remove('is-open');
+  drawerOverlay && drawerOverlay.classList.remove('is-open');
+
+  const cartDrawer = document.getElementById('cartDrawer');
+  if (cartDrawer) cartDrawer.classList.remove('is-open');
+
+  function closeAllOverlays() {
+  mobileDrawer && mobileDrawer.classList.remove('is-open');
+  drawerOverlay && drawerOverlay.classList.remove('is-open');
+
+  const cartDrawer = document.getElementById('cartDrawer');
+  if (cartDrawer) cartDrawer.classList.remove('is-open');
+
+  const searchOverlay = document.getElementById('searchOverlay');
+  if (searchOverlay) {
+    searchOverlay.classList.remove('is-open');
+    searchOverlay.setAttribute('aria-hidden', 'true');
   }
+}
+}
 
   if (burger) {
-    burger.addEventListener('click', () => {
+  burger.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Close search overlay if it's open
+    const searchOverlay = document.getElementById('searchOverlay');
+    if (searchOverlay && searchOverlay.classList.contains('is-open')) {
+      searchOverlay.classList.remove('is-open');
+      searchOverlay.setAttribute('aria-hidden', 'true');
+
+      // Wait one frame so the overlay releases pointer events
+      requestAnimationFrame(() => {
+        mobileDrawer.classList.add('is-open');
+        drawerOverlay.classList.add('is-open');
+      });
+    } else {
       mobileDrawer.classList.add('is-open');
       drawerOverlay.classList.add('is-open');
-    });
-  }
+    }
+  });
+}
   if (drawerOverlay) {
     drawerOverlay.addEventListener('click', closeAllOverlays);
   }
