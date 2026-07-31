@@ -1279,7 +1279,7 @@ body.pdp-sticky-bar-active{padding-bottom:calc(78px + env(safe-area-inset-bottom
         </div>
 
         {% if product.description %}
-          <div class="pdp-description">{{ product.description|truncatewords:35 }}</div>
+          <div class="pdp-description">{{ product.description|linebreaks }}</div>
         {% endif %}
 
         <div class="pdp-purchase">
