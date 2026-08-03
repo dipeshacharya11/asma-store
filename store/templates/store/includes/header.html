@@ -43,6 +43,11 @@
                     <path d="M4.5 21v-2.2a7.5 7.5 0 0 1 15 0V21"/>
                 </svg>
             </a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'store:logout' %}" class="icon-btn" aria-label="Log out">
+                <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            </a>
+            {% endif %}
 
             <!-- Wishlist 
             <a href="{% url 'store:wishlist' %}" class="icon-btn" aria-label="Wishlist{% if wishlist_count %} ({{ wishlist_count }} items{% endif %})">
@@ -194,6 +199,7 @@
        <!-- <li><a href="{% url 'store:wishlist' %}">Wishlist{% if wishlist_count %} ({{ wishlist_count }}){% endif %}</a></li>-->
         {% if user.is_authenticated %}
         <li><a href="{% url 'store:account' %}">My Account</a></li>
+        <li><a href="{% url 'store:logout' %}">Log out</a></li>
         {% else %}
         <li><a href="{% url 'store:login' %}">Sign In</a></li>
         {% endif %}

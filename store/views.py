@@ -14,6 +14,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from datetime import timedelta
 
+from accounts.models import UserProfile
 from .models import Category, Product, HeroSlide, Testimonial, Coupon, Order, OrderItem, BlogPost
 from .signals import FEATURED_PRODUCTS_CACHE_KEY, HERO_SLIDES_CACHE_KEY
 from .cart_utils import get_cart_context, get_cart_count
@@ -231,6 +232,17 @@ def checkout(request):
         items_qs.append((product, qty))
         subtotal += product.price * qty
 
+    # Default values for logged-in user
+    default_phone = ''
+    default_address = ''
+    if request.user.is_authenticated:
+        try:
+            profile = request.user.profile
+            default_phone = profile.phone_number or ''
+            default_address = profile.address or ''
+        except UserProfile.DoesNotExist:
+            pass
+
     if request.method == 'POST':
         coupon = None
         code = request.POST.get('coupon_code', '').strip().upper()
@@ -266,20 +278,151 @@ def checkout(request):
             request.session['cart'] = {}
             return render(request, 'store/order_confirmation.html', {'order': order})
 
-    return render(request, 'store/checkout.html', {'checkout_items': items_qs, 'checkout_subtotal': subtotal})
+    return render(request, 'store/checkout.html', {'checkout_items': items_qs, 'checkout_subtotal': subtotal, 'default_phone': default_phone, 'default_address': default_address})
 
 
 def register(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, "Welcome to Asma Store!")
-            return redirect('store:home')
+        # Get form data manually since we need email and phone
+        username = request.POST.get('username', '')
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
+        email = request.POST.get('email', '')
+        phone_number = request.POST.get('phone_number', '')
+        first_name = request.POST.get('first_name', '')
+        last_name = request.POST.get('last_name', '')
+        address = request.POST.get('address', '')
+
+        # Basic validation
+        if not username or not password1 or not password2 or not email or not phone_number:
+            messages.error(request, "Please fill in all required fields.")
+            return render(request, 'store/register.html', {
+                'username': username,
+                'email': email,
+                'phone_number': phone_number,
+                'first_name': first_name,
+                'last_name': last_name,
+                'address': address
+            })
+
+        if password1 != password2:
+            messages.error(request, "Passwords do not match.")
+            return render(request, 'store/register.html', {
+                'username': username,
+                'email': email,
+                'phone_number': phone_number,
+                'first_name': first_name,
+                'last_name': last_name,
+                'address': address
+            })
+
+        # Check if username already exists
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists.")
+            return render(request, 'store/register.html', {
+                'username': username,
+                'email': email,
+                'phone_number': phone_number,
+                'first_name': first_name,
+                'last_name': last_name,
+                'address': address
+            })
+
+        # Check if email already exists
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered.")
+            return render(request, 'store/register.html', {
+                'username': username,
+                'email': email,
+                'phone_number': phone_number,
+                'first_name': first_name,
+                'last_name': last_name,
+                'address': address
+            })
+
+        # Validate phone number format (10 digits, starting with 97 or 98)
+        import re
+        if not re.match(r'^(97|98)\d{8}$', phone_number):
+            messages.error(request, "Phone number must be 10 digits starting with 97 or 98 (e.g., 98XXXXXXXX or 97XXXXXXXX)")
+            return render(request, 'store/register.html', {
+                'username': username,
+                'email': email,
+                'phone_number': phone_number,
+                'first_name': first_name,
+                'last_name': last_name,
+                'address': address
+            })
+
+        # Check if phone number already exists in UserProfile
+        from accounts.models import UserProfile
+        if UserProfile.objects.filter(phone_number=phone_number).exists():
+            messages.error(request, "This phone number is already registered.")
+            return render(request, 'store/register.html', {
+                'username': username,
+                'email': email,
+                'phone_number': phone_number,
+                'first_name': first_name,
+                'last_name': last_name,
+                'address': address
+            })
+
+        # Create user
+        try:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password1,
+                first_name=first_name,
+                last_name=last_name
+            )
+            user.is_active = False  # Deactivate until OTP verified
+            user.save()
+
+            # Create user profile with phone number and address
+            UserProfile.objects.create(
+                user=user,
+                phone_number=phone_number,
+                address=address
+            )
+
+            # Send OTP
+            from accounts.services.otp_service import OTPService
+            otp_service = OTPService()
+            success, message, otp_record = otp_service.send_otp(user, phone_number)
+
+            if success:
+                # Store user id and phone number in session for verification
+                request.session['pre_verified_user_id'] = user.id
+                request.session['phone_number'] = phone_number
+                messages.success(request, message)
+                return redirect('accounts:verify_otp')
+            else:
+                messages.error(request, message)
+                # Delete the user if OTP sending failed
+                user.delete()
+                return render(request, 'store/register.html', {
+                    'username': username,
+                    'email': email,
+                    'phone_number': phone_number,
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'address': address
+                })
+        except Exception as e:
+            messages.error(request, f"An error occurred: {str(e)}")
+            return render(request, 'store/register.html', {
+                'username': username,
+                'email': email,
+                'phone_number': phone_number,
+                'first_name': first_name,
+                'last_name': last_name,
+                'address': address
+            })
     else:
-        form = UserCreationForm()
-    return render(request, 'store/register.html', {'form': form})
+        # GET request - show empty form
+        return render(request, 'store/register.html')
 
 
 def blog_list(request):

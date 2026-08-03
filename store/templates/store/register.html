@@ -4,7 +4,8 @@
 .auth-box{max-width:400px; margin:130px auto 100px; padding:0 20px;}
 .form-group{display:flex; flex-direction:column; gap:6px; margin-bottom:16px;}
 .form-group label{font-size:12.5px; font-weight:600; color:var(--muted);}
-.form-group input{padding:13px 16px; border-radius:11px; border:1.5px solid var(--border); font-size:13.5px; width:100%;}
+.form-group input, .form-group textarea{padding:13px 16px; border-radius:11px; border:1.5px solid var(--border); font-size:13.5px; width:100%;}
+.form-group textarea{resize:vertical; min-height:80px;}
 {% endblock %}
 {% block content %}
 <div class="auth-box">
@@ -12,13 +13,77 @@
   <p class="muted" style="margin-bottom:28px;">Join Asma Store for faster checkout and order tracking.</p>
   <form method="post">
     {% csrf_token %}
-    {% for field in form %}
+
     <div class="form-group">
-      <label>{{ field.label }}</label>
-      {{ field }}
-      {% if field.errors %}<p style="color:var(--sale); font-size:12.5px;">{{ field.errors.0 }}</p>{% endif %}
+      <label>Username</label>
+      <input type="text" name="username" value="{{ username|default:'' }}" placeholder="Choose a username">
+      {% if messages %}{% for message in messages %}
+        {% if message.tags == 'error' and 'username' in message.message %}
+        <p style="color:var(--sale); font-size:12.5px;">{{ message }}</p>
+        {% endif %}
+      {% endfor %}{% endif %}
     </div>
-    {% endfor %}
+
+    <div class="form-group">
+      <label>First Name (Optional)</label>
+      <input type="text" name="first_name" value="{{ first_name|default:'' }}" placeholder="First name">
+    </div>
+
+    <div class="form-group">
+      <label>Last Name (Optional)</label>
+      <input type="text" name="last_name" value="{{ last_name|default:'' }}" placeholder="Last name">
+    </div>
+
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" name="email" value="{{ email|default:'' }}" placeholder="Enter your email">
+      {% if messages %}{% for message in messages %}
+        {% if message.tags == 'error' and 'email' in message.message %}
+        <p style="color:var(--sale); font-size:12.5px;">{{ message }}</p>
+        {% endif %}
+      {% endfor %}{% endif %}
+    </div>
+
+    <div class="form-group">
+      <label>Phone Number</label>
+      <input type="tel" name="phone_number" value="{{ phone_number|default:'' }}" placeholder="Enter your phone number (e.g., 98XXXXXXXX)">
+      {% if messages %}{% for message in messages %}
+        {% if message.tags == 'error' and 'phone' in message.message|lower %}
+        <p style="color:var(--sale); font-size:12.5px;">{{ message }}</p>
+        {% endif %}
+      {% endfor %}{% endif %}
+    </div>
+
+    <div class="form-group">
+      <label>Current Address</label>
+      <textarea name="address" placeholder="Enter your current address">{{ address|default:'' }}</textarea>
+      {% if messages %}{% for message in messages %}
+        {% if message.tags == 'error' and 'address' in message.message|lower %}
+        <p style="color:var(--sale); font-size:12.5px;">{{ message }}</p>
+        {% endif %}
+      {% endfor %}{% endif %}
+    </div>
+
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" name="password1" placeholder="Create a password">
+      {% if messages %}{% for message in messages %}
+        {% if message.tags == 'error' and 'password' in message.message|lower %}
+        <p style="color:var(--sale); font-size:12.5px;">{{ message }}</p>
+        {% endif %}
+      {% endfor %}{% endif %}
+    </div>
+
+    <div class="form-group">
+      <label>Confirm Password</label>
+      <input type="password" name="password2" placeholder="Confirm your password">
+      {% if messages %}{% for message in messages %}
+        {% if message.tags == 'error' and 'password' in message.message|lower %}
+        <p style="color:var(--sale); font-size:12.5px;">{{ message }}</p>
+        {% endif %}
+      {% endfor %}{% endif %}
+    </div>
+
     <button type="submit" class="btn btn-gold" style="width:100%;">Create Account</button>
   </form>
   <p class="muted" style="text-align:center; margin-top:24px; font-size:13px;">Already have an account? <a href="{% url 'store:login' %}" style="color:var(--primary); font-weight:600;">Sign in</a></p>

@@ -6,9 +6,13 @@ so the project runs immediately with `python manage.py runserver` — no
 Postgres/Redis/Celery setup required for local development. Swap the
 DATABASES block for Postgres in production; everything else is unaffected.
 """
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / ".env")
 
 # SECURITY WARNING: replace this before deploying, and load it from an
 # environment variable rather than committing it to source control.
@@ -25,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'store',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -121,3 +126,19 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'store:login'
 LOGIN_REDIRECT_URL = 'store:account'
 LOGOUT_REDIRECT_URL = 'store:home'
+
+# SMS OTP Settings
+OTP_EXPIRY_MINUTES = 5
+OTP_MAX_ATTEMPTS = 5
+OTP_RESEND_COOLDOWN = 30  # seconds
+OTP_RATE_LIMIT_COUNT = 3  # requests per window
+OTP_RATE_LIMIT_WINDOW = 600  # 10 minutes in seconds
+
+# PBKDF2 settings for OTP hashing
+PBKDF2_ITERATIONS = 100000  # Number of iterations for PBKDF2
+PBKDF2_HASH_NAME = 'sha256'  # Hash algorithm to use
+PBKDF2_SALT_LENGTH = 16      # Length of salt in bytes
+
+# Sparrow SMS settings (load from environment)
+SPARROW_TOKEN = os.environ.get('SPARROW_TOKEN', '')
+SPARROW_SENDER = os.environ.get('SPARROW_SENDER', '')

@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
+from accounts.views import login_view
 from . import views
 
 app_name = 'store'
@@ -30,8 +31,8 @@ urlpatterns = [
     path('aboutus', RedirectView.as_view(pattern_name='store:about', permanent=False), name='aboutus_redirect'),
     path('dashboard/', views.staff_dashboard, name='staff_dashboard'),
 
-    path('register/', views.register, name='register'),
-    path('login/', auth_views.LoginView.as_view(template_name='store/login.html'), name='login'),
+    path('register/', RedirectView.as_view(pattern_name='accounts:signup', permanent=False), name='register'),
+    path('login/', login_view, name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='store:home'), name='logout'),
     path('account/', views.account, name='account'),
 ]

@@ -6,6 +6,7 @@ from django.views.static import serve as serve_static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('accounts/', include('accounts.urls')),
     path('', include('store.urls')),
 ]
 

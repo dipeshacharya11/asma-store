@@ -10,23 +10,478 @@
 .status.cancelled{background:#FBEAEC; color:var(--sale);}
 {% endblock %}
 {% block content %}
-<div class="container" style="padding:120px 0 90px;">
-  <h1 style="margin-bottom:6px;">Welcome back, {{ user.username }}</h1>
-  <p class="muted" style="margin-bottom:32px;">{{ orders|length }} order{{ orders|length|pluralize }} placed with Asma Store.</p>
 
-  {% for order in orders %}
-  <div class="order-card">
-    <div class="order-top">
-      <div><b>Order #{{ order.id }}</b><br><span class="muted" style="font-size:12.5px;">Placed {{ order.created_at|date:"M j, Y" }}</span></div>
-      <span class="status {{ order.status }}">{{ order.status }}</span>
-    </div>
-    {% for item in order.items.all %}
-    <div class="muted" style="font-size:13px;">{{ item.quantity }} × {{ item.product_name }} — Rs. {{ item.line_total }}</div>
-    {% endfor %}
-    <div style="margin-top:12px; font-weight:700;">Total: Rs. {{ order.total }}</div>
-  </div>
-  {% empty %}
-  <p class="muted">You haven't placed any orders yet. <a href="{% url 'store:collection' %}" style="color:var(--brand-primary); font-weight:600;">Start shopping →</a></p>
-  {% endfor %}
+
+<style>
+:root{
+--primary:#2F6FB3;
+--primary-light:#EEF5FC;
+--success:#2E9B62;
+--warning:#C98A10;
+--danger:#D64A4A;
+--text:#1F2937;
+--muted:#6B7280;
+--border:#E7ECF2;
+--bg:#F7F9FC;
+--white:#fff;
+--radius:16px;
+}
+
+.account{
+display:grid;
+grid-template-columns:280px 1fr;
+gap:28px;
+padding:120px 0 70px;
+}
+
+.card{
+background:#fff;
+border:1px solid var(--border);
+border-radius:var(--radius);
+padding:22px;
+}
+
+.sidebar{
+position:sticky;
+top:110px;
+height:max-content;
+}
+
+.profile{
+text-align:center;
+}
+
+.avatar{
+width:84px;
+height:84px;
+border-radius:50%;
+background:var(--primary-light);
+color:var(--primary);
+display:grid;
+place-items:center;
+font-size:34px;
+font-weight:700;
+margin:auto;
+}
+
+.profile h2{
+margin:14px 0 6px;
+font-size:22px;
+}
+
+.profile p{
+margin:4px 0;
+color:var(--muted);
+font-size:14px;
+}
+
+.badge{
+display:inline-block;
+padding:5px 12px;
+background:#EAF8EF;
+color:var(--success);
+font-size:12px;
+border-radius:999px;
+font-weight:700;
+margin-top:10px;
+}
+
+.menu{
+margin-top:24px;
+display:flex;
+flex-direction:column;
+gap:6px;
+}
+
+.menu a{
+padding:12px 15px;
+border-radius:12px;
+text-decoration:none;
+color:var(--text);
+font-weight:600;
+transition:.25s;
+}
+
+.menu a:hover,
+.menu a.active{
+background:var(--primary-light);
+color:var(--primary);
+}
+
+.grid4{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:18px;
+margin-bottom:24px;
+}
+
+.stat{
+background:#fff;
+border:1px solid var(--border);
+padding:22px;
+border-radius:16px;
+}
+
+.stat h3{
+margin:0;
+font-size:30px;
+color:var(--primary);
+}
+
+.stat span{
+color:var(--muted);
+font-size:14px;
+}
+
+.section-title{
+margin:0 0 18px;
+font-size:22px;
+}
+
+.order{
+padding:18px;
+border:1px solid var(--border);
+border-radius:14px;
+margin-bottom:15px;
+}
+
+.order-top{
+display:flex;
+justify-content:space-between;
+margin-bottom:10px;
+}
+
+.status{
+padding:5px 12px;
+border-radius:999px;
+font-size:12px;
+font-weight:700;
+text-transform:capitalize;
+}
+
+.pending{
+background:#FFF5DD;
+color:var(--warning);
+}
+
+.shipped{
+background:#E8F1FD;
+color:var(--primary);
+}
+
+.delivered{
+background:#EAF8EF;
+color:var(--success);
+}
+
+.cancelled{
+background:#FBE9EA;
+color:var(--danger);
+}
+
+.order-items{
+font-size:14px;
+color:var(--muted);
+line-height:1.7;
+margin-bottom:12px;
+}
+
+.order-bottom{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.btn{
+padding:10px 16px;
+background:var(--primary);
+color:#fff;
+text-decoration:none;
+border-radius:10px;
+font-size:14px;
+font-weight:600;
+}
+
+.address{
+display:grid;
+grid-template-columns:1fr auto;
+gap:15px;
+align-items:center;
+}
+
+.small-btn{
+padding:8px 12px;
+background:var(--primary-light);
+border-radius:10px;
+text-decoration:none;
+color:var(--primary);
+font-weight:600;
+}
+
+.security{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:16px 0;
+border-top:1px solid var(--border);
+}
+
+@media(max-width:980px){
+
+.account{
+grid-template-columns:1fr;
+}
+
+.sidebar{
+position:static;
+}
+
+.grid4{
+grid-template-columns:repeat(2,1fr);
+}
+
+}
+
+@media(max-width:640px){
+
+.grid4{
+grid-template-columns:1fr;
+}
+
+.order-top,
+.order-bottom,
+.address,
+.security{
+flex-direction:column;
+align-items:flex-start;
+gap:12px;
+}
+
+}
+</style>
+
+<div class="container">
+
+<div class="account">
+
+<!-- SIDEBAR -->
+
+<aside class="sidebar card">
+
+<div class="profile">
+
+<div class="avatar">
+{{ user.first_name|default:user.username|first|upper }}
+</div>
+
+<h2>{{ user.get_full_name|default:user.username }}</h2>
+
+<p>{{ user.profile.phone_number }}</p>
+
+<p>{{ user.email }}</p>
+
+{% if user.profile.is_phone_verified %}
+<div class="badge">✔ Phone Verified</div>
+{% else %}
+<div class="badge">⚠ Phone Not Verified</div>
+{% endif %}
+
+</div>
+
+<nav class="menu">
+
+<a class="active" href="#">Dashboard</a>
+
+<a href="#">Orders</a>
+
+<a href="#">Addresses</a>
+
+<a href="#">Wishlist</a>
+
+<a href="#">Security</a>
+
+	<a href="{% url 'store:logout' %}">Log out</a>
+
+/*<!---->*/
+
+</nav>
+
+</aside>
+
+<!-- CONTENT -->
+
+<section>
+
+<div class="grid4">
+
+<div class="stat">
+<h3>{{ orders|length }}</h3>
+<span>Total Orders</span>
+</div>
+
+<div class="stat">
+<h3>{{ pending_count }}</h3>
+<span>Pending</span>
+</div>
+
+<div class="stat">
+<h3>{{ delivered_count }}</h3>
+<span>Delivered</span>
+</div>
+
+<div class="stat">
+<h3>{{ wishlist_count }}</h3>
+<span>Wishlist</span>
+</div>
+
+</div>
+
+<!-- ORDERS -->
+
+<div class="card">
+
+<h2 class="section-title">
+Recent Orders
+</h2>
+
+{% for order in orders %}
+
+<div class="order">
+
+<div class="order-top">
+
+<div>
+
+<strong>#{{ order.id }}</strong><br>
+
+<small>
+{{ order.created_at|date:"M d, Y" }}
+</small>
+
+</div>
+
+<span class="status {{ order.status }}">
+{{ order.status }}
+</span>
+
+</div>
+
+<div class="order-items">
+
+{% for item in order.items.all %}
+
+{{ item.quantity }} × {{ item.product_name }}
+
+{% if not forloop.last %}<br>{% endif %}
+
+{% endfor %}
+
+</div>
+
+<div class="order-bottom">
+
+<strong>Rs. {{ order.total }}</strong>
+
+<a class="btn" href="#">
+View Order
+</a>
+
+</div>
+
+</div>
+
+{% empty %}
+
+<p>
+No orders yet.
+<a href="{% url 'store:collection' %}">
+Start Shopping →
+</a>
+</p>
+
+{% endfor %}
+
+</div>
+
+<br>
+
+<!-- ADDRESS -->
+
+<div class="card">
+
+<h2 class="section-title">
+Saved Address
+</h2>
+
+<div class="address">
+
+<div>
+
+<strong>{{ default_address.full_name }}</strong><br>
+
+{{ default_address.address }}<br>
+
+{{ default_address.city }}
+
+</div>
+
+<a class="small-btn" href="#">
+Edit
+</a>
+
+</div>
+
+</div>
+
+<br>
+
+<!-- SECURITY -->
+
+<div class="card">
+
+<h2 class="section-title">
+Security
+</h2>
+
+<div class="security">
+
+<div>
+
+<strong>Password</strong><br>
+
+<span class="muted">
+Last changed recently
+</span>
+
+</div>
+
+<a class="small-btn" href="#">
+Change Password
+</a>
+
+</div>
+
+<div class="security">
+
+<div>
+
+<strong>Phone Verification</strong><br>
+
+{% if user.profile.is_phone_verified %}
+<span class="badge">Verified</span>
+{% else %}
+<span class="badge">Not Verified</span>
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+</div>
+
 </div>
 {% endblock %}

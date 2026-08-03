@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP - Asma Store</title>
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .form-verify {
+            max-width: 400px;
+            padding: 20px;
+            margin: 0 auto;
+        }
+        .otp-input {
+            font-size: 2rem;
+            letter-spacing: 0.5em;
+            text-align: center;
+        }
+        .countdown {
+            font-weight: bold;
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="text-center mb-4">Verify Your Phone Number</h>
+                    <p class="text-center text-muted mb-4">
+                        We've sent a verification code to <strong>{{ phone_number }}</strong>.
+                        Please enter the 6-digit code below to verify your account.
+                    </p>
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <form id="otpForm" method="post" novalidate>
+                        {% csrf_token %}
+                        {{ form.non_field_errors }}
+                        <div class="mb-4 text-center">
+                            {{ form.otp }}
+                            {% if form.otp.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.otp.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div id="resendContainer" class="text-center mb-3">
+                            <button type="button" id="resendOtpBtn" class="btn btn-outline-secondary">
+                                Didn't receive the code? Resend
+                            </button>
+                            <span id="countdown" class="countdown d-none"></span>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                Verify & Continue
+                            </button>
+                        </div>
+                    </form>
+                    <div class="text-center mt-3">
+                        <p>Need help? <a href="#">Contact support</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Bootstrap JS (optional) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const otpInput = document.getElementById('{{ form.otp.id_for_label }}');
+        const resendBtn = document.getElementById('resendOtpBtn');
+        const countdownEl = document.getElementById('countdown');
+        const submitBtn = document.getElementById('submitBtn');
+        const otpForm = document.getElementById('otpForm');
+
+        // Focus on OTP input on load
+        otpInput.focus();
+
+        // Auto-submit when OTP is fully entered (6 digits)
+        otpInput.addEventListener('input', function (e) {
+            // Remove any non-digit characters
+            this.value = this.value.replace(/\D/g, '');
+            // Limit to 6 digits
+            if (this.value.length > 6) {
+                this.value = this.value.slice(0, 6);
+            }
+            // If length is 6, submit the form
+            if (this.value.length === 6) {
+                otpForm.submit();
+            }
+        });
+
+        // Resend OTP functionality
+        let countdown = 30; // seconds
+        let countdownInterval;
+
+        function startCountdown() {
+            resendBtn.disabled = true;
+            countdownEl.classList.remove('d-none');
+            countdownEl.textContent = `Resend in ${countdown} seconds`;
+
+            countdownInterval = setInterval(() => {
+                countdown--;
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    resendBtn.disabled = false;
+                    countdownEl.classList.add('d-none');
+                    countdown = 30; // reset for next use
+                } else {
+                    countdownEl.textContent = `Resend in ${countdown} seconds`;
+                }
+            }, 1000);
+        }
+
+        resendBtn.addEventListener('click', function () {
+            if (resendBtn.disabled) return;
+            // Disable button and start countdown
+            startCountdown();
+            // Send AJAX request to resend OTP
+            fetch("{% url 'accounts:resend_otp' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Optionally show a toast or message
+                    alert('OTP resent successfully.');
+                } else {
+                    alert(data.error || 'Failed to resend OTP.');
+                    // Re-enable button on error
+                    resendBtn.disabled = false;
+                    countdownEl.classList.add('d-none');
+                    clearInterval(countdownInterval);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while resending OTP.');
+                resendBtn.disabled = false;
+                countdownEl.classList.add('d-none');
+                clearInterval(countdownInterval);
+            });
+        });
+
+        // Helper to get CSRF cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Optional: handle form submission via AJAX for better UX
+        otpForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const otp = otpInput.value.trim();
+            if (!otp || otp.length !== 6) {
+                alert('Please enter a valid 6-digit OTP.');
+                return;
+            }
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verifying...';
+            fetch("", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({ 'otp': otp })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert(data.error || 'Verification failed. Please try again.');
+                    otpInput.value = '';
+                    otpInput.focus();
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Verify & Continue';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred during verification.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Verify & Continue';
+            });
+        });
+    });
+</script>
+</body>
+</html>
