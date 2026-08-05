@@ -268,10 +268,10 @@ def checkout(request):
                         messages.error(request, message)
                 else:
                     messages.error(request, "Please add a phone number to your profile.")
-                    return redirect('accounts:login')
+                    return redirect('store:account')
             except UserProfile.DoesNotExist:
                 messages.error(request, "Please complete your profile including phone number.")
-                return redirect('accounts:login')
+                return redirect('store:account')
         else:
             # Phone is verified, use profile data for defaults
             try:
@@ -345,6 +345,12 @@ def checkout(request):
         address = request.POST.get('address', '').strip()
         city = request.POST.get('city', '').strip()
 
+        # Normalize phone number for consistent comparisons
+        normalized_phone = phone_verification_service._normalize_phone_number(phone)
+        # Handle case where normalization returns empty string (invalid format)
+        if not normalized_phone:
+            normalized_phone = phone  # Fallback to raw for validation
+
         # For guest users with verified phone, use session data if form fields are empty
         if not request.user.is_authenticated and request.session.get('guest_phone_verified'):
             if not full_name:
@@ -382,7 +388,7 @@ def checkout(request):
             try:
                 profile = request.user.profile
                 # If user is trying to use a different phone number than their profile, always require verification
-                if profile.phone_number != phone:
+                if profile.phone_number != normalized_phone:
                     needs_verification = True
                 else:
                     # Same phone number as profile - check if it's properly verified
@@ -404,8 +410,8 @@ def checkout(request):
                 if request.user.is_authenticated:
                     try:
                         profile = request.user.profile
-                        if profile.phone_number != phone:
-                            profile.phone_number = phone
+                        if profile.phone_number != normalized_phone:
+                            profile.phone_number = normalized_phone
                             profile.is_phone_verified = True
                             profile.save(update_fields=['phone_number', 'is_phone_verified'])
                     except UserProfile.DoesNotExist:
@@ -416,7 +422,7 @@ def checkout(request):
                     # Guest user: mark phone as verified for future use
                     request.session['guest_phone_verified'] = True
                 # Set checkout session data for prefilling form on subsequent visits
-                request.session['checkout_phone'] = phone
+                request.session['checkout_phone'] = normalized_phone
                 request.session['checkout_full_name'] = full_name
                 request.session['checkout_email'] = email
                 request.session['checkout_address'] = address
@@ -483,7 +489,7 @@ def checkout(request):
             except UserProfile.DoesNotExist:
                 pass  # Should not happen, but handle gracefully
         # Set checkout session data for prefilling form on subsequent visits
-        request.session['checkout_phone'] = phone
+        request.session['checkout_phone'] = normalized_phone
         request.session['checkout_full_name'] = full_name
         request.session['checkout_email'] = email
         request.session['checkout_address'] = address
@@ -494,7 +500,7 @@ def checkout(request):
                 customer=request.user if request.user.is_authenticated else None,
                 full_name=full_name,
                 email=email,
-                phone=phone,
+                phone=normalized_phone,
                 address=address,
                 city=city,
                 coupon=coupon,
