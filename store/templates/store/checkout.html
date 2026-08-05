@@ -14,6 +14,28 @@
 .total-row.grand{font-weight:700; font-size:17px; color:var(--text); border-top:1px solid var(--border); padding-top:14px; margin-top:6px;}
 .promo-row{display:flex; gap:8px; margin:16px 0;}
 .promo-row input{flex:1; padding:11px 14px; border-radius:10px; border:1.5px solid var(--border); font-size:13px;}
+/* Override base.css reset for form inputs */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+textarea {
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-card);
+    color: var(--text-primary);
+    font-size: 13.5px;
+    padding: 12px 14px;
+    cursor: text;
+}
+/* For focus state */
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 2px rgba(74, 138, 186, 0.25);
+}
 @media(max-width:900px){ .checkout-layout{grid-template-columns:1fr;} .form-grid{grid-template-columns:1fr;} }
 {% endblock %}
 {% block content %}
@@ -25,11 +47,11 @@
       <div class="form-card">
         <h3>Contact & Shipping</h3>
         <div class="form-grid">
-          <div class="form-group full"><label>Full Name</label><input type="text" name="full_name" required></div>
-          <div class="form-group full"><label>Email</label><input type="email" name="email" ></div>
-          <div class="form-group"><label>Phone</label><input type="tel" name="phone" value="{{ default_phone }}"></div>
-          <div class="form-group"><label>City</label><input type="text" name="city"></div>
-          <div class="form-group full"><label>Address</label><textarea name="address" rows="3" required>{{ default_address }}</textarea></div>
+          <div class="form-group full"><label for="id_full_name">Full Name</label><input type="text" name="full_name" id="id_full_name" value="{{ default_name }}" required></div>
+          <div class="form-group full"><label for="id_email">Email</label><input type="email" name="email" id="id_email" value="{{ default_email }}"></div>
+          <div class="form-group"><label for="id_phone">Phone</label><input type="tel" name="phone" id="id_phone" value="{{ default_phone }}"></div>
+          <div class="form-group"><label for="id_city">City</label><input type="text" name="city" id="id_city" value="{{ default_city }}"></div>
+          <div class="form-group full"><label for="id_address">Address</label><textarea name="address" rows="3" required id="id_address">{{ default_address }}</textarea></div>
         </div>
       </div>
       <div class="form-card">

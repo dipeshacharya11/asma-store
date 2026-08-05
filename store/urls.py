@@ -1,7 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
-from accounts.views import login_view
+from accounts.views import login_view, logout_view
 from . import views
 
 app_name = 'store'
@@ -19,8 +19,7 @@ urlpatterns = [
     path('cart/remove/<int:product_id>/', views.cart_remove, name='cart_remove'),
     path('checkout/', views.checkout, name='checkout'),
 
-    path('wishlist/', views.wishlist_view, name='wishlist'),
-    path('wishlist/toggle/<int:product_id>/', views.wishlist_toggle, name='wishlist_toggle'),
+
 
     path('search/', views.search_view, name='search'),
 
@@ -33,6 +32,7 @@ urlpatterns = [
 
     path('register/', RedirectView.as_view(pattern_name='accounts:signup', permanent=False), name='register'),
     path('login/', login_view, name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='store:home'), name='logout'),
+    path('logout/', logout_view, name='logout'),
     path('account/', views.account, name='account'),
+    path('order/<int:order_id>/', views.order_detail, name='order_detail'),
 ]

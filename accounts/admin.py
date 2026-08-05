@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import OTP, UserProfile
+from .models import OTP, UserProfile, VerifiedGuestPhone
 
 
 @admin.register(OTP)
@@ -16,3 +16,12 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'phone_number', 'is_phone_verified')
     list_filter = ('is_phone_verified',)
     search_fields = ('user__username', 'user__email', 'phone_number')
+
+
+@admin.register(VerifiedGuestPhone)
+class VerifiedGuestPhoneAdmin(admin.ModelAdmin):
+    list_display = ('phone_number', 'verified_at', 'expires_at', 'is_active', 'converted_to_user')
+    list_filter = ('is_active', 'verified_at', 'expires_at')
+    search_fields = ('phone_number', 'converted_to_user__username')
+    readonly_fields = ('verified_at',)
+    ordering = ('-verified_at',)

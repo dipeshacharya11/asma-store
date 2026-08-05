@@ -1,0 +1,166 @@
+{% extends "store/base.html" %}
+
+{% block title %}Order #{{ order.id }} — Asma Stores{% endblock %}
+
+{% block content %}
+<style>
+    .order-detail {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 20px;
+    }
+    .order-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .order-number {
+        background: #f8f9fa;
+        padding: 10px 20px;
+        border-radius: 50px;
+        display: inline-block;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    .order-status {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-processing { background: #d1ecf1; color: #0c5460; }
+    .status-shipped { background: #d4edda; color: #155724; }
+    .status-delivered { background: #d4edda; color: #155724; }
+    .status-cancelled { background: #f8d7da; color: #721c24; }
+    .order-info, .order-items-section, .order-summary {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 30px;
+    }
+    .order-info p, .order-summary p {
+        margin: 10px 0;
+        display: flex;
+        justify-content: space-between;
+    }
+    .order-info label, .order-summary label {
+        font-weight: 600;
+        color: #495057;
+    }
+    .order-items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    .order-items-table th,
+    .order-items-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+    }
+    .order-items-table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    .order-item-name {
+        font-weight: 500;
+    }
+    .order-item-quantity {
+        color: #6c757d;
+    }
+    .order-item-price {
+        font-weight: 500;
+    }
+    .order-total {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 2px solid #dee2e6;
+    }
+    .btn-back {
+        display: inline-block;
+        padding: 12px 25px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+    }
+    .btn-back:hover {
+        background-color: #0056b3;
+    }
+    @media (max-width: 768px) {
+        .order-detail {
+            margin: 20px;
+            padding: 15px;
+        }
+    }
+</style>
+
+<div class="order-detail">
+    <div class="order-header">
+        <h1>Order Details</h1>
+        <div class="order-number">Order #{{ order.id }}</div>
+        <span class="order-status status-{{ order.status }}">{{ order.status|title }}</span>
+    </div>
+
+    <div class="order-info">
+        <h3>Order Information</h3>
+        <p><span>Date:</span> <span>{{ order.created_at|date:"M d, Y, h:i A" }}</span></p>
+        <p><span>Customer:</span> <span>{{ order.full_name }}</span></p>
+        {% if order.email %}
+        <p><span>Email:</span> <span>{{ order.email }}</span></p>
+        {% endif %}
+        <p><span>Phone:</span> <span>{{ order.phone }}</span></p>
+        <p><span>Shipping Address:</span> <span>{{ order.address }}, {{ order.city }}</span></p>
+    </div>
+
+    <div class="order-items-section">
+        <h3>Order Items</h3>
+        <table class="order-items-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td class="order-item-name">{{ item.product_name }}</td>
+                    <td class="order-item-quantity">{{ item.quantity }}</td>
+                    <td class="order-item-price">Rs. {{ item.unit_price }}</td>
+                    <td class="order-item-total">Rs. {{ item.quantity|mul:item.unit_price }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">No items found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="order-summary">
+        <h3>Order Summary</h3>
+        <p><span>Subtotal:</span> <span>Rs. {% widthratio order.total 100 100 %}{{ order.total }}</span></p>
+        {% if order.coupon %}
+        <p><span>Discount (−{{ order.coupon.discount }}%):</span> <span>-Rs. {{ order.coupon_discount_amount }}</span></p>
+        {% endif %}
+        <p><span>Shipping Cost:</span> <span>Rs. {{ order.shipping_cost }}</span></p>
+        <div class="order-total">
+            <span>Total Paid:</span> <span>Rs. {{ order.total }}</span>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a href="{% url 'store:account' %}" class="btn-back">Back to My Orders</a>
+    </div>
+</div>
+{% endblock %}

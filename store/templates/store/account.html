@@ -382,7 +382,7 @@ Recent Orders
 
 <strong>Rs. {{ order.total }}</strong>
 
-<a class="btn" href="#">
+<a class="btn" href="{% url 'store:order_detail' order.id %}">
 View Order
 </a>
 

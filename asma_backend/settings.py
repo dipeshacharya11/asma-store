@@ -142,3 +142,5 @@ PBKDF2_SALT_LENGTH = 16      # Length of salt in bytes
 # Sparrow SMS settings (load from environment)
 SPARROW_TOKEN = os.environ.get('SPARROW_TOKEN', '')
 SPARROW_SENDER = os.environ.get('SPARROW_SENDER', '')
+# Administrator phone number for order notifications (load from environment)
+SPARROW_ADMIN_PHONE = os.environ.get('SPARROW_ADMIN_PHONE', '')

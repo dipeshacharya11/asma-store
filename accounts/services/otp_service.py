@@ -4,7 +4,7 @@ from django.core.cache import cache
 from django.utils import timezone
 
 from accounts.services.sms import SparrowSMSService
-from accounts.utils.otp import generate_otp, hash_otp, create_otp_record, verify_and_use_otp
+from accounts.utils.otp import generate_otp, hash_otp, create_otp_record, verify_and_use_otp, get_otp_record_by_token
 from accounts.models import OTP
 from django.contrib.auth import get_user_model
 
@@ -38,9 +38,9 @@ class OTPService:
         count = cache.get(key, 0)
         cache.set(key, count + 1, timeout)
 
-    def send_otp(self, user, phone_number):
+    def send_otp(self, user, phone_number, purpose):
         """
-        Generate and send OTP to the user's phone number.
+        Generate and send OTP to the user's phone number for a specific purpose.
         Returns tuple (success, message, otp_record)
         """
         # Rate limiting
@@ -50,14 +50,14 @@ class OTPService:
 
         # Generate OTP
         otp = generate_otp()
-        # Create OTP record (this also invalidates old OTPs)
-        otp_record, otp = create_otp_record(user, phone_number)
+        # Create OTP record (this also invalidates old OTPs for the same purpose)
+        otp_record, otp = create_otp_record(user, phone_number, purpose)
         # Send OTP via SMS
         success, message_id, raw_response = self.sms_service.send_otp(phone_number, otp)
         if success:
             # Increment rate limit counter on success
             self._increment_rate_limit(phone_number)
-            logger.info(f"OTP sent to {phone_number} for user {user.username}. Message ID: {message_id}")
+            logger.info(f"OTP sent to {phone_number} for user {user.username if user else 'None'} (purpose: {purpose}). Message ID: {message_id}")
             return True, "OTP sent successfully.", otp_record
         else:
             logger.error(f"Failed to send OTP to {phone_number}: {raw_response}")
@@ -65,26 +65,42 @@ class OTPService:
             otp_record.delete()
             return False, "Failed to send OTP. Please try again.", None
 
-    def verify_otp(self, phone_number, otp):
+    def verify_otp(self, phone_number, otp, purpose):
         """
-        Verify the OTP for the given phone number.
+        Verify the OTP for the given phone number and purpose.
         Returns tuple (success, message, otp_record)
         """
-        return verify_and_use_otp(phone_number, otp)
+        return verify_and_use_otp(phone_number, otp, purpose)
 
-    def resend_otp(self, user, phone_number):
+    def resend_otp(self, user, phone_number, purpose):
         """
-        Resend OTP to the user's phone number.
-        Returns tuple (success, message, otp_return)
+        Resend OTP to the user's phone number for a specific purpose.
+        Returns tuple (success, message, otp_record)
         """
         # Check resend cooldown (30 seconds)
         last_otp = OTP.objects.filter(
             user=user,
-            phone_number=phone_number
+            phone_number=phone_number,
+            purpose=purpose
         ).order_by('-created_at').first()
         if last_otp:
             time_since_last = timezone.now() - last_otp.created_at
             if time_since_last.total_seconds() < 30:
                 return False, f"Please wait {30 - int(time_since_last.total_seconds())} seconds before resending.", None
 
-        return self.send_otp(user, phone_number)
+        return self.send_otp(user, phone_number, purpose)
+
+    def invalidate_otp(self, phone_number, purpose):
+        """
+        Invalidate any pending OTPs for the given phone number and purpose.
+        """
+        OTP.objects.filter(
+            phone_number=phone_number,
+            purpose=purpose,
+            is_verified=False,
+            is_used=False
+        ).update(is_used=True)
+
+    def cleanup_expired(self):
+        """Delete expired OTP records"""
+        OTP.cleanup_expired()

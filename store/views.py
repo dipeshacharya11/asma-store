@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import login, logout, authenticate
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
@@ -13,14 +13,21 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
 from datetime import timedelta
+import logging
 
 from accounts.models import UserProfile
+from accounts.services.phone_verification import PhoneVerificationService
 from .models import Category, Product, HeroSlide, Testimonial, Coupon, Order, OrderItem, BlogPost
 from .signals import FEATURED_PRODUCTS_CACHE_KEY, HERO_SLIDES_CACHE_KEY
 from .cart_utils import get_cart_context, get_cart_count
 from .models import SignatureCollection
 
 FREE_SHIPPING_THRESHOLD = Decimal('5000')
+
+logger = logging.getLogger(__name__)
+
+# Initialize phone verification service
+phone_verification_service = PhoneVerificationService()
 
 
 def _is_ajax(request):
@@ -98,7 +105,7 @@ def collection(request, slug=None):
         'subcategories': subcategories,
         'categories': Category.objects.filter(is_active=True, parent__isnull=True),
     })
-    
+
 
 def product_detail(request, slug):
     product = get_object_or_404(Product.objects.select_related('category'), slug=slug, is_active=True)
@@ -234,16 +241,96 @@ def checkout(request):
 
     # Default values for logged-in user
     default_phone = ''
+    default_name = ''
+    default_email = ''
     default_address = ''
-    if request.user.is_authenticated:
-        try:
-            profile = request.user.profile
-            default_phone = profile.phone_number or ''
-            default_address = profile.address or ''
-        except UserProfile.DoesNotExist:
-            pass
+    default_city = ''
 
+    if request.user.is_authenticated:
+        # Check if user's phone is verified using phone verification service
+        is_verified = phone_verification_service.is_phone_verified_for_user(request.user)
+        if not is_verified:
+            # Phone not verified, send OTP for verification
+            try:
+                profile = request.user.profile
+                phone_number = profile.phone_number
+                if phone_number:
+                    success, message, otp_record = phone_verification_service.verify_phone_for_checkout(
+                        phone_number, request.user
+                    )
+                    if success:
+                        request.session['pre_verified_user_id'] = request.user.id
+                        request.session['phone_number'] = phone_number
+                        request.session['otp_purpose'] = 'login'
+                        messages.info(request, "Please verify your phone number to continue with checkout.")
+                        return redirect('accounts:verify_otp')
+                    else:
+                        messages.error(request, message)
+                else:
+                    messages.error(request, "Please add a phone number to your profile.")
+                    return redirect('accounts:login')
+            except UserProfile.DoesNotExist:
+                messages.error(request, "Please complete your profile including phone number.")
+                return redirect('accounts:login')
+        else:
+            # Phone is verified, use profile data for defaults
+            try:
+                profile = request.user.profile
+                default_phone = profile.phone_number or ''
+                default_name = f"{request.user.first_name} {request.user.last_name}".strip()
+                if not default_name:
+                    default_name = request.user.username
+                default_email = request.user.email or ''
+                default_address = profile.address or ''
+            except UserProfile.DoesNotExist:
+                # No profile, user will need to fill in details
+                pass
+
+    # Handle GET requests and POST requests when OTP verification is needed
     if request.method == 'POST':
+        # Check if this is a verified guest checkout attempt
+        if not request.user.is_authenticated and request.session.get('guest_phone_verified'):
+            # Use guest data from session for defaults
+            default_phone = request.session.get('guest_phone', '')
+            default_name = request.session.get('guest_name', '')
+            # Note: email, address, city would need to be filled in form
+        elif not request.user.is_authenticated:
+            # Guest user without verified phone - need to verify first
+            phone_number = request.POST.get('phone', '').strip()
+            if phone_number:
+                # Use phone verification service to check ownership and send OTP if needed
+                success, message, verification_obj = phone_verification_service.verify_phone_for_checkout(
+                    phone_number
+                )
+
+                if success and verification_obj is None:
+                    # OTP sent successfully
+                    messages.info(request, message)
+                    # Store guest data for later use
+                    request.session['guest_name'] = request.POST.get('full_name', '').strip()
+                    request.session['guest_phone'] = phone_number
+                    request.session['otp_purpose'] = 'guest_checkout'
+                    return redirect('accounts:verify_otp')
+                elif not success and verification_obj is None:
+                    # Failed to send OTP or phone belongs to another user
+                    messages.error(request, message)
+                    return render(request, 'store/checkout.html', {
+                        'checkout_items': items_qs,
+                        'checkout_subtotal': subtotal,
+                        'default_phone': phone_number,
+                        'default_name': request.POST.get('full_name', '').strip(),
+                        'default_email': request.POST.get('email', '').strip(),
+                        'default_address': request.POST.get('address', '').strip(),
+                        'default_city': request.POST.get('city', '').strip()
+                    })
+                else:
+                    # Phone is already verified (verification_obj contains the verification object)
+                    # Proceed with order processing (will be handled below)
+                    pass
+            else:
+                messages.error(request, "Phone number is required for guest checkout.")
+
+        # Process the order (only if we reach here, verification should have happened)
         coupon = None
         code = request.POST.get('coupon_code', '').strip().upper()
         if code:
@@ -251,14 +338,165 @@ def checkout(request):
             if not coupon:
                 messages.warning(request, f"Coupon “{code}” isn't valid or has expired.")
 
+        # Extract form data
+        full_name = request.POST.get('full_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        address = request.POST.get('address', '').strip()
+        city = request.POST.get('city', '').strip()
+
+        # For guest users with verified phone, use session data if form fields are empty
+        if not request.user.is_authenticated and request.session.get('guest_phone_verified'):
+            if not full_name:
+                full_name = request.session.get('guest_name', '')
+            if not phone:
+                phone = request.session.get('guest_phone', '')
+            # Note: We don't have email, address, city in session for guest checkout
+
+        # Check if we need to verify OTP for checkout
+        otp_code = request.POST.get('otp', '').strip()
+        needs_verification = False
+
+        # Determine if we need OTP verification
+        if not request.user.is_authenticated:
+            # Guest user - check if phone is already verified for guest use
+            ownership_type, _, _ = phone_verification_service.check_phone_ownership(phone)
+            if ownership_type in ['registered_user', 'registered_user_unverified']:
+                # Phone belongs to a registered user (verified or not) - block checkout
+                messages.error(request, "This phone number is already associated with an account. Please sign in to continue with this phone number or use another phone number.")
+                return render(request, 'store/checkout.html', {
+                    'checkout_items': items_qs,
+                    'checkout_subtotal': subtotal,
+                    'default_phone': phone,
+                    'default_name': full_name,
+                    'default_email': email,
+                    'default_address': address,
+                    'default_city': city
+                })
+            elif ownership_type not in ['guest_verified']:
+                # Need verification (available, guest_expired)
+                needs_verification = True
+            # If ownership_type is 'guest_verified', no verification needed
+        else:
+            # Logged-in user - check if phone is verified for this user
+            try:
+                profile = request.user.profile
+                # If user is trying to use a different phone number than their profile, always require verification
+                if profile.phone_number != phone:
+                    needs_verification = True
+                else:
+                    # Same phone number as profile - check if it's properly verified
+                    if not phone_verification_service.is_phone_verified_for_user(request.user):
+                        needs_verification = True
+            except UserProfile.DoesNotExist:
+                needs_verification = True
+
+        # Handle OTP verification
+        if needs_verification and otp_code:
+            # Verify the OTP
+            success, message, verification_obj = phone_verification_service.verify_otp_for_checkout(
+                phone, otp_code, request.user if request.user.is_authenticated else None
+            )
+
+            if success:
+                # OTP verified successfully, proceed with order
+                # If verified user is confirming a new phone number (different from profile), update their profile
+                if request.user.is_authenticated:
+                    try:
+                        profile = request.user.profile
+                        if profile.phone_number != phone:
+                            profile.phone_number = phone
+                            profile.is_phone_verified = True
+                            profile.save(update_fields=['phone_number', 'is_phone_verified'])
+                    except UserProfile.DoesNotExist:
+                        # Should not happen for authenticated user, but handle gracefully
+                        pass
+                # Set session variables for guest users and for prefilling form on return visits
+                if not request.user.is_authenticated:
+                    # Guest user: mark phone as verified for future use
+                    request.session['guest_phone_verified'] = True
+                # Set checkout session data for prefilling form on subsequent visits
+                request.session['checkout_phone'] = phone
+                request.session['checkout_full_name'] = full_name
+                request.session['checkout_email'] = email
+                request.session['checkout_address'] = address
+                request.session['checkout_city'] = city
+            else:
+                # OTP verification failed
+                messages.error(request, message)
+                return render(request, 'store/checkout.html', {
+                    'checkout_items': items_qs,
+                    'checkout_subtotal': subtotal,
+                    'default_phone': phone,
+                    'default_name': full_name,
+                    'default_email': email,
+                    'default_address': address,
+                    'default_city': city,
+                    'otp_required': True,
+                    'otp_sent': True
+                })
+        elif needs_verification and not otp_code:
+            # Need to send OTP first
+            success, message, otp_record = phone_verification_service.verify_phone_for_checkout(
+                phone, request.user if request.user.is_authenticated else None
+            )
+
+            if success:
+                # OTP sent successfully
+                messages.info(request, message)
+                return render(request, 'store/checkout.html', {
+                    'checkout_items': items_qs,
+                    'checkout_subtotal': subtotal,
+                    'default_phone': phone,
+                    'default_name': full_name,
+                    'default_email': email,
+                    'default_address': address,
+                    'default_city': city,
+                    'otp_required': True,
+                    'otp_sent': True
+                })
+            else:
+                # Failed to send OTP
+                messages.error(request, message)
+                return render(request, 'store/checkout.html', {
+                    'checkout_items': items_qs,
+                    'checkout_subtotal': subtotal,
+                    'default_phone': phone,
+                    'default_name': full_name,
+                    'default_email': email,
+                    'default_address': address,
+                    'default_city': city
+                })
+
+        # Set session variables for guest users and for prefilling form on return visits
+        # when no OTP verification is needed (phone already verified)
+        if not request.user.is_authenticated:
+            # Guest user: mark phone as verified for future use
+            request.session['guest_phone_verified'] = True
+        else:
+            # Logged-in user: if profile shows phone not verified but our service says it is, update profile
+            try:
+                profile = request.user.profile
+                if not profile.is_phone_verified and phone_verification_service.is_phone_verified_for_user(request.user):
+                    profile.is_phone_verified = True
+                    profile.save(update_fields=['is_phone_verified'])
+            except UserProfile.DoesNotExist:
+                pass  # Should not happen, but handle gracefully
+        # Set checkout session data for prefilling form on subsequent visits
+        request.session['checkout_phone'] = phone
+        request.session['checkout_full_name'] = full_name
+        request.session['checkout_email'] = email
+        request.session['checkout_address'] = address
+        request.session['checkout_city'] = city
+
         with transaction.atomic():
             order = Order.objects.create(
                 customer=request.user if request.user.is_authenticated else None,
-                full_name=request.POST.get('full_name', ''),
-                email=request.POST.get('email', ''),
-                phone=request.POST.get('phone', ''),
-                address=request.POST.get('address', ''),
-                city=request.POST.get('city', ''),
+                full_name=full_name,
+                email=email,
+                phone=phone,
+                address=address,
+                city=city,
                 coupon=coupon,
                 shipping_cost=Decimal(request.POST.get('shipping_cost') or '0'),
             )
@@ -275,10 +513,58 @@ def checkout(request):
                 product.stock = max(product.stock - actual_qty, 0)
                 product.save(update_fields=['stock'])
 
+            # Send order notification to administrator
+            try:
+                send_order_notification(order)
+            except Exception as e:
+                # Log the error but don't fail the order
+                logger.error(f"Failed to send order notification for order {order.id}: {e}")
+
             request.session['cart'] = {}
+            # Clear checkout-specific session data
+            request.session.pop('checkout_phone', None)
+            request.session.pop('checkout_full_name', None)
+            request.session.pop('checkout_email', None)
+            request.session.pop('checkout_address', None)
+            request.session.pop('checkout_city', None)
+            # Clear guest session data after successful order
+            request.session.pop('guest_phone_verified', None)
+            request.session.pop('guest_phone', None)
+            request.session.pop('guest_name', None)
+            request.session.pop('pre_verified_user_id', None)
+            request.session.pop('phone_number', None)
+            request.session.pop('otp_purpose', None)
+
             return render(request, 'store/order_confirmation.html', {'order': order})
 
-    return render(request, 'store/checkout.html', {'checkout_items': items_qs, 'checkout_subtotal': subtotal, 'default_phone': default_phone, 'default_address': default_address})
+    # For GET requests, show form with appropriate default values
+    # For verified guest users, pre-fill form with data from initial submission
+    if not request.user.is_authenticated and request.session.get('guest_phone_verified'):
+        # Use checkout_* session values if available (set during OTP verification or previous checkout attempt)
+        # Fall back to guest_* values if checkout_* not set (e.g., first visit after OTP verification)
+        default_phone = request.session.get('checkout_phone', request.session.get('guest_phone', ''))
+        default_name = request.session.get('checkout_full_name', request.session.get('guest_name', ''))
+        # For email, address, city, we only have checkout_* values (set during checkout form submission)
+        default_email = request.session.get('checkout_email', '')
+        default_address = request.session.get('checkout_address', '')
+        default_city = request.session.get('checkout_city', '')
+
+    return render(request, 'store/checkout.html', {
+        'checkout_items': items_qs,
+        'checkout_subtotal': subtotal,
+        'default_phone': default_phone,
+        'default_name': default_name,
+        'default_email': default_email,
+        'default_address': default_address,
+        'default_city': default_city
+    })
+
+
+@login_required
+def order_detail(request, order_id):
+    """Display details for a specific order belonging to the logged-in user."""
+    order = get_object_or_404(Order, id=order_id, customer=request.user)
+    return render(request, 'store/order_detail.html', {'order': order})
 
 
 def register(request):
@@ -436,13 +722,13 @@ def blog_detail(request, slug):
     return render(request, 'store/blog_detail.html', {'post': post, 'recent': recent})
 
 
-
 def about(request):
     return render(request, 'store/about.html')
 
 
 def about(request):
     return render(request, 'store/about.html')
+
 
 # Staff dashboard (requires staff status)
 # ---------------------------------------------------------------------------
@@ -523,48 +809,106 @@ def account(request):
     return render(request, 'store/account.html', {'orders': orders})
 
 
-# ---------------------------------------------------------------------------
-# Wishlist — session-based (no login required), mirrors the cart pattern.
-# ---------------------------------------------------------------------------
-def wishlist_toggle(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    wishlist = request.session.get('wishlist', [])
-    is_now_saved = product_id not in wishlist
-    if is_now_saved:
-        wishlist.append(product_id)
-    else:
-        wishlist = [pid for pid in wishlist if pid != product_id]
-    request.session['wishlist'] = wishlist
+def send_order_notification(order):
+    """
+    Send order notification to administrator's phone number via Sparrow SMS.
+    """
+    try:
+        # Initialize SMS service
+        from accounts.services.sms import SparrowSMSService
+        sms_service = SparrowSMSService()
 
-    if _is_ajax(request):
-        return JsonResponse({'saved': is_now_saved, 'count': len(wishlist)})
-    return redirect(request.META.get('HTTP_REFERER', '/'))
+        # Get administrator phone number from settings
+        from django.conf import settings
+        admin_phone = getattr(settings, 'SPARROW_ADMIN_PHONE', '')
 
+        # If no administrator phone is configured, fall back to logging only
+        if not admin_phone:
+            # Log the notification details
+            notification_message = (
+                f"NEW ORDER ALERT\n"
+                f"Order ID: {order.id}\n"
+                f"Customer: {order.full_name}\n"
+                f"Phone: {order.phone}\n"
+                f"Email: {order.email}\n"
+                f"Address: {order.address}, {order.city}\n"
+                f"Total Amount: Rs. {order.total}\n"
+                f"Items Count: {order.items.count()}\n"
+                f"Order Time: {order.created_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            )
+            logger.info(f"ORDER NOTIFICATION:\n{notification_message}")
+            return
 
-def wishlist_view(request):
-    ids = request.session.get('wishlist', [])
-    products = Product.objects.filter(id__in=ids, is_active=True).select_related('category')
-    return render(request, 'store/wishlist.html', {'products': products})
-
-
-# ---------------------------------------------------------------------------
-# Search — real query against the Product table (name/description/SKU),
-# used by both the live-typing overlay (AJAX/JSON) and the full results page.
-# ---------------------------------------------------------------------------
-def search_view(request):
-    query = request.GET.get('q', '').strip()
-    results = []
-    if query:
-        results = list(
-            Product.objects.filter(
-                Q(name__icontains=query) | Q(description__icontains=query) | Q(sku__icontains=query),
-                is_active=True,
-            ).select_related('category')[:24]
+        # Format the notification message
+        notification_message = (
+            f"NEW ORDER ALERT\n"
+            f"Order ID: {order.id}\n"
+            f"Customer: {order.full_name}\n"
+            f"Phone: {order.phone}\n"
+            f"Email: {order.email}\n"
+            f"Address: {order.address}, {order.city}\n"
+            f"Total Amount: Rs. {order.total}\n"
+            f"Items Count: {order.items.count()}\n"
+            f"Order Time: {order.created_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
         )
 
-    if _is_ajax(request):
-        html = render_to_string('store/includes/search_results.html', {'results': results, 'query': query}, request=request)
-        return JsonResponse({'html': html, 'count': len(results)})
+        # Send SMS via Sparrow SMS
+        # DEBUG: Log what we're sending
+        logger.info(f"Sending SMS to admin_phone: '{admin_phone}' with message: '{notification_message[:100]}...'")
+        success, message_id, response = sms_service.send_message(admin_phone, notification_message)
 
-    return render(request, 'store/search.html', {'results': results, 'query': query})
-    #------------------------------------------------------signature---------------------
+        if success:
+            logger.info(f"Order notification sent via Sparrow SMS for order {order.id}. Message ID: {message_id}")
+        else:
+            logger.error(f"Failed to send order notification via Sparrow SMS for order {order.id}: {response}")
+            # Fall back to logging only
+            logger.info(f"ORDER NOTIFICATION (FALLBACK - SMS FAILED):\n{notification_message}")
+
+    except Exception as e:
+        logger.error(f"Error sending order notification for order {order.id}: {e}")
+        # Fall back to logging only
+        notification_message = (
+            f"NEW ORDER ALERT\n"
+            f"Order ID: {order.id}\n"
+            f"Customer: {order.full_name}\n"
+            f"Phone: {order.phone}\n"
+            f"Email: {order.email}\n"
+            f"Address: {order.address}, {order.city}\n"
+            f"Total Amount: Rs. {order.total}\n"
+            f"Items Count: {order.items.count()}\n"
+            f"Order Time: {order.created_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
+        )
+        logger.info(f"ORDER NOTIFICATION (FALLBACK - EXCEPTION):\n{notification_message}")
+
+
+def search_view(request):
+    """
+    Search for products by name or description.
+    """
+    query = request.GET.get('q', '').strip()
+    if query:
+        # Search in product name and description
+        products = Product.objects.filter(
+            Q(name__icontains=query) | Q(description__icontains=query),
+            is_active=True,
+            stock__gt=0
+        ).select_related('category')
+    else:
+        products = Product.objects.filter(is_active=True, stock__gt=0).select_related('category')
+
+    # Handle sorting
+    sort = request.GET.get('sort')
+    if sort == 'price_asc':
+        products = products.order_by('price')
+    elif sort == 'price_desc':
+        products = products.order_by('-price')
+    elif sort == 'newest':
+        products = products.order_by('-created_at')
+    # else: default ordering (by name or id, but we'll keep the queryset order as is)
+
+    context = {
+        'products': products,
+        'query': query,
+        'categories': Category.objects.filter(is_active=True, parent__isnull=True),
+    }
+    return render(request, 'store/collection.html', context)

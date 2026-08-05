@@ -50,16 +50,9 @@
             {% endif %}
 
             <!-- Wishlist 
-            <a href="{% url 'store:wishlist' %}" class="icon-btn" aria-label="Wishlist{% if wishlist_count %} ({{ wishlist_count }} items{% endif %})">
-                <svg viewBox="0 0 24 24">
-                    <path d="M12 20.5s-7.5-4.6-10-9.3C.4 7.8 2 4.5 5.4 4c2.1-.3 4 .8 6.6 3.5C14.6 4.8 16.5 3.7 18.6 4c3.4.5 5 3.8 3.4 7.2C21.5 15.9 12 20.5 12 20.5Z"/>
-                </svg>
-                {% if wishlist_count %}
-                <span class="cart-badge" id="wishlistBadge">{{ wishlist_count }}</span>
-                {% endif %}
-            </a>-->
+           
 
-            <!-- Search trigger (mobile only) -->
+            <!--   Search trigger (mobile only) -->
             <button
                 type="button"
                 class="icon-btn search-trigger-mobile mobile-only"
@@ -196,12 +189,10 @@
         </li>
         <li><a href="{% url 'store:collection' %}">Shop All</a></li>
         <li><a href="{% url 'store:about' %}">About Us</a></li>
-       <!-- <li><a href="{% url 'store:wishlist' %}">Wishlist{% if wishlist_count %} ({{ wishlist_count }}){% endif %}</a></li>-->
+       
         {% if user.is_authenticated %}
         <li><a href="{% url 'store:account' %}">My Account</a></li>
-        <li><a href="{% url 'store:logout' %}">Log out</a></li>
-        {% else %}
-        <li><a href="{% url 'store:login' %}">Sign In</a></li>
+                <li><a href="{% url 'store:login' %}">Sign In</a></li>
         {% endif %}
     </ul>
 </nav>
