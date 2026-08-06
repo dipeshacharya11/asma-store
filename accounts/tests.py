@@ -6,9 +6,9 @@ from django.core.cache import cache
 from unittest.mock import patch, MagicMock
 import json
 
-from ..models import OTP, UserProfile
-from ..services.otp_service import OTPService
-from ..services.sms import SparrowSMSService
+from accounts.models import OTP, UserProfile
+from accounts.services.otp_service import OTPService
+from accounts.services.sms import SparrowSMSService
 
 User = get_user_model()
 
@@ -16,15 +16,24 @@ class OTPServiceTestCase(TestCase):
     def setUp(self):
         cache.clear()
         self.user = User.objects.create_user(username='testuser', password='testpass', email='test@example.com')
-        self.user_profile = UserProfile.objects.create(user=self.user, phone_number='9841234567', is_phone_verified=False)
-        self.otp_service = OTPService()
+        # Get the profile that was automatically created by the post_save signal
+        self.user_profile = self.user.profile
+        self.user_profile.phone_number = '9841234567'
+        self.user_profile.is_phone_verified = False
+        self.user_profile.save()
         # Mock the SMS service to avoid sending real SMS
-        self.sms_patcher = patch('accounts.services.otp_service.OTPService.sms_service')
-        self.mock_sms = self.sms_patcher.start()
-        self.mock_sms.send_otp.return_value = (True, 'msg123', {'response_code': 200})
+        self.sms_patcher = patch('accounts.services.sms.SparrowSMSService.send_otp')
+        self.mock_send_otp = self.sms_patcher.start()
+        self.mock_send_otp.return_value = (True, 'msg123', {'response_code': 200})
+        # Also mock resend_otp on OTPService
+        self.resend_patcher = patch('accounts.services.otp_service.OTPService.resend_otp')
+        self.mock_resend_otp = self.resend_patcher.start()
+        self.mock_resend_otp.return_value = (True, 'msg123', {'response_code': 200})
+        self.otp_service = OTPService()
 
     def tearDown(self):
         self.sms_patcher.stop()
+        self.resend_patcher.stop()
         cache.clear()
 
     def test_send_otp_success(self):
@@ -35,7 +44,7 @@ class OTPServiceTestCase(TestCase):
         self.assertEqual(otp_record.user, self.user)
         self.assertEqual(otp_record.phone_number, '9841234567')
         self.assertEqual(otp_record.purpose, 'signup')
-        self.mock_sms.send_otp.assert_called_once()
+        self.mock_send_otp.assert_called_once()
 
     def test_send_otp_rate_limit(self):
         # Send OTP up to the limit
@@ -121,17 +130,26 @@ class OTPModelTestCase(TestCase):
 
 class OTPViewTestCase(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='testpass', email='test@example.com')
-        self.user_profile = UserProfile.objects.create(user=self.user, phone_number='9841234567', is_phone_verified=False)
-        self.client.login(username='testuser', password='testpass')
         # Mock SMS service
-        self.sms_patcher = patch('accounts.services.otp_service.OTPService.sms_service')
-        self.mock_sms = self.sms_patcher.start()
-        self.mock_sms.send_otp.return_value = (True, 'msg123', {'response_code': 200})
-        self.mock_sms.resend_otp.return_value = (True, 'msg123', {'response_code': 200})
+        self.sms_patcher = patch('accounts.services.sms.SparrowSMSService.send_otp')
+        self.mock_send_otp = self.sms_patcher.start()
+        self.mock_send_otp.return_value = (True, 'msg123', {'response_code': 200})
+        # Also mock resend_otp on OTPService
+        self.resend_patcher = patch('accounts.services.otp_service.OTPService.resend_otp')
+        self.mock_resend_otp = self.resend_patcher.start()
+        self.mock_resend_otp.return_value = (True, 'msg123', {'response_code': 200})
+
+        self.user = User.objects.create_user(username='testuser', password='testpass', email='test@example.com')
+        # Get the profile that was automatically created by the post_save signal
+        self.user_profile = self.user.profile
+        self.user_profile.phone_number = '9841234567'
+        self.user_profile.is_phone_verified = False
+        self.user_profile.save()
+        self.client.login(username='testuser', password='testpass')
 
     def tearDown(self):
         self.sms_patcher.stop()
+        self.resend_patcher.stop()
 
     def test_signup_view(self):
         # Test GET
@@ -190,7 +208,11 @@ class OTPViewTestCase(TestCase):
     def test_change_phone_view_duplicate_phone(self):
         # Create another user with the phone number we want to change to
         other_user = User.objects.create_user(username='otheruser', password='otherpass')
-        UserProfile.objects.create(user=other_user, phone_number='9841234568', is_phone_verified=True)
+        # Get the profile that was automatically created by the post_save signal
+        other_user_profile = other_user.profile
+        other_user_profile.phone_number = '9841234568'
+        other_user_profile.is_phone_verified = True
+        other_user_profile.save()
         self.client.login(username='testuser', password='testpass')
         response = self.client.post(reverse('accounts:change_phone'), {
             'new_phone': '9841234568'

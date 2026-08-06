@@ -127,7 +127,36 @@
   padding:32px 0 80px;
   align-items:start;
 }
+.pdp-description{
+    position:relative;
+    overflow:hidden;
+    transition:max-height .35s ease;
+}
 
+.pdp-description.collapsed{
+    max-height:160px;
+}
+
+.pdp-description.collapsed::after{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    height:60px;
+    background:linear-gradient(
+        transparent,
+        #fff
+    );
+}
+
+.pdp-description.expanded{
+    max-height:3000px;
+}
+
+.pdp-description.expanded::after{
+    display:none;
+}
 /* ==========================================================================
    GALLERY
    ========================================================================== */
@@ -1279,8 +1308,16 @@ body.pdp-sticky-bar-active{padding-bottom:calc(78px + env(safe-area-inset-bottom
         </div>
 
         {% if product.description %}
-          <div class="pdp-description">{{ product.description|linebreaks }}</div>
-        {% endif %}
+<div class="pdp-description collapsed" id="productDescription">
+    {{ product.description|linebreaks }}
+</div>
+
+{% if product.description|wordcount > 35 %}
+<button class="read-more-btn" id="toggleDescription">
+    Read More
+</button>
+{% endif %}
+{% endif %}
 
         <div class="pdp-purchase">
           <label class="pdp-purchase-label" for="pdpQuantity">Quantity</label>
@@ -2092,5 +2129,23 @@ body.pdp-sticky-bar-active{padding-bottom:calc(78px + env(safe-area-inset-bottom
   });
 
 })();
+const btn = document.getElementById("toggleDescription");
+const desc = document.getElementById("productDescription");
+
+if(btn){
+
+    btn.addEventListener("click",()=>{
+
+        desc.classList.toggle("expanded");
+        desc.classList.toggle("collapsed");
+
+        btn.textContent =
+            desc.classList.contains("expanded")
+            ? "Read Less"
+            : "Read More";
+
+    });
+
+}
 </script>
 {% endblock %}

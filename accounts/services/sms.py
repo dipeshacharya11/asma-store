@@ -144,6 +144,14 @@ class SparrowSMSService:
                 if response_code in [101, 102, 1013]:  # Example: Invalid token, insufficient credits
                     logger.error(f"Non-retryable error from Sparrow SMS: {response.get('response')}")
                     return False, None, response
+            # Check if the error is an HTTP 4xx error (client error) which should not be retried
+            elif response and 'error' in response:
+                error_msg = response.get('error', '')
+                # Check if error looks like an HTTP 4xx error (400-499)
+                import re
+                if re.match(r'4\d\d Client Error', error_msg):
+                    logger.error(f"Non-retryable HTTP error from Sparrow SMS: {error_msg}")
+                    return False, None, response
             # If we have an error that might be transient (like timeout, connection error) or we don't have a response, retry
             retries += 1
             if retries < max_retries:

@@ -3,6 +3,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.core.cache import cache
 from django.conf import settings
+from django.db.models import Q
 from accounts.models import OTP, VerifiedGuestPhone, UserProfile
 from accounts.services.otp_service import OTPService
 from accounts.services.sms import SparrowSMSService
@@ -200,36 +201,60 @@ class PhoneVerificationService:
             # OTP verification failed
             return False, message, None
 
-    def is_phone_verified_for_user(self, user):
+    def is_phone_verified_for_user(self, user, phone_number=None):
         """
         Check if a user's phone number is verified.
+        If phone_number is provided, check if user is verified to use that specific number.
+        If phone_number is None, check if user has any verified phone number.
+
         Returns True if:
-        1. User's profile has is_phone_verified = True, OR
-        2. There is an active, non-expired VerifiedGuestPhone for the user's phone number
-           that is either claimed by the user or unclaimed (available for claiming)
+        1. User's profile has is_phone_verified = True with a phone number (and matches phone_number if provided), OR
+        2. User has any active, non-expired VerifiedGuestPhone record that they can use
+           (either already claimed by them or unclaimed)
         """
         try:
             profile = user.profile
-            phone_number = self._normalize_phone_number(profile.phone_number)
 
-            # Check 1: Direct profile verification
-            if profile.is_phone_verified:
-                return True
+            # If checking a specific phone number
+            if phone_number is not None:
+                # Normalize the phone number we're checking against
+                normalized_phone_number = self._normalize_phone_number(phone_number)
 
-            # Check 2: Verified guest phone for this number that user can claim
-            verified_guest = VerifiedGuestPhone.objects.filter(
-                phone_number=phone_number,
-                is_active=True
-            ).first()
+                # Check 1: Direct profile verification with phone number
+                if profile.is_phone_verified:
+                    profile_phone_number = self._normalize_phone_number(profile.phone_number)
+                    if profile_phone_number and profile_phone_number == normalized_phone_number:
+                        return True
 
-            if verified_guest and not verified_guest.is_expired:
-                # User can use this phone if:
-                # a) They've already claimed it (converted_to_user is them), OR
-                # b) It's unclaimed (no one has claimed it yet)
-                if verified_guest.converted_to_user == user or verified_guest.converted_to_user is None:
+                # Check 2: Verified guest phone for this specific number that user can claim
+                verified_guest = VerifiedGuestPhone.objects.filter(
+                    phone_number=normalized_phone_number,
+                    is_active=True
+                ).first()
+
+                if verified_guest and not verified_guest.is_expired:
+                    # User can use this phone if:
+                    # a) They've already claimed it (converted_to_user is them), OR
+                    # b) It's unclaimed (no one has claimed it yet)
+                    if verified_guest.converted_to_user == user or verified_guest.converted_to_user is None:
+                        return True
+
+                return False
+
+            # If not checking a specific phone number, check if user has any verified phone number
+            else:
+                # Check 1: Direct profile verification with phone number (fast path)
+                if profile.is_phone_verified and profile.phone_number:
                     return True
 
-            return False
+                # Check 2: Check if there's any VerifiedGuestPhone record that the user can use
+                # (this handles both stale profile cases and cases where profile says not verified but service says verified)
+                return VerifiedGuestPhone.objects.filter(
+                    is_active=True,
+                    expires_at__gt=timezone.now()
+                ).filter(
+                    Q(converted_to_user=user) | Q(converted_to_user__isnull=True)
+                ).exists()
         except UserProfile.DoesNotExist:
             return False
 
@@ -279,13 +304,13 @@ class PhoneVerificationService:
         # Remove all non-digit characters
         digits = ''.join(filter(str.isdigit, str(phone_number)))
 
-        # Remove Nepal country code if present
-        if digits.startswith('977') and len(digits) > 3:
-            digits = digits[3:]
-
         # Remove leading zeros
         while digits.startswith('0') and len(digits) > 1:
             digits = digits[1:]
+
+        # Remove Nepal country code if present
+        if digits.startswith('977') and len(digits) > 3:
+            digits = digits[3:]
 
         return digits
 

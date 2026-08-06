@@ -1,935 +1,1078 @@
 {% extends "store/base.html" %}
+{% load static %}
 
-{% block title %}Create Account - Asma Store{% endblock %}
+{% block title %}
+Create Account | Asma Stores
+{% endblock %}
 
 {% block extra_style %}
-<style>
-    :root {
-        --color-primary: var(--brand-primary, #235c93);
-        --color-primary-hover: var(--brand-primary-hover, #1a4670);
-        --color-primary-light: var(--brand-primary-light, #e8f1f8);
-        --color-text: var(--text-primary, #212529);
-        --color-muted: var(--text-muted, #6c757d);
-        --color-border: var(--border-soft, #dee2e6);
-        --color-success: var(--status-success, #28a745);
-        --color-danger: var(--status-danger, #dc3545);
-        --color-white: #ffffff;
-        --color-bg: #f5f7fa;
-        --color-gray-100: #f8f9fa;
-        --color-gray-400: #adb5bd;
-        --radius-md: 12px;
-        --radius-xl: 18px;
-        --shadow-lg: 0 12px 40px rgba(0,0,0,0.10);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-
-    /* ============================================
-       LAYOUT
-       ============================================ */
-    .auth-container {
-        display: flex;
-        min-height: 100vh;
-        background: var(--color-bg);
-    }
-
-    /* ============================================
-       LEFT PANEL — Desktop only
-       ============================================ */
-    .auth-left {
-        flex: 1;
-        background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
-        color: var(--color-white);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 40px;
-        text-align: center;
-    }
-
-    .auth-left-content {
-        max-width: 360px;
-        width: 100%;
-        animation: fadeIn 0.6s ease;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(12px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .brand-logo {
-        font-size: 1.5rem;
-        font-weight: 800;
-        letter-spacing: -0.5px;
-        margin-bottom: 16px;
-        opacity: 0.95;
-    }
-
-    .welcome-heading {
-        font-size: 1.75rem;
-        font-weight: 700;
-        margin-bottom: 10px;
-        line-height: 1.25;
-    }
-
-    .welcome-subtitle {
-        font-size: 0.95rem;
-        opacity: 0.9;
-        margin-bottom: 28px;
-        line-height: 1.5;
-    }
-
-    .features {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        text-align: left;
-    }
-
-    .feature-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 0.9rem;
-        font-weight: 500;
-        opacity: 0.95;
-    }
-
-    .feature-item svg {
-        width: 18px;
-        height: 18px;
-        flex-shrink: 0;
-        opacity: 0.9;
-    }
-
-    /* ============================================
-       RIGHT PANEL
-       ============================================ */
-    .auth-right {
-        width: 100%;
-        max-width: 520px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        padding: 40px;
-        margin: 0 auto;
-    }
-
-    .auth-header {
-        text-align: center;
-        margin-bottom: 24px;
-    }
-
-    .auth-header .logo {
-        font-size: 1.4rem;
-        font-weight: 800;
-        letter-spacing: -0.5px;
-        margin-bottom: 8px;
-        color: var(--color-text);
-    }
-
-    .auth-header .login-link {
-        font-size: 0.9rem;
-        color: var(--color-muted);
-    }
-
-    .auth-header .login-link a {
-        color: var(--color-primary);
-        font-weight: 600;
-        margin-left: 4px;
-    }
-
-    .auth-header .login-link a:hover {
-        text-decoration: underline;
-    }
-
-    /* Mobile welcome header (hidden on desktop) */
-    .mobile-header {
-        display: none;
-        background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
-        color: var(--color-white);
-        text-align: center;
-        padding: 28px 24px;
-        margin: -40px -40px 24px -40px;
-    }
-
-    .mobile-header .brand-logo {
-        margin-bottom: 8px;
-        font-size: 1.4rem;
-    }
-
-    .mobile-header h1 {
-        font-size: 1.25rem;
-        font-weight: 700;
-        margin-bottom: 4px;
-    }
-
-    .mobile-header p {
-        font-size: 0.85rem;
-        opacity: 0.9;
-    }
-
-    /* ============================================
-       CARD
-       ============================================ */
-    .signup-card {
-        background: var(--color-white);
-        border-radius: var(--radius-xl);
-        box-shadow: var(--shadow-lg);
-        padding: 32px;
-        width: 100%;
-    }
-
-    .card-heading {
-        font-size: 1.5rem;
-        font-weight: 700;
-        text-align: center;
-        margin-bottom: 6px;
-        color: var(--color-text);
-    }
-
-    .card-subtitle {
-        font-size: 0.9rem;
-        color: var(--color-muted);
-        text-align: center;
-        margin-bottom: 28px;
-    }
-
-    /* ============================================
-       FORM
-       ============================================ */
-    .form-group {
-        margin-bottom: 18px;
-    }
-
-    .form-group label {
-        display: block;
-        font-size: 0.8125rem;
-        font-weight: 600;
-        color: var(--color-text);
-        margin-bottom: 6px;
-    }
-
-    .input-wrap {
-        position: relative;
-        display: flex;
-        align-items: center;
-    }
-
-    .input-wrap input,
-    .input-wrap textarea,
-    .input-wrap select {
-        width: 100%;
-        padding: 11px 14px 11px 42px;
-        border: 1.5px solid var(--color-border);
-        border-radius: var(--radius-md);
-        font-size: 1rem;
-        color: var(--color-text);
-        background: var(--color-white);
-        min-height: 48px;
-        font-family: inherit;
-        transition: border-color 0.2s, box-shadow 0.2s;
-        -webkit-appearance: none;
-        appearance: none;
-    }
-
-    .input-wrap input:focus,
-    .input-wrap textarea:focus,
-    .input-wrap select:focus {
-        outline: none;
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px rgba(35, 92, 147, 0.10);
-    }
-
-    .input-wrap input::placeholder,
-    .input-wrap textarea::placeholder {
-        color: var(--color-gray-400);
-        opacity: 1;
-    }
-
-    .input-icon {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 18px;
-        height: 18px;
-        color: var(--color-gray-400);
-        pointer-events: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* Phone prefix */
-    .input-wrap.phone input {
-        padding-left: 86px;
-    }
-
-    .input-wrap.phone .prefix {
-        position: absolute;
-        left: 42px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: var(--color-muted);
-        padding-right: 8px;
-        border-right: 1.5px solid var(--color-border);
-        line-height: 1;
-    }
-
-    /* Password toggle */
-    .password-toggle {
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--color-gray-400);
-        background: none;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: color 0.15s, background 0.15s;
-    }
-
-    .password-toggle:hover {
-        color: var(--color-primary);
-        background: var(--color-gray-100);
-    }
-
-    .password-toggle svg {
-        width: 18px;
-        height: 18px;
-        pointer-events: none;
-    }
-
-    /* Errors */
-    .form-group.has-error .input-wrap input,
-    .form-group.has-error .input-wrap textarea {
-        border-color: var(--color-danger);
-    }
-
-    .form-group.has-error .input-wrap input:focus,
-    .form-group.has-error .input-wrap textarea:focus {
-        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.10);
-    }
-
-    .form-group.has-error .input-icon {
-        color: var(--color-danger);
-    }
-
-    .error-text {
-        font-size: 0.8125rem;
-        color: var(--color-danger);
-        margin-top: 6px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .helper-text {
-        font-size: 0.75rem;
-        color: var(--color-muted);
-        margin-top: 6px;
-    }
-
-    /* ============================================
-       BUTTON
-       ============================================ */
-    .submit-btn {
-        width: 100%;
-        padding: 14px;
-        background: var(--color-primary);
-        color: var(--color-white);
-        border: none;
-        border-radius: var(--radius-md);
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 52px;
-        margin-top: 10px;
-        transition: all 0.2s;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .submit-btn:hover {
-        background: var(--color-primary-hover);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 14px rgba(35, 92, 147, 0.25);
-    }
-
-    .submit-btn:active {
-        transform: translateY(0);
-    }
-
-    .submit-btn:disabled,
-    .submit-btn.loading {
-        background: #adb5bd;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-    }
-
-    .submit-btn .spinner {
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        border: 2px solid #fff;
-        border-top-color: transparent;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-        opacity: 0;
-        transition: opacity 0.2s;
-    }
-
-    .submit-btn.loading .spinner {
-        opacity: 1;
-    }
-
-    .submit-btn.loading .btn-text {
-        opacity: 0;
-    }
-
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-
-    /* ============================================
-       ALERTS
-       ============================================ */
-    .messages-wrapper {
-        margin-bottom: 20px;
-    }
-
-    .alert {
-        padding: 12px 14px;
-        border-radius: var(--radius-md);
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 0.875rem;
-        line-height: 1.4;
-        position: relative;
-        animation: slideDown 0.3s ease;
-    }
-
-    @keyframes slideDown {
-        from { opacity: 0; transform: translateY(-8px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .alert-success { background: #d1f2e1; color: #155724; border-left: 3px solid var(--color-success); }
-    .alert-error   { background: #f8d7da; color: #721c24; border-left: 3px solid var(--color-danger); }
-    .alert-warning { background: #fff3cd; color: #856404; border-left: 3px solid #ffc107; }
-    .alert-info    { background: #d1ecf1; color: #0c5460; border-left: 3px solid #17a2b8; }
-
-    .alert .close-btn {
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: none;
-        border: none;
-        color: inherit;
-        opacity: 0.6;
-        cursor: pointer;
-        font-size: 1.1rem;
-        line-height: 1;
-    }
-
-    .alert .close-btn:hover { opacity: 1; }
-
-    /* ============================================
-       FOOTER LINK
-       ============================================ */
-    .login-link-footer {
-        margin-top: 20px;
-        text-align: center;
-        font-size: 0.9rem;
-        color: var(--color-muted);
-    }
-
-    .login-link-footer a {
-        color: var(--color-primary);
-        font-weight: 600;
-    }
-
-    .login-link-footer a:hover {
-        text-decoration: underline;
-    }
-
-    /* ============================================
-       RESPONSIVE
-       ============================================ */
-    @media (max-width: 768px) {
-        .auth-container {
-            flex-direction: column;
-            min-height: auto;
-        }
-
-        .auth-left {
-            display: none;
-        }
-
-        .auth-right {
-            max-width: 100%;
-            padding: 0;
-        }
-
-        .auth-header {
-            display: none;
-        }
-
-        .mobile-header {
-            display: block;
-        }
-
-        .signup-card {
-            box-shadow: none;
-            border-radius: 0;
-            padding: 24px 20px;
-        }
-
-        .card-heading {
-            font-size: 1.35rem;
-        }
-
-        .input-wrap input,
-        .input-wrap textarea,
-        .input-wrap select {
-            font-size: 16px; /* Prevent iOS zoom */
-            min-height: 52px;
-        }
-
-        .submit-btn {
-            min-height: 54px;
-            font-size: 1.05rem;
-        }
-    }
-
-    @media (max-width: 380px) {
-        .signup-card {
-            padding: 20px 16px;
-        }
-    }
-</style>
+  
+  /*=====================================================
+                SIGNUP PAGE
+======================================================*/
+
+.signup-page{
+    position:relative;
+    overflow:hidden;
+    background:#F8FAFD;
+    min-height:100vh;
+    padding:130px 0 80px;
+}
+
+/*=====================================================
+                BACKGROUND SHAPES
+======================================================*/
+
+.shape{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(6px);
+    z-index:0;
+}
+
+.shape-1{
+    width:360px;
+    height:360px;
+    background:rgba(35,92,147,.08);
+    top:-140px;
+    left:-120px;
+}
+
+.shape-2{
+    width:260px;
+    height:260px;
+    background:rgba(111,166,197,.15);
+    right:-80px;
+    top:160px;
+}
+
+.shape-3{
+    width:160px;
+    height:160px;
+    background:#DDECF7;
+    bottom:40px;
+    left:45%;
+}
+
+/*=====================================================
+                LAYOUT
+======================================================*/
+
+.signup-wrapper{
+    position:relative;
+    z-index:2;
+
+    display:grid;
+    grid-template-columns:1fr 560px;
+    align-items:center;
+    gap:90px;
+}
+
+.signup-left{
+    max-width:620px;
+}
+
+.signup-card{
+    background:#fff;
+
+    border-radius:30px;
+
+    padding:46px;
+
+    box-shadow:
+        0 18px 60px rgba(0,0,0,.08);
+
+    border:1px solid rgba(255,255,255,.6);
+
+    backdrop-filter:blur(20px);
+}
+
+/*=====================================================
+                LEFT SIDE
+======================================================*/
+
+.hero-badge{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    padding:9px 18px;
+
+    border-radius:50px;
+
+    background:rgba(35,92,147,.08);
+
+    color:#235C93;
+
+    font-size:13px;
+
+    font-weight:700;
+
+    letter-spacing:.08em;
+
+    margin-bottom:24px;
+
+}
+
+.signup-left h1{
+
+    font-size:58px;
+
+    line-height:1.08;
+
+    color:#18253D;
+
+    font-weight:700;
+
+    margin-bottom:26px;
+
+}
+
+.signup-left h1 span{
+
+    color:#235C93;
+
+}
+
+.signup-left p{
+
+    font-size:18px;
+
+    line-height:1.9;
+
+    color:#6A7485;
+
+    margin-bottom:45px;
+
+}
+
+/*=====================================================
+                FEATURES
+======================================================*/
+
+.hero-features{
+
+    display:grid;
+
+    gap:20px;
+
+}
+
+.feature{
+
+    display:flex;
+
+    align-items:flex-start;
+
+    gap:18px;
+
+}
+
+.feature-icon{
+
+    width:46px;
+
+    height:46px;
+
+    border-radius:50%;
+
+    background:#235C93;
+
+    color:#fff;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-weight:700;
+
+    font-size:18px;
+
+    flex-shrink:0;
+
+}
+
+.feature h5{
+
+    margin:0;
+
+    font-size:17px;
+
+    color:#16243A;
+
+}
+
+.feature p{
+
+    margin-top:6px;
+
+    margin-bottom:0;
+
+    font-size:14px;
+
+    color:#718092;
+
+    line-height:1.7;
+
+}
+
+/*=====================================================
+                CARD
+======================================================*/
+
+.signup-logo{
+
+    text-align:center;
+
+    margin-bottom:24px;
+
+}
+
+.signup-logo img{
+
+    width:150px;
+
+    height:auto;
+
+}
+
+.signup-card h2{
+
+    text-align:center;
+
+    font-size:34px;
+
+    color:#18253D;
+
+    margin-bottom:10px;
+
+}
+
+.subtitle{
+
+    text-align:center;
+
+    color:#7A8698;
+
+    margin-bottom:35px;
+
+    font-size:15px;
+
+}
+
+/*=====================================================
+                FORM
+======================================================*/
+
+.form-group{
+
+    margin-bottom:20px;
+
+}
+
+.form-group label{
+
+    display:block;
+
+    margin-bottom:8px;
+
+    color:#16243A;
+
+    font-size:14px;
+
+    font-weight:600;
+
+}
+
+.form-group small{
+
+    color:#7A8698;
+
+    font-weight:500;
+
+}
+
+.form-group input{
+
+    width:100%;
+
+    height:56px;
+
+    border:1px solid #DFE8F0;
+
+    border-radius:16px;
+
+    padding:0 18px;
+
+    font-size:15px;
+
+    transition:.3s;
+
+    background:#fff;
+
+}
+
+.form-group input:focus{
+
+    outline:none;
+
+    border-color:#235C93;
+
+    box-shadow:
+
+        0 0 0 4px rgba(35,92,147,.08);
+
+}
+
+/*=====================================================
+                PHONE
+======================================================*/
+
+.phone-wrapper{
+
+    display:flex;
+
+    align-items:center;
+
+    border:1px solid #DFE8F0;
+
+    border-radius:16px;
+
+    overflow:hidden;
+
+    height:56px;
+
+}
+
+.country-code{
+
+    padding:0 18px;
+
+    background:#F5F8FC;
+
+    color:#235C93;
+
+    font-weight:700;
+
+    border-right:1px solid #E7EEF6;
+
+}
+
+.phone-wrapper input{
+
+    border:none;
+
+    height:100%;
+
+    flex:1;
+
+}
+
+.phone-wrapper input:focus{
+
+    box-shadow:none;
+
+}
 {% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <!-- LEFT: Welcome panel (desktop only) -->
-    <div class="auth-left">
-        <div class="auth-left-content">
-            <div class="brand-logo">Asma Store</div>
-            <h1 class="welcome-heading">Welcome to Asma Store</h1>
-            <p class="welcome-subtitle">Luxury home decor, fragrances, and lifestyle essentials.</p>
 
-            <div class="features">
-                <div class="feature-item">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-                    <span>Secure SMS Verification</span>
-                </div>
-                <div class="feature-item">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-                    <span>Fast Checkout</span>
-                </div>
-                <div class="feature-item">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                    <span>Order Tracking</span>
-                </div>
-            </div>
-        </div>
-    </div>
+<section class="signup-page">
 
-    <!-- RIGHT: Signup form -->
-    <div class="auth-right">
-        <!-- Mobile header -->
-        <div class="mobile-header">
-            <div class="brand-logo">Asma Store</div>
-            <h1>Welcome to Aasma Store</h1>
-            <p>Perfumes,attar-fragrances, and lifestyle essentials.</p>
-        </div>
+    <!-- Background Shapes -->
 
-        <div class="auth-header">
-            <div class="logo">Asma Store</div>
-            <p class="login-link">Already have an account?<a href="{% url 'accounts:login' %}">Sign In</a></p>
-        </div>
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
 
-        <div class="signup-card">
-            <h2 class="card-heading">Create Account</h2>
-            <p class="card-subtitle">Join us for a premium shopping experience.</p>
+    <div class="container">
 
-            <div class="messages-wrapper">
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible" role="alert">
-                            {{ message }}
-                            <button type="button" class="close-btn" aria-label="Close">&times;</button>
+        <div class="signup-wrapper">
+
+            <!-- ===========================================
+                    LEFT SIDE
+            ============================================ -->
+
+            <div class="signup-left">
+
+                <span class="hero-badge">
+                    Luxury Living Starts Here
+                </span>
+
+                <h1>
+                    Create your
+                    <span>Asma Stores</span>
+                    account.
+                </h1>
+
+                <p>
+
+                    Discover handcrafted luxury décor,
+                    exclusive collections,
+                    faster checkout,
+                    order tracking,
+                    wishlists,
+                    and member-only offers.
+
+                </p>
+
+                <div class="hero-features">
+
+                    <div class="feature">
+
+                        <div class="feature-icon">
+
+                            ✓
+
                         </div>
+
+                        <div>
+
+                            <h5>Secure Account</h5>
+
+                            <p>Your information is fully encrypted.</p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="feature">
+
+                        <div class="feature-icon">
+
+                            ✓
+
+                        </div>
+
+                        <div>
+
+                            <h5>Quick Checkout</h5>
+
+                            <p>Save addresses and pay faster.</p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="feature">
+
+                        <div class="feature-icon">
+
+                            ✓
+
+                        </div>
+
+                        <div>
+
+                            <h5>Order Tracking</h5>
+
+                            <p>View all purchases anytime.</p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="feature">
+
+                        <div class="feature-icon">
+
+                            ✓
+
+                        </div>
+
+                        <div>
+
+                            <h5>Wishlist</h5>
+
+                            <p>Save your favourite products.</p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ===========================================
+                    RIGHT SIDE
+            ============================================ -->
+
+            <div class="signup-card">
+
+                <div class="signup-logo">
+
+                    <img
+                        src="{% static 'store/images/logo_bg.png' %}"
+                        alt="Asma Stores">
+
+                </div>
+
+                <h2>
+
+                    Create Account
+
+                </h2>
+
+                <p class="subtitle">
+
+                    Join Asma Stores today.
+
+                </p>
+
+                {% if messages %}
+
+                    {% for message in messages %}
+
+                        <div class="alert">
+
+                            {{ message }}
+
+                        </div>
+
                     {% endfor %}
+
                 {% endif %}
+
+                <form method="POST">
+
+                    {% csrf_token %}
+                    <div class="form-group">
+
+                        <label>
+
+                            User Name
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="user_name"
+                            required
+                            placeholder="John Doe">
+
+                    </div>
+
+                    <!-- Full Name -->
+
+                    <div class="form-group">
+
+                        <label>
+
+                            Full Name
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="full_name"
+                            required
+                            placeholder="John Doe">
+
+                    </div>
+
+                    <!-- Phone -->
+
+                    <div class="form-group">
+
+                        <label>
+
+                            Phone Number
+
+                        </label>
+
+                        <div class="phone-wrapper">
+
+                            <span class="country-code">
+
+                                +977
+
+                            </span>
+
+                            <input
+                                type="tel"
+                                name="phone"
+                                placeholder="98XXXXXXXX"
+                                required>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Email -->
+
+                    <div class="form-group">
+
+                        <label>
+
+                            Email
+                            <small>(Optional)</small>
+
+                        </label>
+
+                        <input
+                            type="email"
+                            name="email"
+                            placeholder="name@example.com">
+
+                    </div>
+
+                    <!-- Password -->
+
+                    <div class="form-group">
+
+                        <label>
+
+                            Password
+
+                        </label>
+
+                        <div class="password-field">
+
+                            <input
+                                id="password"
+                                type="password"
+                                name="password1"
+                                required
+                                placeholder="Create password">
+
+                            <button
+                                type="button"
+                                class="toggle-password">
+
+                                👁
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Strength -->
+
+                    <div class="strength">
+
+                        <div class="strength-bar">
+
+                            <span></span>
+
+                        </div>
+
+                        <small>
+
+                            Password strength
+
+                        </small>
+
+                    </div>
+
+                    <!-- Confirm -->
+
+                    <div class="form-group">
+
+                        <label>
+
+                            Confirm Password
+
+                        </label>
+
+                        <div class="password-field">
+
+                            <input
+                                type="password"
+                                name="password2"
+                                required
+                                placeholder="Confirm password">
+
+                            <button
+                                type="button"
+                                class="toggle-password">
+
+                                👁
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Terms -->
+
+                    <label class="checkbox">
+
+                        <input
+                            type="checkbox"
+                            required>
+
+                        <span>
+
+                            I agree to the
+                            <a href="#">Terms</a>
+                            &
+                            <a href="#">Privacy Policy</a>
+
+                        </span>
+
+                    </label>
+
+                    <!-- Button -->
+
+                    <button
+                        class="signup-btn"
+                        type="submit">
+
+                        Create Account
+
+                    </button>
+
+                </form>
+
+                <!-- Divider -->
+
+                <div class="divider">
+
+                    <span>
+
+                        OR
+
+                    </span>
+
+                </div>
+
+                <!-- Social -->
+
+                <div class="social-login">
+
+                    <button disabled>
+
+                        Continue with Google
+
+                    </button>
+
+                    <button disabled>
+
+                        Continue with Facebook
+
+                    </button>
+
+                </div>
+
+                <!-- OTP -->
+
+                <div class="otp-note">
+
+                    🔒 Your phone number will be verified using a secure One-Time Password.
+
+                </div>
+
+                <!-- Footer -->
+
+                <div class="signup-footer">
+
+                    Already have an account?
+
+                    <a href="{% url 'store:login' %}">
+
+                        Login
+
+                    </a>
+
+                </div>
+
             </div>
 
-            <form method="post" id="signupForm" novalidate>
-                {% csrf_token %}
-                {{ form.non_field_errors }}
-
-                <!-- Username -->
-                <div class="form-group {% if form.username.errors %}has-error{% endif %}">
-                    <label for="{{ form.username.id_for_label }}">Username</label>
-                    <div class="input-wrap">
-                        <span class="input-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                        </span>
-                        {{ form.username }}
-                    </div>
-                    {% if form.username.errors %}
-                        <div class="error-text">{{ form.username.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <!-- Full Name -->
-                <div class="form-group {% if form.name.errors %}has-error{% endif %}">
-                    <label for="{{ form.name.id_for_label }}">Full Name</label>
-                    <div class="input-wrap">
-                        <span class="input-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                        </span>
-                        {{ form.name }}
-                    </div>
-                    {% if form.username.errors %}
-                        <div class="error-text">{{ form.name.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <!-- Email -->
-                <div class="form-group {% if form.email.errors %}has-error{% endif %}">
-                    <label for="{{ form.email.id_for_label }}">Email</label>
-                    <div class="input-wrap">
-                        <span class="input-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-                        </span>
-                        {{ form.email }}
-                    </div>
-                    {% if form.email.errors %}
-                        <div class="error-text">{{ form.email.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <!-- Phone -->
-                <div class="form-group phone {% if form.phone_number.errors %}has-error{% endif %}">
-                    <label for="{{ form.phone_number.id_for_label }}">Phone Number</label>
-                    <div class="input-wrap phone">
-                        <span class="input-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-                        </span>
-                        <span class="prefix">+977</span>
-                        {{ form.phone_number }}
-                    </div>
-                    {% if form.phone_number.errors %}
-                        <div class="error-text">{{ form.phone_number.errors.0 }}</div>
-                    {% endif %}
-                    <div class="helper-text">We'll send an SMS verification code.</div>
-                </div>
-
-                <!-- Address -->
-                <div class="form-group {% if form.address.errors %}has-error{% endif %}">
-                    <label for="{{ form.address.id_for_label }}">Current Address</label>
-                    <div class="input-wrap">
-                        <span class="input-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                        </span>
-                        {{ form.address }}
-                    </div>
-                    {% if form.address.errors %}
-                        <div class="error-text">{{ form.address.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <!-- Password -->
-                <div class="form-group {% if form.password1.errors %}has-error{% endif %}">
-                    <label for="{{ form.password1.id_for_label }}">Password</label>
-                    <div class="input-wrap">
-                        <span class="input-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
-                        </span>
-                        {{ form.password1 }}
-                        <button type="button" class="password-toggle" aria-label="Show password" aria-pressed="false">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-                            </svg>
-                        </button>
-                    </div>
-                    {% if form.password1.errors %}
-                        <div class="error-text">{{ form.password1.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <!-- Confirm Password -->
-                <div class="form-group {% if form.password2.errors %}has-error{% endif %}">
-                    <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
-                    <div class="input-wrap">
-                        <span class="input-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
-                        </span>
-                        {{ form.password2 }}
-                    </div>
-                    {% if form.password2.errors %}
-                        <div class="error-text">{{ form.password2.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <button type="submit" class="submit-btn">
-                    <span class="btn-text">Create Account</span>
-                    <span class="spinner" aria-hidden="true"></span>
-                </button>
-            </form>
-
-            <div class="login-link-footer">
-                Already have an account? <a href="{% url 'accounts:login' %}">Sign In</a>
-            </div>
         </div>
+
     </div>
-</div>
+
+</section>
+
 {% endblock %}
 
-{% block extra_script %}
-<script>
+{% block extra_js %}
+/*
+==========================================================
+ASMA STORES
+signup.js
+==========================================================
+*/
+
 document.addEventListener("DOMContentLoaded", () => {
 
-    /* -------------------------------
-       PASSWORD TOGGLE
-    --------------------------------*/
-    document.querySelectorAll(".password-toggle").forEach(btn => {
+    const form = document.querySelector("#signupForm");
 
-        btn.addEventListener("click", function () {
+    if (!form) return;
 
-            const input = document.getElementById(this.dataset.target);
+    const password = document.querySelector("#id_password");
 
-            if (!input) return;
+    const confirmPassword = document.querySelector("#id_confirm_password");
 
-            if (input.type === "password") {
-                input.type = "text";
-                this.innerHTML = "🙈";
-            } else {
-                input.type = "password";
-                this.innerHTML = "👁";
-            }
+    const phone = document.querySelector("#id_phone");
 
-        });
+    const submitBtn = document.querySelector(".signup-btn");
 
-    });
+    const strengthBar = document.querySelector(".strength-fill");
+
+    const strengthText = document.querySelector(".strength-text");
 
 
-    /* -------------------------------
-       PASSWORD STRENGTH
-    --------------------------------*/
 
-    const password =
-        document.getElementById("id_password1");
+/*==========================================================
+PASSWORD STRENGTH
+==========================================================*/
 
-    const strengthBar =
-        document.getElementById("passwordStrength");
+function passwordStrength(value){
 
-    const strengthText =
-        document.getElementById("passwordStrengthText");
+    let score = 0;
 
-    if (password && strengthBar) {
+    if(value.length >= 8) score++;
 
-        password.addEventListener("input", () => {
+    if(/[A-Z]/.test(value)) score++;
 
-            let score = 0;
+    if(/[a-z]/.test(value)) score++;
 
-            const value = password.value;
+    if(/[0-9]/.test(value)) score++;
 
-            if (value.length >= 8) score++;
-            if (/[A-Z]/.test(value)) score++;
-            if (/[a-z]/.test(value)) score++;
-            if (/[0-9]/.test(value)) score++;
-            if (/[^A-Za-z0-9]/.test(value)) score++;
+    if(/[^A-Za-z0-9]/.test(value)) score++;
 
-            const widths = [
-                "0%",
-                "20%",
-                "40%",
-                "60%",
-                "80%",
-                "100%"
-            ];
+    return score;
 
-            strengthBar.style.width = widths[score];
+}
 
-            const colors = [
-                "#ddd",
-                "#dc3545",
-                "#fd7e14",
-                "#ffc107",
-                "#0d6efd",
-                "#198754"
-            ];
+function updateStrength(){
 
-            strengthBar.style.background = colors[score];
+    if(!password) return;
 
-            const labels = [
-                "",
-                "Very Weak",
-                "Weak",
-                "Medium",
-                "Strong",
-                "Excellent"
-            ];
+    const score = passwordStrength(password.value);
 
-            strengthText.textContent = labels[score];
+    if(!strengthBar) return;
 
-        });
+    strengthBar.className="strength-fill";
+
+    switch(score){
+
+        case 0:
+
+        case 1:
+
+            strengthBar.style.width="20%";
+            strengthBar.style.background="#ef4444";
+            strengthText.innerHTML="Weak Password";
+            break;
+
+        case 2:
+
+            strengthBar.style.width="40%";
+            strengthBar.style.background="#f97316";
+            strengthText.innerHTML="Fair Password";
+            break;
+
+        case 3:
+
+            strengthBar.style.width="60%";
+            strengthBar.style.background="#facc15";
+            strengthText.innerHTML="Good Password";
+            break;
+
+        case 4:
+
+            strengthBar.style.width="80%";
+            strengthBar.style.background="#22c55e";
+            strengthText.innerHTML="Strong Password";
+            break;
+
+        case 5:
+
+            strengthBar.style.width="100%";
+            strengthBar.style.background="#16a34a";
+            strengthText.innerHTML="Very Strong";
+            break;
 
     }
 
+}
 
-    /* -------------------------------
-       CONFIRM PASSWORD MATCH
-    --------------------------------*/
+password?.addEventListener("input",updateStrength);
 
-    const confirm =
-        document.getElementById("id_password2");
 
-    const match =
-        document.getElementById("passwordMatch");
 
-    if (password && confirm && match) {
+/*==========================================================
+SHOW PASSWORD
+==========================================================*/
 
-        function validatePasswords() {
+document.querySelectorAll(".toggle-password").forEach(button=>{
 
-            if (!confirm.value) {
+    button.addEventListener("click",()=>{
 
-                match.textContent = "";
+        const target=document.querySelector(button.dataset.target);
 
-                return;
-            }
+        if(target.type==="password"){
 
-            if (password.value === confirm.value) {
+            target.type="text";
 
-                match.innerHTML =
-                    "✅ Passwords match";
+            button.innerHTML="🙈";
 
-                match.style.color = "#198754";
+        }else{
 
-            } else {
+            target.type="password";
 
-                match.innerHTML =
-                    "❌ Passwords do not match";
-
-                match.style.color = "#dc3545";
-
-            }
+            button.innerHTML="👁";
 
         }
 
-        password.addEventListener("keyup", validatePasswords);
-        confirm.addEventListener("keyup", validatePasswords);
-
-    }
-
-
-    /* -------------------------------
-       PHONE NUMBER
-    --------------------------------*/
-
-    const phone =
-        document.getElementById("id_phone_number");
-
-    if (phone) {
-
-        phone.addEventListener("input", function () {
-
-            this.value =
-                this.value.replace(/\D/g, "");
-
-        });
-
-    }
-
-
-    /* -------------------------------
-       FORM SUBMIT
-    --------------------------------*/
-
-    const form =
-        document.querySelector("form");
-
-    const submit =
-        form?.querySelector("button[type='submit']");
-
-    if (form && submit) {
-
-        form.addEventListener("submit", function () {
-
-            submit.disabled = true;
-
-            submit.innerHTML = `
-                <span class="spinner-border spinner-border-sm"></span>
-                Creating Account...
-            `;
-
-        });
-
-    }
-
-
-    /* -------------------------------
-       AUTO HIDE ALERTS
-    --------------------------------*/
-
-    document.querySelectorAll(".alert").forEach(alert => {
-
-        setTimeout(() => {
-
-            alert.style.transition = ".5s";
-
-            alert.style.opacity = 0;
-
-            setTimeout(() => {
-
-                alert.remove();
-
-            }, 500);
-
-        }, 5000);
-
     });
 
+});
 
-    /* -------------------------------
-       FIRST INVALID FIELD
-    --------------------------------*/
 
-    const invalid =
-        document.querySelector(".is-invalid");
 
-    if (invalid) {
+/*==========================================================
+PASSWORD MATCH
+==========================================================*/
 
-        invalid.focus();
+function validatePasswords(){
+
+    if(!confirmPassword) return true;
+
+    if(confirmPassword.value===""){
+
+        confirmPassword.setCustomValidity("");
+
+        return true;
+
+    }
+
+    if(password.value!==confirmPassword.value){
+
+        confirmPassword.setCustomValidity("Passwords do not match");
+
+        return false;
+
+    }
+
+    confirmPassword.setCustomValidity("");
+
+    return true;
+
+}
+
+password?.addEventListener("input",validatePasswords);
+
+confirmPassword?.addEventListener("input",validatePasswords);
+
+
+
+/*==========================================================
+PHONE VALIDATION
+==========================================================*/
+
+phone?.addEventListener("input",()=>{
+
+    phone.value=phone.value.replace(/\D/g,"");
+
+    if(phone.value.length>10){
+
+        phone.value=phone.value.substring(0,10);
 
     }
 
 });
-</script>
-                {% endblock %}
+
+
+
+/*==========================================================
+SUBMIT
+==========================================================*/
+
+form.addEventListener("submit",(e)=>{
+
+    if(!validatePasswords()){
+
+        e.preventDefault();
+
+        confirmPassword.reportValidity();
+
+        return;
+
+    }
+
+    submitBtn.disabled=true;
+
+    submitBtn.classList.add("loading");
+
+    submitBtn.innerHTML=`
+
+        <span class="spinner"></span>
+
+        Creating Account...
+
+    `;
+
+});
+
+
+
+/*==========================================================
+AUTO ANIMATION
+==========================================================*/
+
+document.querySelectorAll(".fade-up").forEach((el,index)=>{
+
+    el.style.opacity=0;
+
+    el.style.transform="translateY(25px)";
+
+    setTimeout(()=>{
+
+        el.style.transition=".6s ease";
+
+        el.style.opacity=1;
+
+        el.style.transform="translateY(0)";
+
+    },index*120);
+
+});
+
+});
+
+
+
+/*
+==========================================================
+OTP COUNTDOWN
+(Used after successful signup)
+==========================================================
+*/
+
+function startCountdown(seconds){
+
+    const timer=document.querySelector(".otp-timer");
+
+    if(!timer) return;
+
+    let remaining=seconds;
+
+    const interval=setInterval(()=>{
+
+        remaining--;
+
+        timer.innerHTML=`Resend OTP in ${remaining}s`;
+
+        if(remaining<=0){
+
+            clearInterval(interval);
+
+            timer.innerHTML="Resend OTP";
+
+            timer.classList.add("active");
+
+        }
+
+    },1000);
+
+}
+{% endblock %}
