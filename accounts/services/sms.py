@@ -137,8 +137,11 @@ class SparrowSMSService:
             # If we got a response, check if it's a permanent error
             if response and 'error' not in response:
                 # Check response_code for non-retryable errors
-                response_code = response.get('response_code')
-                if response_code in [101, 102]:  # Example: Invalid token, insufficient credits
+                try:
+                    response_code = int(response.get('response_code', 0))
+                except (ValueError, TypeError):
+                    response_code = 0
+                if response_code in [101, 102, 1013]:  # Example: Invalid token, insufficient credits
                     logger.error(f"Non-retryable error from Sparrow SMS: {response.get('response')}")
                     return False, None, response
             # If we have an error that might be transient (like timeout, connection error) or we don't have a response, retry

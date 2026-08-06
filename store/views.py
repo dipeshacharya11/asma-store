@@ -387,8 +387,10 @@ def checkout(request):
             # Logged-in user - check if phone is verified for this user
             try:
                 profile = request.user.profile
+                # Normalize profile phone number for consistent comparison
+                normalized_profile_phone = phone_verification_service._normalize_phone_number(profile.phone_number)
                 # If user is trying to use a different phone number than their profile, always require verification
-                if profile.phone_number != normalized_phone:
+                if normalized_profile_phone != normalized_phone:
                     needs_verification = True
                 else:
                     # Same phone number as profile - check if it's properly verified
@@ -410,7 +412,9 @@ def checkout(request):
                 if request.user.is_authenticated:
                     try:
                         profile = request.user.profile
-                        if profile.phone_number != normalized_phone:
+                        # Normalize profile phone number for consistent comparison
+                        normalized_profile_phone = phone_verification_service._normalize_phone_number(profile.phone_number)
+                        if normalized_profile_phone != normalized_phone:
                             profile.phone_number = normalized_phone
                             profile.is_phone_verified = True
                             profile.save(update_fields=['phone_number', 'is_phone_verified'])
