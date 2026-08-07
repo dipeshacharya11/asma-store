@@ -247,8 +247,21 @@ def checkout(request):
     default_city = ''
 
     if request.user.is_authenticated:
-        # Check if user's phone is verified using phone verification service
-        is_verified = phone_verification_service.is_phone_verified_for_user(request.user)
+        # Check if user's phone is verified
+        is_verified = False
+        try:
+            profile = request.user.profile
+            if profile.phone_number:
+                # Check if the specific phone number in profile is verified
+                is_verified = phone_verification_service.is_phone_verified_for_user(
+                    request.user, phone=profile.phone_number
+                )
+            else:
+                # No phone number in profile but check if user has any verified phone number
+                # (handles case where is_phone_verified=True but phone_number is empty)
+                is_verified = phone_verification_service.is_phone_verified_for_user(request.user)
+        except UserProfile.DoesNotExist:
+            pass
         if not is_verified:
             # Phone not verified, send OTP for verification
             try:
@@ -384,18 +397,11 @@ def checkout(request):
                 needs_verification = True
             # If ownership_type is 'guest_verified', no verification needed
         else:
-            # Logged-in user - check if phone is verified for this user
+            # Logged-in user - check if the submitted phone number is verified for this user
             try:
-                profile = request.user.profile
-                # Normalize profile phone number for consistent comparison
-                normalized_profile_phone = phone_verification_service._normalize_phone_number(profile.phone_number)
-                # If user is trying to use a different phone number than their profile, always require verification
-                if normalized_profile_phone != normalized_phone:
+                # Check if user is verified to use the submitted phone number
+                if not phone_verification_service.is_phone_verified_for_user(request.user, phone=normalized_phone):
                     needs_verification = True
-                else:
-                    # Same phone number as profile - check if it's properly verified
-                    if not phone_verification_service.is_phone_verified_for_user(request.user):
-                        needs_verification = True
             except UserProfile.DoesNotExist:
                 needs_verification = True
 
@@ -487,7 +493,7 @@ def checkout(request):
             # Logged-in user: if profile shows phone not verified but our service says it is, update profile
             try:
                 profile = request.user.profile
-                if not profile.is_phone_verified and phone_verification_service.is_phone_verified_for_user(request.user):
+                if not profile.is_phone_verified and profile.phone_number and phone_verification_service.is_phone_verified_for_user(request.user, phone=profile.phone_number):
                     profile.is_phone_verified = True
                     profile.save(update_fields=['is_phone_verified'])
             except UserProfile.DoesNotExist:

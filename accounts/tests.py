@@ -25,15 +25,10 @@ class OTPServiceTestCase(TestCase):
         self.sms_patcher = patch('accounts.services.sms.SparrowSMSService.send_otp')
         self.mock_send_otp = self.sms_patcher.start()
         self.mock_send_otp.return_value = (True, 'msg123', {'response_code': 200})
-        # Also mock resend_otp on OTPService
-        self.resend_patcher = patch('accounts.services.otp_service.OTPService.resend_otp')
-        self.mock_resend_otp = self.resend_patcher.start()
-        self.mock_resend_otp.return_value = (True, 'msg123', {'response_code': 200})
         self.otp_service = OTPService()
 
     def tearDown(self):
         self.sms_patcher.stop()
-        self.resend_patcher.stop()
         cache.clear()
 
     def test_send_otp_success(self):
@@ -73,13 +68,30 @@ class OTPServiceTestCase(TestCase):
     def test_resend_otp_cooldown(self):
         # Send OTP
         self.otp_service.send_otp(self.user, '9841234567', 'signup')
-        # Immediately try to resend
+        # Immediately try to resend - should fail due to cooldown
         success, message, otp_record = self.otp_service.resend_otp(self.user, '9841234567', 'signup')
         self.assertFalse(success)
         self.assertIn('Please wait', message)
-        # Wait for cooldown (in test we can't wait, so we adjust the last_otp timestamp)
-        # We'll test the cooldown logic by setting the last_otp.created_at to old enough
-        pass
+
+        # Now test that resend works after cooldown period
+        # We'll manually set the OTP's created_at to be old enough
+        from django.utils import timezone
+        from datetime import timedelta
+        otp_record = OTP.objects.filter(
+            user=self.user,
+            phone_number='9841234567',
+            purpose='signup'
+        ).first()
+        if otp_record:
+            # Set created_at to 31 seconds ago
+            otp_record.created_at = timezone.now() - timedelta(seconds=31)
+            otp_record.save()
+
+            # Now try to resend - should succeed
+            success, message, new_otp_record = self.otp_service.resend_otp(self.user, '9841234567', 'signup')
+            self.assertTrue(success)
+            # Should have called send_otp again
+            self.mock_send_otp.assert_called()
 
 class OTPModelTestCase(TestCase):
     def setUp(self):
@@ -107,7 +119,7 @@ class OTPModelTestCase(TestCase):
 
     def test_verify_otp(self):
         # We need to set a proper hash
-        from ..utils.otp import hash_otp
+        from accounts.utils.otp import hash_otp
         otp = '123456'
         self.otp.otp_hash = hash_otp(otp)
         self.otp.save()
@@ -170,7 +182,7 @@ class OTPViewTestCase(TestCase):
         user = User.objects.get(username='newuser')
         self.assertFalse(user.is_active)
         # Check that OTP was sent
-        self.mock_sms.send_otp.assert_called()
+        self.mock_send_otp.assert_called()
 
     def test_guest_checkout_otp_request(self):
         # Test that sending OTP for an unregistered phone works
@@ -180,7 +192,7 @@ class OTPViewTestCase(TestCase):
         })
         self.assertEqual(response.status_code, 302)  # Redirect to verify OTP page
         # Check that OTP was sent
-        self.mock_sms.send_otp.assert_called()
+        self.mock_send_otp.assert_called()
         # Check that the phone number is not registered
         self.assertFalse(UserProfile.objects.filter(phone_number='9841234569').exists())
 
@@ -248,7 +260,7 @@ class OTPViewTestCase(TestCase):
         session['otp_purpose'] = 'signup'
         session.save()
         # Now we need to have an OTP record for this user and phone number for signup purpose
-        from ..utils.otp import generate_otp, hash_otp
+        from accounts.utils.otp import generate_otp, hash_otp
         otp_code = '123456'
         otp_hash = hash_otp(otp_code)
         OTP.objects.create(
@@ -279,7 +291,7 @@ class OTPViewTestCase(TestCase):
         session['otp_purpose'] = 'signup'
         session.save()
         # Create an OTP record
-        from ..utils.otp import hash_otp
+        from accounts.utils.otp import hash_otp
         otp_hash = hash_otp('123456')
         OTP.objects.create(
             user=self.user,
@@ -308,7 +320,7 @@ class OTPViewTestCase(TestCase):
         session['otp_purpose'] = 'signup'
         session.save()
         # Create an expired OTP record
-        from ..utils.otp import hash_otp
+        from accounts.utils.otp import hash_otp
         otp_hash = hash_otp('123456')
         OTP.objects.create(
             user=self.user,
@@ -333,7 +345,7 @@ class OTPViewTestCase(TestCase):
         session['otp_purpose'] = 'signup'
         session.save()
         # Create an OTP record
-        from ..utils.otp import hash_otp
+        from accounts.utils.otp import hash_otp
         otp_hash = hash_otp('123456')
         otp_record = OTP.objects.create(
             user=self.user,
