@@ -6,16 +6,57 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from accounts.services.otp_service import OTPService
-from accounts.forms import OTPVerificationForm
+from accounts.forms import OTPVerificationForm, SignUpForm
 import logging
 
 logger = logging.getLogger(__name__)
 
 def signup_view(request):
     """
-    Stub for signup view - to be implemented properly.
+    Handle user signup via form submission.
+    GET: Display empty signup form.
+    POST: Validate form, create user and profile (inactive), send OTP for phone verification,
+          then redirect to OTP verification page.
     """
-    return render(request, 'accounts/signup.html')
+    if request.method == 'GET':
+        form = SignUpForm()
+        return render(request, 'accounts/signup.html', {'form': form})
+
+    elif request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            # Save user and profile (user will be active by default from form)
+            user = form.save(commit=True)
+            # Make user inactive until phone verification
+            user.is_active = False
+            user.save(update_fields=['is_active'])
+
+            # Send OTP for phone verification
+            otp_service = OTPService()
+            phone_number = form.cleaned_data['phone_number']
+            success, message, otp_record = otp_service.send_otp(user, phone_number, 'signup')
+            if success:
+                # Store user id and phone number in session for OTP verification
+                request.session['pre_verified_user_id'] = user.id
+                request.session['phone_number'] = phone_number
+                request.session['otp_purpose'] = 'signup'
+                messages.info(request, "Please verify your phone number to complete signup.")
+                return redirect('accounts:verify_otp')
+            else:
+                # OTP sending failed: delete the user (and profile) to avoid duplicate phone/email
+                user.delete()
+                messages.error(request, message)
+                # Show empty form for user to try again
+                form = SignUpForm()
+                return render(request, 'accounts/signup.html', {'form': form})
+        else:
+            # Form validation errors
+            messages.error(request, "Please correct the errors below.")
+            return render(request, 'accounts/signup.html', {'form': form})
+
+    else:
+        # Only GET and POST allowed
+        return redirect('accounts:signup')
 
 def login_view(request):
     """

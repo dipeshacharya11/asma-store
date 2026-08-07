@@ -98,12 +98,10 @@ class SignUpForm(UserCreationForm):
             user.last_name = ''
         if commit:
             user.save()
-            # Create user profile with address
-            UserProfile.objects.create(
-                user=user,
-                phone_number=self.cleaned_data['phone_number'],
-                address=self.cleaned_data.get('address', '')
-            )
+            # Update the profile created by the signal
+            user.profile.phone_number = self.cleaned_data['phone_number']
+            user.profile.address = self.cleaned_data.get('address', '')
+            user.profile.save()
         return user
 
 
