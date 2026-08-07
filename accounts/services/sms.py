@@ -64,6 +64,10 @@ class SparrowSMSService:
         # Format phone number for the API
         formatted_phone_number = self._format_phone_number(phone_number)
 
+        # Check if formatted phone number is empty
+        if not formatted_phone_number:
+            return False, None, {"error": "Invalid phone number format"}
+
         payload = {
             'token': self.token,
             'from': self.sender_id,

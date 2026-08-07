@@ -254,7 +254,7 @@ def checkout(request):
             if profile.phone_number:
                 # Check if the specific phone number in profile is verified
                 is_verified = phone_verification_service.is_phone_verified_for_user(
-                    request.user, phone=profile.phone_number
+                    request.user, phone_number=profile.phone_number
                 )
             else:
                 # No phone number in profile but check if user has any verified phone number
@@ -271,14 +271,22 @@ def checkout(request):
                     success, message, otp_record = phone_verification_service.verify_phone_for_checkout(
                         phone_number, request.user
                     )
-                    if success:
+                    if success and otp_record is not None:
+                        # OTP sent successfully
                         request.session['pre_verified_user_id'] = request.user.id
                         request.session['phone_number'] = phone_number
                         request.session['otp_purpose'] = 'login'
+                        request.session['otp_next_url'] = 'store:checkout'
                         messages.info(request, "Please verify your phone number to continue with checkout.")
                         return redirect('accounts:verify_otp')
+                    elif success and otp_record is None:
+                        # Phone already verified according to verification service
+                        # Let user proceed to checkout (will be handled by verified phone logic below)
+                        pass
                     else:
+                        # Failed to send OTP
                         messages.error(request, message)
+                        return redirect('store:account')
                 else:
                     messages.error(request, "Please add a phone number to your profile.")
                     return redirect('store:account')
@@ -316,15 +324,20 @@ def checkout(request):
                     phone_number
                 )
 
-                if success and verification_obj is None:
-                    # OTP sent successfully
+                if success and verification_obj is not None:
+                    # OTP sent successfully - need to verify
                     messages.info(request, message)
                     # Store guest data for later use
                     request.session['guest_name'] = request.POST.get('full_name', '').strip()
-                    request.session['guest_phone'] = phone_number
+                    request.session['phone_number'] = phone_number
                     request.session['otp_purpose'] = 'guest_checkout'
                     return redirect('accounts:verify_otp')
-                elif not success and verification_obj is None:
+                elif success and verification_obj is None:
+                    # Phone already verified
+                    messages.info(request, message)
+                    # Proceed with order processing (will be handled below)
+                    pass
+                else:
                     # Failed to send OTP or phone belongs to another user
                     messages.error(request, message)
                     return render(request, 'store/checkout.html', {
@@ -336,10 +349,6 @@ def checkout(request):
                         'default_address': request.POST.get('address', '').strip(),
                         'default_city': request.POST.get('city', '').strip()
                     })
-                else:
-                    # Phone is already verified (verification_obj contains the verification object)
-                    # Proceed with order processing (will be handled below)
-                    pass
             else:
                 messages.error(request, "Phone number is required for guest checkout.")
 
@@ -400,7 +409,7 @@ def checkout(request):
             # Logged-in user - check if the submitted phone number is verified for this user
             try:
                 # Check if user is verified to use the submitted phone number
-                if not phone_verification_service.is_phone_verified_for_user(request.user, phone=normalized_phone):
+                if not phone_verification_service.is_phone_verified_for_user(request.user, phone_number=normalized_phone):
                     needs_verification = True
             except UserProfile.DoesNotExist:
                 needs_verification = True
@@ -457,8 +466,15 @@ def checkout(request):
                 phone, request.user if request.user.is_authenticated else None
             )
 
-            if success:
-                # OTP sent successfully
+            if success and otp_record is not None:
+                # OTP sent successfully - need to verify
+                messages.info(request, message)
+                # Store session data for OTP verification
+                request.session['phone_number'] = phone
+                request.session['otp_purpose'] = 'change_phone'
+                return redirect('accounts:verify_otp')
+            elif success and otp_record is None:
+                # Phone already verified
                 messages.info(request, message)
                 return render(request, 'store/checkout.html', {
                     'checkout_items': items_qs,
@@ -467,9 +483,7 @@ def checkout(request):
                     'default_name': full_name,
                     'default_email': email,
                     'default_address': address,
-                    'default_city': city,
-                    'otp_required': True,
-                    'otp_sent': True
+                    'default_city': city
                 })
             else:
                 # Failed to send OTP
@@ -493,7 +507,7 @@ def checkout(request):
             # Logged-in user: if profile shows phone not verified but our service says it is, update profile
             try:
                 profile = request.user.profile
-                if not profile.is_phone_verified and profile.phone_number and phone_verification_service.is_phone_verified_for_user(request.user, phone=profile.phone_number):
+                if not profile.is_phone_verified and profile.phone_number and phone_verification_service.is_phone_verified_for_user(request.user, phone_number=profile.phone_number):
                     profile.is_phone_verified = True
                     profile.save(update_fields=['is_phone_verified'])
             except UserProfile.DoesNotExist:
@@ -838,8 +852,8 @@ def send_order_notification(order):
         from django.conf import settings
         admin_phone = getattr(settings, 'SPARROW_ADMIN_PHONE', '')
 
-        # If no administrator phone is configured, fall back to logging only
-        if not admin_phone:
+        # If no administrator phone is configured (empty or whitespace-only), fall back to logging only
+        if not admin_phone or not admin_phone.strip():
             # Log the notification details
             notification_message = (
                 f"NEW ORDER ALERT\n"

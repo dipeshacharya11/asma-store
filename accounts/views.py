@@ -164,7 +164,12 @@ def verify_otp_view(request):
                         profile.save(update_fields=['is_phone_verified'])
                         login(request, user)
                         messages.success(request, "You have successfully logged in.")
-                        return redirect('store:account')
+                        # Check if we have a next URL to redirect to
+                        next_url = request.session.pop('otp_next_url', None)
+                        if next_url:
+                            return redirect(next_url)
+                        else:
+                            return redirect('store:account')
                     except User.DoesNotExist:
                         pass
                 messages.error(request, "User not found.")
