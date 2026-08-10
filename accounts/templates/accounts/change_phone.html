@@ -84,11 +84,11 @@
                     <form method="post" novalidate>
                         {% csrf_token %}
                         <div class="mb-3">
-                            <label for="{{ form.new_phone.id_for_label }}" class="form-label">New Phone Number</label>
-                            <input type="tel" name="new_phone" id="{{ form.new_phone.id_for_label }}" class="form-control" placeholder="Enter your new phone number (e.g., 98XXXXXXXX)" required>
-                            {% if form.new_phone.errors %}
+                            <label for="{{ form.phone_number.id_for_label }}" class="form-label">New Phone Number</label>
+                            <input type="tel" name="phone_number" id="{{ form.phone_number.id_for_label }}" class="form-control" placeholder="Enter your new phone number (e.g., 98XXXXXXXX)" required>
+                            {% if form.phone_number.errors %}
                                 <div class="invalid-feedback d-block">
-                                    {{ form.new_phone.errors.0 }}
+                                    {{ form.phone_number.errors.0 }}
                                 </div>
                             {% endif %}
                         </div>

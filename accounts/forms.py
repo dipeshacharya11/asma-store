@@ -195,3 +195,36 @@ class PhoneVerificationForm(forms.Form):
         while cleaned.startswith('0') and len(cleaned) > 1:
             cleaned = cleaned[1:]
         return cleaned
+
+
+class ChangePhoneForm(forms.Form):
+    """
+    Form for changing user's phone number
+    """
+    phone_number = forms.CharField(
+        max_length=15,
+        required=True,
+        validators=[
+            RegexValidator(
+                regex=r'^(97|98)\d{8}$',
+                message='Phone number must be 10 digits starting with 97 or 98 (e.g., 98XXXXXXXX or 97XXXXXXXX)'
+            )
+        ],
+        widget=forms.TextInput(attrs={
+            'class': 'form-control form-control-lg',
+            'placeholder': 'Enter your new phone number (e.g., 98XXXXXXXX)',
+            'inputmode': 'tel'
+        })
+    )
+
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data.get('phone_number')
+        # Normalize the phone number
+        cleaned = ''.join(filter(str.isdigit, phone_number))
+        # Remove Nepal country code if present
+        if cleaned.startswith('977') and len(cleaned) > 3:
+            cleaned = cleaned[3:]
+        # Remove leading zeros
+        while cleaned.startswith('0') and len(cleaned) > 1:
+            cleaned = cleaned[1:]
+        return cleaned

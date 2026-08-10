@@ -312,9 +312,11 @@ def checkout(request):
         # Check if this is a verified guest checkout attempt
         if not request.user.is_authenticated and request.session.get('guest_phone_verified'):
             # Use guest data from session for defaults
-            default_phone = request.session.get('guest_phone', '')
-            default_name = request.session.get('guest_name', '')
-            # Note: email, address, city would need to be filled in form
+            default_phone = request.session.get('checkout_phone', '')
+            default_name = request.session.get('checkout_full_name', '')
+            default_email = request.session.get('checkout_email', '')
+            default_address = request.session.get('checkout_address', '')
+            default_city = request.session.get('checkout_city', '')
         elif not request.user.is_authenticated:
             # Guest user without verified phone - need to verify first
             phone_number = request.POST.get('phone', '').strip()
@@ -329,6 +331,9 @@ def checkout(request):
                     messages.info(request, message)
                     # Store guest data for later use
                     request.session['guest_name'] = request.POST.get('full_name', '').strip()
+                    request.session['guest_email'] = request.POST.get('email', '').strip()
+                    request.session['guest_address'] = request.POST.get('address', '').strip()
+                    request.session['guest_city'] = request.POST.get('city', '').strip()
                     request.session['phone_number'] = phone_number
                     request.session['otp_purpose'] = 'guest_checkout'
                     return redirect('accounts:verify_otp')
@@ -835,6 +840,18 @@ def staff_dashboard(request):
 
 @login_required
 def account(request):
+    # Check if user has a verified phone number
+    try:
+        profile = request.user.profile
+        if not profile.phone_number or not profile.is_phone_verified:
+            # User doesn't have a phone number or it's not verified
+            messages.info(request, "Please verify your phone number to access your account.")
+            return redirect('accounts:change_phone')
+    except UserProfile.DoesNotExist:
+        # User doesn't have a profile, create one or redirect to complete profile
+        messages.info(request, "Please complete your profile including phone number.")
+        return redirect('accounts:change_phone')
+
     orders = request.user.orders.all()
     return render(request, 'store/account.html', {'orders': orders})
 
