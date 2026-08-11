@@ -1,163 +1,157 @@
+{% extends "admin/base.html" %}
+{% load i18n static admin_modify admin_urls %}
+{% load admin_list %}
 
+{% block content %}
+<div class="content">
+    {% if is_popup %}
+    <ul class="object-tools">
+        <li><a href="javascript:window.close()" class="close-link">{% trans "Close" %}</a></li>
+    </ul>
+    {% endif %}
 
-{% load i18n static admin_modify %}
-
-<div class="inline-group" id="{{ inline_admin_formset.formset.prefix }}-group">
-
-    <fieldset class="module aligned">
-
-        <h2>
-            {{ inline_admin_formset.opts.verbose_name_plural|capfirst }}
-        </h2>
-
-        {{ inline_admin_formset.formset.management_form }}
-
-        {% if inline_admin_formset.formset.non_form_errors %}
-
-            <div class="inline-form-errors">
-
-                {{ inline_admin_formset.formset.non_form_errors }}
-
-            </div>
-
+    {% block object-tools %}
+    {% if original and not is_popup %}
+    <ul class="object-tools">
+        {% blockobject-tools-items %}
+        <li>
+            <a href="{% url opts|admin_urlname:'history' original.pk|admin_urlquote %}" class="history-link">{% trans "History" %}</a>
+        </li>
+        {% if has_delete_permission %}
+        <li>
+            <a href="{% url opts|admin_urlname:'delete' original.pk|admin_urlquote %}" class="delete-link">{% trans "Delete" %}</a>
+        </li>
         {% endif %}
-
-
-        <table class="inline-table">
-
-            <thead>
-
-                <tr>
-
-                    {% for fieldset in inline_admin_formset %}
-
-                        {% for line in fieldset %}
-
-                            {% for field in line %}
-
-                                <th
-                                    class="
-                                        {% if field.field.name %}
-                                            field-{{ field.field.name }}
-                                        {% endif %}
-                                    ">
-
-                                    {{ field.label }}
-
-                                </th>
-
-                            {% endfor %}
-
-                        {% endfor %}
-
-                    {% endfor %}
-
-
-                    {% if inline_admin_formset.formset.can_delete %}
-
-                        <th>
-                            {% translate "Delete?" %}
-                        </th>
-
-                    {% endif %}
-
-                </tr>
-
-            </thead>
-
-
-            <tbody>
-
-                {% for inline_admin_form in inline_admin_formset %}
-
-                    {% if inline_admin_form.form.non_field_errors %}
-
-                        <tr class="row-form-errors">
-
-                            <td colspan="100">
-
-                                {{ inline_admin_form.form.non_field_errors }}
-
-                            </td>
-
-                        </tr>
-
-                    {% endif %}
-
-
-                    <tr
-                        class="form-row
-                        {% if forloop.last %}
-                            empty-form
-                        {% endif %}"
-                        id="{{ inline_admin_formset.formset.prefix }}-{{ forloop.counter0 }}">
-
-
-                        {% for fieldset in inline_admin_form %}
-
-                            {% for line in fieldset %}
-
-                                {% for field in line %}
-
-                                    <td
-                                        class="
-                                            {% if field.errors %}
-                                                has-error
-                                            {% endif %}
-                                        ">
-
-                                        {{ field.errors.as_ul }}
-
-                                        {{ field.field }}
-
-
-                                        {% if field.help_text %}
-
-                                            <div class="help-text">
-
-                                                {{ field.help_text|safe }}
-
-                                            </div>
-
-                                        {% endif %}
-
-                                    </td>
-
-                                {% endfor %}
-
-                            {% endfor %}
-
-                        {% endfor %}
-
-
-                        {% if inline_admin_formset.formset.can_delete %}
-
-                            <td class="delete-field">
-
-                                {% if inline_admin_form.original %}
-
-                                    {{ inline_admin_form.deletion_field.field }}
-
-                                    <label for="{{ inline_admin_form.deletion_field.field.id_for_label }}">
-
-                                        {% translate "Delete" %}
-
-                                    </label>
-
-                                {% endif %}
-
-                            </td>
-
-                        {% endif %}
-
-                    </tr>
-
-                {% endfor %}
-
-            </tbody>
-
-        </table>
-
-    </fieldset>
-
+        {% if has_change_permission %}
+        <li>
+            <a href="{% url opts|admin_urlname:'change' original.pk|admin_urlquote %}" class="history-link">{% trans "Change" %}</a>
+        </li>
+        {% endif %}
+        {% if has_add_permission %}
+        <li>
+            <a href="{% url opts|admin_urlname:'add' %}" class="add-link">{% trans "Add Another" %}</a>
+        </li>
+        {% endif %}
+        {% endblock %}
+    </ul>
+    {% endif %}
+    {% endblock %}
+
+    {% if cl.form_errors %}
+    <div class="card">
+        <p class="errornote">
+            {% if cl.form_errors|length == 1 %}
+                {% blocktrans %}Please correct the error below.{% endblocktrans %}
+            {% else %}
+                {% blocktrans %}Please correct the errors below.{% endblocktrans %}
+            {% endif %}
+        </p>
+        {{ cl.form_errors }}
+    </div>
+    {% endif %}
+
+    {% if result_hidden_fields %}
+    <div class="card">
+        {% for hidden in result_hidden_fields %}
+        {{ hidden|adminsort }}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if adminform and adminform.readonly_fields %}
+    <div class="card">
+        <div class="readonly-fields">
+            {% for field in adminform.readonly_fields %}
+            <div class="form-row">
+                <div class="readonly">{{ field.label }}: {{ field.value|default_if_none:"-" }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% block admin_form %}
+    <div class="card">
+        {% if adminform %}
+        {% if adminform.form.is_multipart %}
+        <form enctype="multipart/form-data" method="post" id="{% block form_id %}{{ opts.app_label }}_{{ opts.model_name }}_form{% endblock %}" novalidate>
+        {% else %}
+        <form method="post" id="{% block form_id %}{{ opts.app_label }}_{{ opts.model_name }}_form{% endblock %}" novalidate>
+        {% endif %}
+        {% csrf_token %}
+        {% if form_errors %}
+        <div class="form-errors">
+            {{ form_errors }}
+        </div>
+        {% endif %}
+        {% if autocomplete_fields %}
+        <div class="autocomplete-fields">
+            {% for field in autocomplete_fields %}
+            <div class="field-box">
+                {{ adminform.adapt_for_field(field) }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% block fields %}
+        {% for fieldset in adminform %}
+        {% include "admin/includes/fieldset.html" %}
+        {% endfor %}
+        {% endblock %}
+        {% if adminform.readonly_fields %}
+        <div class="readonly-fields">
+            {% for field in adminform.readonly_fields %}
+            <div class="form-row">
+                <div class="readonly">{{ field.label }}: {{ field.value|default_if_none:"-" }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        </form>
+        {% endif %}
+        {% if adminform and adminform.readonly_fields %}
+        <div class="readonly-fields">
+            {% for field in adminform.readonly_fields %>
+            <div class="form-row">
+                <div class="readonly">{{ field.label }}: {{ field.value|default_if_none:"-" }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endblock %}
+
+    {% block inline_formsets %}
+    {% if inline_admin_formsets %}
+    <div class="card">
+        <h2>{% trans "Inline entities" %}</h2>
+        {% for inline_admin_formset in inline_admin_formsets %}
+        {% include inline_admin_formset.opts.template %}
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endblock %}
+
+    {% block submit_buttons %}
+    {% if show_save %}
+    <div class="card submit-row">
+        <div class="submit-buttons">
+            {% if show_save_as_new %}
+            <button type="submit" name="_saveasnew" value="1" class="default">{% trans "Save as new" %}</button>
+            {% endif %}
+            {% if show_save_and_add_another %}
+            <button type="submit" name="_addanother" value="1" class="default">{% trans "Save and add another" %}</button>
+            {% endif %}
+            {% if show_save_and_continue %}
+            <button type="submit" name="_continue" value="1" class="default">{% trans "Save and continue editing" %}</button>
+            {% endif %}
+            {% if show_delete_link %}
+            <a href="{% url opts|admin_urlname:'delete' original.pk|admin_urlquote %}" class="deletelink">{% trans "Delete" %}</a>
+            {% endif %}
+            <button type="submit" name="_save" value="1" class="default">{% trans "Save" %}</button>
+        </div>
+    </div>
+    {% endif %}
+    {% endblock %}
 </div>
+{% endblock %}

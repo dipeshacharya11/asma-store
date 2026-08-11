@@ -2,9 +2,11 @@
 
 <div class="admin-filter-bar">
 
+    {% if not hide_title %}
     <div class="admin-filter-title">
         <span>Filters</span>
     </div>
+    {% endif %}
 
     <div class="admin-filter-items">
 
@@ -13,37 +15,26 @@
             <div class="admin-filter">
 
                 {% if spec.title %}
-                    <label class="admin-filter-label">
-                        {{ spec.title }}
-                    </label>
+                <label class="admin-filter-label">
+                    {{ spec.title }}
+                </label>
                 {% endif %}
 
                 <div class="admin-filter-control">
 
                     {% if spec.choices %}
-
-                        <select
-                            name="{{ spec.parameter_name }}"
-                            class="admin-filter-select"
-                            onchange="this.form.submit()">
-
-                            <option value="">
-                                All
-                            </option>
-
-                            {% for choice in spec.choices %}
-
-                                <option
-                                    value="{{ choice.query_string|cut:'?' }}"
-                                    {% if choice.selected %}selected{% endif %}>
-
-                                    {{ choice.display }}
-                                </option>
-
-                            {% endfor %}
-
-                        </select>
-
+                    <select
+                        name="{{ spec.parameter_name }}"
+                        class="admin-filter-select"
+                        onchange="this.form.submit()">
+                        <option value="">All</option>
+                        {% for choice in spec.choices %}
+                        <option value="{{ choice.query_string|cut:'?' }}"
+                                {% if choice.selected %}selected{% endif %}>
+                            {{ choice.display }}
+                        </option>
+                        {% endfor %}
+                    </select>
                     {% endif %}
 
                 </div>

@@ -23,7 +23,7 @@ def admin_search_form(context):
 
 
 @register.simple_tag(takes_context=True)
-def admin_filters(context):
+def admin_filters(context, hide_title=False):
     """
     Custom filter toolbar for the custom admin changelist.
     """
@@ -41,6 +41,7 @@ def admin_filters(context):
             "request": request,
             "cl": cl,
             "filter_specs": filter_specs,
+            "hide_title": hide_title,
         },
         request=request,
     )
