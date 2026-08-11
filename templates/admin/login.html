@@ -1,0 +1,77 @@
+{% extends "admin/base.html" %}
+{% load static %}
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .login-box {
+        width: 320px;
+        margin: 50px auto;
+        padding: 20px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+    }
+    .login-box h2 {
+        text-align: center;
+        color: var(--text);
+        margin-bottom: 20px;
+    }
+    .login-box label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: var(--text);
+    }
+    .login-box input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+    .login-box input[type="submit"] {
+        background: var(--grad-gold);
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 12px;
+    }
+    .login-box input[type="submit"]:hover {
+        opacity: 0.9;
+    }
+    .login-box .lost-password {
+        text-align: center;
+        margin-top: 15px;
+        font-size: 14px;
+    }
+    .login-box .lost-password a {
+        color: var(--gold);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-box">
+    <h1>Asma Admin</h1>
+    <h2>Sign in</h2>
+    <form method="post" action="{% url 'admin:login' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Log in">
+    </form>
+    {% if form.errors %}
+        <p class="errornote">
+            Please enter a correct username and password. Note that both fields may be case-sensitive.
+        </p>
+    {% endif %}
+    {% if user_is_authenticated %}
+        <p class="errornote">
+            You are authenticated as {{ user.username }}, but are not authorized to access this page. Would you like to login to a different account?
+        </p>
+    {% endif %}
+</div>
+{% endblock %}

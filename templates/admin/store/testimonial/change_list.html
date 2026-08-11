@@ -1,0 +1,344 @@
+
+{% extends "admin/base.html" %}
+
+{% load i18n static admin_list admin_modify %}
+
+{% block content %}
+
+<div class="content">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="page-head">
+
+        <h1>Hero Slides</h1>
+
+        <p>
+            Manage homepage promotional banners and hero content.
+        </p>
+
+    </div>
+
+
+    <!-- =====================================================
+         FORM ERRORS
+    ====================================================== -->
+
+    {% if cl.form_errors %}
+
+        <div class="card">
+
+            <p class="errornote">
+
+                {% if cl.form_errors|length == 1 %}
+
+                    {% blocktrans %}
+                        Please correct the error below.
+                    {% endblocktrans %}
+
+                {% else %}
+
+                    {% blocktrans %}
+                        Please correct the errors below.
+                    {% endblocktrans %}
+
+                {% endif %}
+
+            </p>
+
+            {{ cl.form_errors }}
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         HIDDEN FIELDS
+    ====================================================== -->
+
+    {% if result_hidden_fields %}
+
+        <div class="card">
+
+            {% for hidden in result_hidden_fields %}
+
+                {{ hidden|adminsort }}
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         SEARCH + FILTERS
+    ====================================================== -->
+
+    <div
+        class="card admin-toolbar"
+        style="margin-bottom:24px;">
+
+        <!-- SEARCH -->
+
+        <form
+            method="get"
+            action=""
+            class="admin-search-form">
+
+            <div class="admin-search-wrapper">
+
+                <input
+                    type="search"
+                    name="{{ cl.search_var }}"
+                    value="{{ cl.query }}"
+                    placeholder="Search hero slides..."
+                    class="admin-search-input"
+                    autocomplete="off"
+                    aria-label="Search hero slides"
+                >
+
+                <button
+                    type="submit"
+                    class="admin-search-button"
+                    aria-label="Search hero slides">
+
+                    <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        aria-hidden="true">
+
+                        <circle
+                            cx="11"
+                            cy="11"
+                            r="7">
+                        </circle>
+
+                        <path
+                            d="m20 20-3.5-3.5">
+                        </path>
+
+                    </svg>
+
+                    <span>
+                        Search
+                    </span>
+
+                </button>
+
+            </div>
+
+        </form>
+
+
+        <!-- FILTERS -->
+
+        {% if cl.has_filters %}
+
+            <div class="admin-filter-bar">
+
+                <div class="admin-filter-title">
+
+                    Filters
+
+                </div>
+
+
+                <div class="admin-filter-items">
+
+                    {% for spec in cl.filter_specs %}
+
+                        <div class="admin-filter">
+
+                            <div class="admin-filter-label">
+
+                                {{ spec.title }}
+
+                            </div>
+
+
+                            <div class="admin-filter-options">
+
+                                {% admin_list_filter cl spec %}
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =====================================================
+         TOP BULK ACTIONS
+    ====================================================== -->
+
+    {% if actions_on_top and cl.actions %}
+
+        <div
+            class="card admin-actions-card"
+            style="margin-bottom:16px;">
+
+            <form
+                id="changelist-form"
+                action=""
+                method="post">
+
+                {% csrf_token %}
+
+                {{ action_form.as_p }}
+
+                <button
+                    type="submit"
+                    class="admin-button">
+
+                    Go
+
+                </button>
+
+            </form>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         HERO SLIDES RESULT TABLE
+    ====================================================== -->
+
+    <div class="card">
+
+        <div
+            class="admin-table-wrapper"
+            style="
+                overflow-x:auto;
+                width:100%;
+                -webkit-overflow-scrolling:touch;
+            ">
+
+            {% result_list cl %}
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PAGINATION
+         
+         No querystring filter is used.
+    ====================================================== -->
+
+    {% if cl.paginator.num_pages > 1 %}
+
+        <div
+            class="card admin-pagination"
+            style="
+                margin-top:16px;
+                text-align:center;
+            ">
+
+            <span class="step-links">
+
+
+                <!-- PREVIOUS -->
+
+                {% if cl.page_obj.has_previous %}
+
+                    <a
+                        href="?p={{ cl.page_obj.previous_page_number }}"
+                        class="pagination-link">
+
+                        &laquo; Previous
+
+                    </a>
+
+                {% endif %}
+
+
+                <!-- CURRENT PAGE -->
+
+                <span class="current">
+
+                    Page
+                    {{ cl.page_obj.number }}
+                    of
+                    {{ cl.paginator.num_pages }}
+
+                </span>
+
+
+                <!-- NEXT -->
+
+                {% if cl.page_obj.has_next %}
+
+                    <a
+                        href="?p={{ cl.page_obj.next_page_number }}"
+                        class="pagination-link">
+
+                        Next &raquo;
+
+                    </a>
+
+                {% endif %}
+
+
+            </span>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         BOTTOM BULK ACTIONS
+    ====================================================== -->
+
+    {% if actions_on_bottom and cl.actions %}
+
+        <div
+            class="card admin-actions-card"
+            style="margin-top:16px;">
+
+            <form
+                id="changelist-form-bottom"
+                action=""
+                method="post">
+
+                {% csrf_token %}
+
+                {{ action_form.as_p }}
+
+                <button
+                    type="submit"
+                    class="admin-button">
+
+                    Go
+
+                </button>
+
+            </form>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock content %}
+

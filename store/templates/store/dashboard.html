@@ -117,6 +117,10 @@ tr:last-child td{border-bottom:none;}
   <div class="nav-label">System</div>
   <a class="nav-item" href="/admin/auth/user/"><span class="ic">◎</span> Staff & Users</a>
   <a class="nav-item" href="{% url 'store:home' %}"><span class="ic">←</span> View Store</a>
+  <div class="nav-label">Verification</div>
+  <a class="nav-item" href="/admin/accounts/otp/"><span class="ic">���🔑</span> OTP</a>
+  <a class="nav-item" href="/admin/accounts/userprofile/"><span class="ic">���👤</span> User Profiles</a>
+  <a class="nav-item" href="/admin/accounts/verifiedguestphone/"><span class="ic">���📱</span> Verified Guest Phones</a>
 </aside>
 
 <main class="main">
@@ -212,6 +216,16 @@ tr:last-child td{border-bottom:none;}
           {% endfor %}
         </tbody>
       </table>
+    </div>
+    <div class="card" style="margin-top:20px;">
+      <h3>Verification Status</h3>
+      <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr); gap:18px;">
+        <div class="kpi-card"><span>Total OTP Sent</span><h2>{{ otp_count }}</h2></div>
+        <div class="kpi-card"><span>Unverified OTP</span><h2>{{ unverified_otp_count }}</h2></div>
+        <div class="kpi-card"><span>Verified Guest Phones</span><h2>{{ verified_guest_phone_count }}</h2></div>
+        <div class="kpi-card"><span>Users with Verified Phone</span><h2>{{ phone_verified_count }}</h2></div>
+      </div>
+      <p><small>Total User Profiles: {{ user_profile_count }}</small></p>
     </div>
   </div>
 </main>

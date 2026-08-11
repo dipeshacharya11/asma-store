@@ -1,0 +1,383 @@
+
+{% extends "admin/base.html" %}
+
+{% load i18n static %}
+
+{% block content %}
+
+<div class="content">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="page-head">
+
+        <div>
+
+            <h1>
+
+                {% if add %}
+
+                    Add {{ opts.verbose_name|capfirst }}
+
+                {% else %}
+
+                    Edit {{ opts.verbose_name|capfirst }}
+
+                {% endif %}
+
+            </h1>
+
+
+            <p>
+
+                {% if add %}
+
+                    Create a new {{ opts.verbose_name }}.
+
+                {% else %}
+
+                    Update {{ opts.verbose_name }} details and settings.
+
+                {% endif %}
+
+            </p>
+
+        </div>
+
+
+        <!-- =================================================
+             OBJECT TOOLS
+        ================================================== -->
+
+        {% if change and not is_popup %}
+
+            <div class="object-tools">
+
+                {% if has_change_permission %}
+
+                    <a
+                        href="history/"
+                        class="admin-button secondary">
+
+                        History
+
+                    </a>
+
+                {% endif %}
+
+
+                {% if has_absolute_url %}
+
+                    <a
+                        href="../../../r/{{ content_type_id }}/{{ object_id }}/"
+                        class="admin-button secondary">
+
+                        View on site
+
+                    </a>
+
+                {% endif %}
+
+
+                {% if has_delete_permission %}
+
+                    <a
+                        href="delete/"
+                        class="admin-button danger">
+
+                        Delete
+
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =====================================================
+         FORM ERRORS
+    ====================================================== -->
+
+    {% if errors %}
+
+        <div class="card">
+
+            <div class="errornote">
+
+                {% if errors|length == 1 %}
+
+                    Please correct the error below.
+
+                {% else %}
+
+                    Please correct the errors below.
+
+                {% endif %}
+
+            </div>
+
+
+            {% if adminform.form.non_field_errors %}
+
+                {{ adminform.form.non_field_errors }}
+
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         MAIN FORM
+    ====================================================== -->
+
+    <div class="card">
+
+        <form
+            method="post"
+            enctype="multipart/form-data"
+            novalidate>
+
+            {% csrf_token %}
+
+
+            <!-- =============================================
+                 NON FIELD ERRORS
+            ============================================== -->
+
+            {% if adminform.form.non_field_errors %}
+
+                <div class="form-error">
+
+                    {{ adminform.form.non_field_errors }}
+
+                </div>
+
+            {% endif %}
+
+
+            <!-- =============================================
+                 FIELDSETS
+            ============================================== -->
+
+            {% for fieldset in adminform %}
+
+                <fieldset class="admin-fieldset">
+
+
+                    {% if fieldset.name %}
+
+                        <div class="fieldset-title">
+
+                            {{ fieldset.name }}
+
+                        </div>
+
+                    {% endif %}
+
+
+                    {% if fieldset.description %}
+
+                        <div class="fieldset-description">
+
+                            {{ fieldset.description|safe }}
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <div class="fieldset-fields">
+
+
+                        {% for line in fieldset %}
+
+                            <div class="form-row">
+
+
+                                {% for field in line %}
+
+                                    <div
+                                        class="
+                                            form-field
+                                            {% if field.errors %}
+                                                has-error
+                                            {% endif %}
+                                        ">
+
+
+                                        <!-- FIELD ERRORS -->
+
+                                        {% if field.errors %}
+
+                                            <div class="field-errors">
+
+                                                {{ field.errors }}
+
+                                            </div>
+
+                                        {% endif %}
+
+
+                                        <!-- LABEL -->
+
+                                        <div class="field-label">
+
+                                            {{ field.label_tag }}
+
+
+                                            {% if field.field.required %}
+
+                                                <span
+                                                    class="required"
+                                                    aria-hidden="true">
+
+                                                    *
+
+                                                </span>
+
+                                            {% endif %}
+
+                                        </div>
+
+
+                                        <!-- INPUT -->
+
+                                        <div class="field-input">
+
+                                            {{ field.field }}
+
+
+                                            {% if field.help_text %}
+
+                                                <div class="help-text">
+
+                                                    {{ field.help_text|safe }}
+
+                                                </div>
+
+                                            {% endif %}
+
+                                        </div>
+
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                </fieldset>
+
+            {% endfor %}
+
+
+            <!-- =============================================
+                 INLINE FORMSETS
+            ============================================== -->
+
+            {% if inline_admin_formsets %}
+
+                {% for inline_admin_formset in inline_admin_formsets %}
+
+                    <div class="card admin-inline">
+
+                        {% include inline_admin_formset.opts.template %}
+
+                    </div>
+
+                {% endfor %}
+
+            {% endif %}
+
+
+            <!-- =============================================
+                 SAVE BUTTONS
+            ============================================== -->
+
+            <div class="submit-row">
+
+
+                {% if show_save %}
+
+                    <button
+                        type="submit"
+                        name="_save"
+                        class="admin-button primary">
+
+                        Save
+
+                    </button>
+
+                {% endif %}
+
+
+                {% if show_save_as_new %}
+
+                    <button
+                        type="submit"
+                        name="_saveasnew"
+                        class="admin-button secondary">
+
+                        Save as new
+
+                    </button>
+
+                {% endif %}
+
+
+                {% if show_save_and_add_another %}
+
+                    <button
+                        type="submit"
+                        name="_addanother"
+                        class="admin-button secondary">
+
+                        Save and add another
+
+                    </button>
+
+                {% endif %}
+
+
+                {% if show_save_and_continue %}
+
+                    <button
+                        type="submit"
+                        name="_continue"
+                        class="admin-button secondary">
+
+                        Save and continue editing
+
+                    </button>
+
+                {% endif %}
+
+
+                <a
+                    href="../"
+                    class="admin-button cancel">
+
+                    Cancel
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock content %}

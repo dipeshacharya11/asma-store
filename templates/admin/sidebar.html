@@ -1,0 +1,24 @@
+{% load static %}
+<aside class="sidebar">
+  <div class="brand"><img src="{% static 'store/images/logo_bg_r.png' %}" alt="Asma Stores"> Asma Admin</div>
+
+  <div class="nav-label">Overview</div>
+  <a class="nav-item active" href="{% url 'admin:index' %}"><span class="ic">▦</span> Dashboard</a>
+
+  <div class="nav-label">Catalog</div>
+  <a class="nav-item" href="{% url 'admin:store_product_changelist' %}"><span class="ic">▢</span> Products</a>
+  <a class="nav-item" href="{% url 'admin:store_category_changelist' %}"><span class="ic">◧</span> Categories</a>
+  <a class="nav-item" href="{% url 'admin:store_heroslide_changelist' %}"><span class="ic">▤</span> Hero Slides</a>
+
+  <div class="nav-label">Sales</div>
+  <a class="nav-item" href="{% url 'admin:store_order_changelist' %}"><span class="ic">▥</span> Orders</a>
+  <a class="nav-item" href="{% url 'admin:store_coupon_changelist' %}"><span class="ic">%</span> Coupons</a>
+
+  <div class="nav-label">Content</div>
+  <a class="nav-item" href="{% url 'admin:store_blogpost_changelist' %}"><span class="ic">✎</span> Blog</a>
+  <a class="nav-item" href="{% url 'admin:store_testimonial_changelist' %}"><span class="ic">★</span> Testimonials</a>
+
+  <div class="nav-label">System</div>
+  <a class="nav-item" href="{% url 'admin:auth_user_changelist' %}"><span class="ic">◎</span> Staff & Users</a>
+  <a class="nav-item" href="{% url 'store:home' %}"><span class="ic">←</span> View Store</a>
+</aside>

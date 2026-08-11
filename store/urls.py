@@ -20,7 +20,6 @@ urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
 
 
-
     path('search/', views.search_view, name='search'),
 
     path('blog/', views.blog_list, name='blog_list'),
@@ -28,7 +27,6 @@ urlpatterns = [
 
     path('about/', views.about, name='about'),
     path('aboutus', RedirectView.as_view(pattern_name='store:about', permanent=False), name='aboutus_redirect'),
-    path('dashboard/', views.staff_dashboard, name='staff_dashboard'),
 
     path('register/', RedirectView.as_view(pattern_name='accounts:signup', permanent=False), name='register'),
     path('login/', login_view, name='login'),

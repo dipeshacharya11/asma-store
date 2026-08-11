@@ -1,0 +1,225 @@
+{% extends "admin/base.html" %}
+
+{% load i18n static admin_list admin_modify admin_tags %}
+
+{% block content %}
+
+<div class="content">
+
+    <!-- =========================================
+         PAGE HEADER
+    ========================================== -->
+
+    <div class="page-head">
+
+        <h1>Products</h1>
+
+        <p>
+            Manage products, pricing, stock and catalog visibility.
+        </p>
+
+    </div>
+
+
+    <!-- =========================================
+         FORM ERRORS
+    ========================================== -->
+
+    {% if cl.form_errors %}
+
+        <div class="card">
+
+            <p class="errornote">
+
+                {% if cl.form_errors|length == 1 %}
+
+                    {% blocktrans %}
+                        Please correct the error below.
+                    {% endblocktrans %}
+
+                {% else %}
+
+                    {% blocktrans %}
+                        Please correct the errors below.
+                    {% endblocktrans %}
+
+                {% endif %}
+
+            </p>
+
+            {{ cl.form_errors }}
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =========================================
+         HIDDEN FIELDS
+    ========================================== -->
+
+    {% if result_hidden_fields %}
+
+        <div class="card">
+
+            {% for hidden in result_hidden_fields %}
+
+                {{ hidden|adminsort }}
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =========================================
+         SEARCH + FILTERS
+    ========================================== -->
+
+    <div class="card admin-toolbar">
+
+        {% admin_search_form %}
+
+        {% admin_filters %}
+
+    </div>
+
+
+    <!-- =========================================
+         TOP BULK ACTIONS
+    ========================================== -->
+
+    {% if actions_on_top and cl.actions %}
+
+        <div class="card admin-actions-card">
+
+            <form
+                id="changelist-form"
+                action=""
+                method="post">
+
+                {% csrf_token %}
+
+                {{ action_form.as_p }}
+
+                <button
+                    type="submit"
+                    class="admin-button">
+
+                    Go
+
+                </button>
+
+            </form>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =========================================
+         PRODUCT TABLE
+    ========================================== -->
+
+    <div class="card">
+
+        <div
+            class="admin-table-wrapper"
+            style="overflow-x:auto;width:100%;">
+
+            {% result_list %}
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         PAGINATION
+    ========================================== -->
+
+    {% if cl.paginator.num_pages > 1 %}
+
+        <div
+            class="card admin-pagination"
+            style="margin-top:16px;text-align:center;">
+
+            <span class="step-links">
+
+                {% if cl.page_obj.has_previous %}
+
+                    <a
+                        href="?{{ cl.page_obj.previous_page_number|querystring:cl.params }}">
+
+                        &laquo; Previous
+
+                    </a>
+
+                {% endif %}
+
+
+                <span class="current">
+
+                    Page
+                    {{ cl.page_obj.number }}
+                    of
+                    {{ cl.paginator.num_pages }}
+
+                </span>
+
+
+                {% if cl.page_obj.has_next %}
+
+                    <a
+                        href="?{{ cl.page_obj.next_page_number|querystring:cl.params }}">
+
+                        Next &raquo;
+
+                    </a>
+
+                {% endif %}
+
+            </span>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =========================================
+         BOTTOM BULK ACTIONS
+    ========================================== -->
+
+    {% if actions_on_bottom and cl.actions %}
+
+        <div
+            class="card admin-actions-card"
+            style="margin-top:16px;">
+
+            <form
+                id="changelist-form-bottom"
+                action=""
+                method="post">
+
+                {% csrf_token %}
+
+                {{ action_form.as_p }}
+
+                <button
+                    type="submit"
+                    class="admin-button">
+
+                    Go
+
+                </button>
+
+            </form>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock content %}

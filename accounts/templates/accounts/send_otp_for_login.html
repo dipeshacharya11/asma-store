@@ -1,7 +1,7 @@
 {% extends "store/base.html" %}
 {% load static %}
 
-{% block title %}Change Phone Number - Asma Store{% endblock %}
+{% block title %}Send OTP for Login - Asma Store{% endblock %}
 
 {% block extra_style %}
     <!-- Bootstrap 5 CDN -->
@@ -73,7 +73,7 @@
         <div class="col-md-6">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h2 class="text-center mb-4">Change Phone Number</h2>
+                    <h2 class="text-center mb-4">Send OTP for Login</h2>
                     {% if messages %}
                         {% for message in messages %}
                             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -85,20 +85,15 @@
                     <form method="post" novalidate>
                         {% csrf_token %}
                         <div class="mb-3">
-                            <label for="{{ form.phone_number.id_for_label }}" class="form-label">New Phone Number</label>
-                            <input type="tel" name="phone_number" id="{{ form.phone_number.id_for_label }}" class="form-control" placeholder="Enter your new phone number (e.g., 98XXXXXXXX)" required>
-                            {% if form.phone_number.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.phone_number.errors.0 }}
-                                </div>
-                            {% endif %}
+                            <label for="phone_number" class="form-label">Phone Number</label>
+                            <input type="tel" name="phone_number" id="phone_number" class="form-control" placeholder="Enter your phone number (e.g., 98XXXXXXXX)" required>
                         </div>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary btn-lg">Send OTP</button>
                         </div>
                     </form>
                     <div class="text-center mt-3">
-                        <p>Current phone number: {{ request.user.profile.phone_number }}</p>
+                        <p>Already have an account? <a href="{% url 'accounts:login' %}">Sign in</a></p>
                     </div>
                 </div>
             </div>

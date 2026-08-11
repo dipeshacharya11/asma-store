@@ -1,0 +1,177 @@
+{% extends "admin/base.html" %}
+{% load static %}
+{% load log %}
+
+{% block content %}
+<div class="content">
+    <div class="page-head">
+        <p>Live data, pulled directly from the database on every request — nothing here is hardcoded.</p>
+    </div>
+
+    <div class="kpi-grid">
+        <div class="kpi-card"><span>Today's Revenue</span><h2>Rs. {{ today_revenue|floatformat:0 }}</h2></div>
+        <div class="kpi-card"><span>Total Revenue</span><h2>Rs. {{ total_revenue|floatformat:0 }}</h2></div>
+        <div class="kpi-card"><span>Orders ({{ today_order_count }} today)</span><h2>{{ order_count }}</h2></div>
+        <div class="kpi-card"><span>Avg. Order Value</span><h2>Rs. {{ avg_order_value|floatformat:0 }}</h2></div>
+    </div>
+
+    <div class="charts-row">
+        <div class="card">
+            <h3>Revenue — Last 7 Days</h3>
+            <svg id="trendChart" viewBox="0 0 640 200" style="width:100%; height:200px;"></svg>
+        </div>
+        <div class="card">
+            <h3>Revenue by Category</h3>
+            <div class="donut-wrap">
+                <svg id="donutChart" viewBox="0 0 160 160" width="150" height="150"></svg>
+                <div class="donut-legend">
+                    {% for d in donut_data %}
+                    <div class="row"><span class="lbl"><i style="background:{{ d.color }}"></i>{{ d.name }}</span><b>{{ d.pct }}%</b></div>
+                    {% empty %}
+                    <span class="empty-note">No sales yet.</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tables-row">
+        <div class="card">
+            <h3>Recent Orders</h3>
+            <table>
+                <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td><b>#{{ order.id }}</b></td>
+                        <td>{{ order.full_name }}</td>
+                        <td>Rs. {{ order.total }}</td>
+                        <td><span class="status-pill {{ order.status }}">{{ order.status }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="empty-note">No orders yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <a class="admin-link-btn" href="{% url 'admin:store_order_changelist' %}">Manage all orders →</a>
+        </div>
+
+        <div class="card">
+            <h3>Low Stock ({{ out_of_stock_count }} out of stock)</h3>
+            <table>
+                <thead><tr><th>Product</th><th>Stock</th></tr></thead>
+                <tbody>
+                    {% for p in low_stock %}
+                    <tr><td>{{ p.name }}</td><td class="stock-low">{{ p.stock }} left</td></tr>
+                    {% empty %}
+                    <tr><td colspan="2" class="empty-note">Nothing low right now.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <a class="admin-link-btn" href="{% url 'admin:store_product_changelist' %}">Manage inventory →</a>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+        <h3>Top-Selling Products (by units sold)</h3>
+        <table>
+            <thead><tr><th>Product</th><th>Units Sold</th></tr></thead>
+            <tbody>
+                {% for p in top_products %}
+                <tr><td>{{ p.product__name }}</td><td>{{ p.total_sold }}</td></tr>
+                {% empty %}
+                <tr><td colspan="2" class="empty-note">No sales recorded yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_script %}
+{{ trend_labels|json_script:"trendLabels" }}
+{{ trend_values|json_script:"trendValues" }}
+<script>
+// Dark mode toggle
+const toggle = document.getElementById('themeToggle');
+const root = document.documentElement;
+toggle.addEventListener('click', ()=>{
+  const isDark = root.getAttribute('data-theme') === 'dark';
+  root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+});
+
+// Real 7-day revenue trend, drawn from actual query results (see trend_labels/trend_values in the view)
+const labels = JSON.parse(document.getElementById('trendLabels').textContent);
+const values = JSON.parse(document.getElementById('trendValues').textContent);
+const maxVal = Math.max(...values, 1);
+const svg = document.getElementById('trendChart');
+const w = 640, h = 200, pad = 24;
+const stepX = (w - pad*2) / Math.max(values.length - 1, 1);
+
+for(let i=0;i<=4;i++){
+  const y = pad + i*((h-pad*2)/4);
+  const gl = document.createElementNS('http://www.w3.org/2000/svg','line');
+  gl.setAttribute('x1',pad); gl.setAttribute('x2',w-pad); gl.setAttribute('y1',y); gl.setAttribute('y2',y);
+  gl.setAttribute('stroke','currentColor'); gl.setAttribute('stroke-opacity','0.08');
+  svg.appendChild(gl);
+}
+
+const points = values.map((v,i)=>{
+  const x = pad + i*stepX;
+  const y = h - pad - (v/maxVal)*(h-pad*2);
+  return [x,y];
+});
+const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+path.setAttribute('d', 'M ' + points.map(p=>p.join(',')).join(' L '));
+path.setAttribute('fill','none');
+path.setAttribute('stroke','#4A8ABA');
+path.setAttribute('stroke-width','3');
+path.setAttribute('stroke-linecap','round');
+path.setAttribute('stroke-linejoin','round');
+const len = 1200;
+path.style.strokeDasharray = len;
+path.style.strokeDashoffset = len;
+path.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(.22,1,.36,1)';
+svg.appendChild(path);
+requestAnimationFrame(()=> requestAnimationFrame(()=>{ path.style.strokeDashoffset = 0; }));
+
+points.forEach((p,i)=>{
+  const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('cx',p[0]); c.setAttribute('cy',p[1]); c.setAttribute('r','4');
+  c.setAttribute('fill','#4A8ABA');
+  svg.appendChild(c);
+  const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+  t.setAttribute('x',p[0]); t.setAttribute('y',h-4); t.setAttribute('text-anchor','middle');
+  t.setAttribute('font-size','10'); t.setAttribute('fill','currentColor'); t.setAttribute('opacity','0.5');
+  t.textContent = labels[i];
+  svg.appendChild(t);
+});
+
+// Real category revenue donut, drawn from donut_data computed in the view
+const donutData = [{% for d in donut_data %}{pct:{{ d.pct }}, color:"{{ d.color }}"},{% endfor %}];
+const donut = document.getElementById('donutChart');
+const cx=75, cy=75, r=58, stroke=20;
+let acc = -90;
+const circumference = 2*Math.PI*r;
+donutData.forEach((d)=>{
+  const frac = d.pct/100;
+  const dash = circumference*frac;
+  const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  circle.setAttribute('cx',cx); circle.setAttribute('cy',cy); circle.setAttribute('r',r);
+  circle.setAttribute('fill','none');
+  circle.setAttribute('stroke',d.color);
+  circle.setAttribute('stroke-width',stroke);
+  circle.setAttribute('stroke-dasharray', dash + ' ' + (circumference-dash));
+  circle.setAttribute('stroke-dashoffset', -((acc+90)/360)*circumference);
+  circle.setAttribute('transform', `rotate(-90 ${cx} ${cy})`);
+  donut.appendChild(circle);
+  acc += frac*360;
+});
+if(donutData.length === 0){
+  const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('cx',cx); c.setAttribute('cy',cy); c.setAttribute('r',r);
+  c.setAttribute('fill','none'); c.setAttribute('stroke','#EAE5D8'); c.setAttribute('stroke-width',stroke);
+  donut.appendChild(c);
+}
+</script>
+{% endblock extra_script %}

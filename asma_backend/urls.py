@@ -4,8 +4,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve as serve_static
 
+# Import our custom admin site
+from store.admin_site import admin_site
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', admin_site.urls),
     path('accounts/', include('accounts.urls')),
     path('', include('store.urls')),
 ]

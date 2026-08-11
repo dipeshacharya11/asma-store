@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import (
+from store.models import (
     Category,
     Product,
     HeroSlide,
@@ -11,15 +11,24 @@ from .models import (
     OrderItem,
     BlogPost,
     SignatureCollection,
-    )
+)
+from django.contrib.auth.models import User
+from store.admin_site import admin_site
+
+from accounts.models import OTP, UserProfile, VerifiedGuestPhone
+
+# Configure the admin site
+admin_site.site_header = "Asma Store Admin"
+admin_site.site_title = "Asma Store Admin"
+admin_site.index_title = "Store Management"
+
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff')
+    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
+    search_fields = ('username', 'first_name', 'last_name', 'email')
+    ordering = ('username',)
 
 
-admin.site.site_header = "Asma Store Admin"
-admin.site.site_title = "Asma Store Admin"
-admin.site.index_title = "Store Management"
-
-
-@admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = (
         "thumbnail",
@@ -44,17 +53,17 @@ class CategoryAdmin(admin.ModelAdmin):
         "sort_order",
     )
 
-    @admin.display(description="Category")
+    @admin_site.display(description="Category")
     def indented_name(self, obj):
         if obj.parent_id:
-            return format_html("&nbsp;&nbsp;&nbsp;&nbsp;↳ {}", obj.name)
+            return format_html("&nbsp;&nbsp;&nbsp;&nbsp;→ {}", obj.name)
         return format_html("<b>{}</b>", obj.name)
 
-    @admin.display(description="Products (incl. subcategories)")
+    @admin_site.display(description="Products (incl. subcategories)")
     def total_product_count(self, obj):
         return obj.total_product_count
 
-    @admin.display(description="Photo")
+    @admin_site.display(description="Photo")
     def thumbnail(self, obj):
         if obj.image:
             return format_html(
@@ -67,7 +76,6 @@ class CategoryAdmin(admin.ModelAdmin):
         return "—"
 
 
-@admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
         "thumbnail",
@@ -154,7 +162,7 @@ class ProductAdmin(admin.ModelAdmin):
         "slug": ("name",),
     }
 
-    @admin.display(description="Photo")
+    @admin_site.display(description="Photo")
     def thumbnail(self, obj):
         if obj.image:
             return format_html(
@@ -166,7 +174,7 @@ class ProductAdmin(admin.ModelAdmin):
 
         return "—"
 
-    @admin.display(description="Stock")
+    @admin_site.display(description="Stock")
     def stock_status(self, obj):
         if obj.is_out_of_stock:
             return format_html(
@@ -188,7 +196,6 @@ class ProductAdmin(admin.ModelAdmin):
         )
 
 
-@admin.register(HeroSlide)
 class HeroSlideAdmin(admin.ModelAdmin):
     list_display = (
         "title",
@@ -202,7 +209,6 @@ class HeroSlideAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(BlogPost)
 class BlogPostAdmin(admin.ModelAdmin):
     list_display = (
         "title",
@@ -220,7 +226,6 @@ class BlogPostAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(Testimonial)
 class TestimonialAdmin(admin.ModelAdmin):
     list_display = (
         "name",
@@ -229,7 +234,6 @@ class TestimonialAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(Coupon)
 class CouponAdmin(admin.ModelAdmin):
     list_display = (
         "code",
@@ -250,7 +254,6 @@ class OrderItemInline(admin.TabularInline):
     )
 
 
-@admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
         "id",
@@ -272,8 +275,8 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [
         OrderItemInline,
     ]
-    #--------signature -------------------------------------------------------------------
-@admin.register(SignatureCollection)
+
+
 class SignatureCollectionAdmin(admin.ModelAdmin):
     list_display = (
         "name",
@@ -307,6 +310,43 @@ class SignatureCollectionAdmin(admin.ModelAdmin):
         "name",
     )
 
-    @admin.display(description="Products")
+    @admin_site.display(description="Products")
     def product_total(self, obj):
         return obj.products.count()
+
+
+class OTPAdmin(admin.ModelAdmin):
+    list_display = ('phone_number', 'user', 'is_verified', 'is_used', 'created_at', 'expires_at')
+    list_filter = ('is_verified', 'is_used', 'created_at', 'expires_at')
+    search_fields = ('phone_number', 'user__username', 'user__email')
+    readonly_fields = ('verification_token', 'created_at', 'expires_at')
+    ordering = ('-created_at',)
+
+
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'phone_number', 'is_phone_verified')
+    list_filter = ('is_phone_verified',)
+    search_fields = ('user__username', 'user__email', 'phone_number')
+
+
+class VerifiedGuestPhoneAdmin(admin.ModelAdmin):
+    list_display = ('phone_number', 'verified_at', 'expires_at', 'is_active', 'converted_to_user')
+    list_filter = ('is_active', 'verified_at', 'expires_at')
+    search_fields = ('phone_number', 'converted_to_user__username')
+    readonly_fields = ('verified_at',)
+    ordering = ('-verified_at',)
+
+
+# Register models with our custom admin site
+admin_site.register(OTP, OTPAdmin)
+admin_site.register(UserProfile, UserProfileAdmin)
+admin_site.register(VerifiedGuestPhone, VerifiedGuestPhoneAdmin)
+admin_site.register(Category, CategoryAdmin)
+admin_site.register(Product, ProductAdmin)
+admin_site.register(HeroSlide, HeroSlideAdmin)
+admin_site.register(BlogPost, BlogPostAdmin)
+admin_site.register(Testimonial, TestimonialAdmin)
+admin_site.register(Coupon, CouponAdmin)
+admin_site.register(Order, OrderAdmin)
+admin_site.register(SignatureCollection, SignatureCollectionAdmin)
+admin_site.register(User, UserAdmin)

@@ -1,0 +1,41 @@
+<form method="get"
+      action=""
+      class="admin-search-form">
+
+    <div class="admin-search-wrapper">
+
+        <input
+            type="search"
+            name="{{ cl.search_var }}"
+            value="{{ cl.query }}"
+            placeholder="Search products..."
+            class="admin-search-input"
+            autocomplete="off"
+        >
+
+        <button type="submit"
+                class="admin-search-button"
+                aria-label="Search">
+
+            <svg width="18"
+                 height="18"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2">
+
+                <circle cx="11"
+                        cy="11"
+                        r="7"></circle>
+
+                <path d="m20 20-3.5-3.5"></path>
+
+            </svg>
+
+            <span>Search</span>
+
+        </button>
+
+    </div>
+
+</form>
