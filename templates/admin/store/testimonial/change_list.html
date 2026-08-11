@@ -13,10 +13,10 @@
 
     <div class="page-head">
 
-        <h1>Hero Slides</h1>
+        <h1>Testimonials</h1>
 
         <p>
-            Manage homepage promotional banners and hero content.
+            Manage customer testimonials and reviews.
         </p>
 
     </div>
@@ -95,16 +95,16 @@
                     type="search"
                     name="{{ cl.search_var }}"
                     value="{{ cl.query }}"
-                    placeholder="Search hero slides..."
+                    placeholder="Search testimonials..."
                     class="admin-search-input"
                     autocomplete="off"
-                    aria-label="Search hero slides"
+                    aria-label="Search testimonials"
                 >
 
                 <button
                     type="submit"
                     class="admin-search-button"
-                    aria-label="Search hero slides">
+                    aria-label="Search testimonials">
 
                     <svg
                         width="18"
@@ -218,7 +218,7 @@
 
 
     <!-- =====================================================
-         HERO SLIDES RESULT TABLE
+         TESTIMONIAL RESULT TABLE
     ====================================================== -->
 
     <div class="card">
@@ -241,7 +241,7 @@
     <!-- =====================================================
          PAGINATION
          
-         No querystring filter is used.
+         Uses simple Django-compatible ?p= pagination.
     ====================================================== -->
 
     {% if cl.paginator.num_pages > 1 %}
