@@ -1,157 +1,355 @@
 {% extends "admin/base.html" %}
-{% load i18n static admin_modify admin_urls %}
-{% load admin_list %}
+
+{% load i18n static admin_urls admin_modify %}
 
 {% block content %}
+
 <div class="content">
-    {% if is_popup %}
-    <ul class="object-tools">
-        <li><a href="javascript:window.close()" class="close-link">{% trans "Close" %}</a></li>
-    </ul>
-    {% endif %}
 
-    {% block object-tools %}
-    {% if original and not is_popup %}
-    <ul class="object-tools">
-        {% blockobject-tools-items %}
-        <li>
-            <a href="{% url opts|admin_urlname:'history' original.pk|admin_urlquote %}" class="history-link">{% trans "History" %}</a>
-        </li>
-        {% if has_delete_permission %}
-        <li>
-            <a href="{% url opts|admin_urlname:'delete' original.pk|admin_urlquote %}" class="delete-link">{% trans "Delete" %}</a>
-        </li>
-        {% endif %}
-        {% if has_change_permission %}
-        <li>
-            <a href="{% url opts|admin_urlname:'change' original.pk|admin_urlquote %}" class="history-link">{% trans "Change" %}</a>
-        </li>
-        {% endif %}
-        {% if has_add_permission %}
-        <li>
-            <a href="{% url opts|admin_urlname:'add' %}" class="add-link">{% trans "Add Another" %}</a>
-        </li>
-        {% endif %}
-        {% endblock %}
-    </ul>
-    {% endif %}
-    {% endblock %}
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
 
-    {% if cl.form_errors %}
-    <div class="card">
-        <p class="errornote">
-            {% if cl.form_errors|length == 1 %}
-                {% blocktrans %}Please correct the error below.{% endblocktrans %}
-            {% else %}
-                {% blocktrans %}Please correct the errors below.{% endblocktrans %}
-            {% endif %}
-        </p>
-        {{ cl.form_errors }}
-    </div>
-    {% endif %}
+    <div class="page-head">
 
-    {% if result_hidden_fields %}
-    <div class="card">
-        {% for hidden in result_hidden_fields %}
-        {{ hidden|adminsort }}
-        {% endfor %}
-    </div>
-    {% endif %}
+        <div>
 
-    {% if adminform and adminform.readonly_fields %}
-    <div class="card">
-        <div class="readonly-fields">
-            {% for field in adminform.readonly_fields %}
-            <div class="form-row">
-                <div class="readonly">{{ field.label }}: {{ field.value|default_if_none:"-" }}</div>
-            </div>
-            {% endfor %}
+            <h1>
+                {% if add %}
+                    Add {{ opts.verbose_name|capfirst }}
+                {% else %}
+                    Change {{ opts.verbose_name|capfirst }}
+                {% endif %}
+            </h1>
+
+            <p>
+                {% if add %}
+                    Create a new {{ opts.verbose_name }}.
+                {% else %}
+                    Update {{ opts.verbose_name }} details.
+                {% endif %}
+            </p>
+
         </div>
+
+
+        <!-- =================================================
+             OBJECT TOOLS
+        ================================================== -->
+
+        {% block object-tools %}
+
+            {% if original and not is_popup %}
+
+                <ul class="object-tools">
+
+                    {% block object-tools-items %}
+
+                        {% if has_change_permission %}
+
+                            <li>
+                                <a
+                                    href="{% url opts|admin_urlname:'history' original.pk|admin_urlquote %}"
+                                    class="history-link">
+
+                                    {% trans "History" %}
+
+                                </a>
+                            </li>
+
+                        {% endif %}
+
+
+                        {% if has_delete_permission %}
+
+                            <li>
+                                <a
+                                    href="{% url opts|admin_urlname:'delete' original.pk|admin_urlquote %}"
+                                    class="delete-link">
+
+                                    {% trans "Delete" %}
+
+                                </a>
+                            </li>
+
+                        {% endif %}
+
+
+                        {% if has_change_permission %}
+
+                            <li>
+                                <a
+                                    href="{% url opts|admin_urlname:'change' original.pk|admin_urlquote %}"
+                                    class="history-link">
+
+                                    {% trans "Change" %}
+
+                                </a>
+                            </li>
+
+                        {% endif %}
+
+
+                        {% if has_add_permission %}
+
+                            <li>
+                                <a
+                                    href="{% url opts|admin_urlname:'add' %}"
+                                    class="add-link">
+
+                                    {% trans "Add Another" %}
+
+                                </a>
+                            </li>
+
+                        {% endif %}
+
+                    {% endblock object-tools-items %}
+
+                </ul>
+
+            {% endif %}
+
+        {% endblock object-tools %}
+
+
+        <!-- =================================================
+             POPUP CLOSE
+        ================================================== -->
+
+        {% if is_popup %}
+
+            <ul class="object-tools">
+
+                <li>
+                    <a
+                        href="javascript:window.close()"
+                        class="close-link">
+
+                        {% trans "Close" %}
+
+                    </a>
+                </li>
+
+            </ul>
+
+        {% endif %}
+
     </div>
-    {% endif %}
+
+
+    <!-- =====================================================
+         MAIN ADMIN FORM
+    ====================================================== -->
 
     {% block admin_form %}
-    <div class="card">
-        {% if adminform %}
-        {% if adminform.form.is_multipart %}
-        <form enctype="multipart/form-data" method="post" id="{% block form_id %}{{ opts.app_label }}_{{ opts.model_name }}_form{% endblock %}" novalidate>
-        {% else %}
-        <form method="post" id="{% block form_id %}{{ opts.app_label }}_{{ opts.model_name }}_form{% endblock %}" novalidate>
-        {% endif %}
-        {% csrf_token %}
-        {% if form_errors %}
-        <div class="form-errors">
-            {{ form_errors }}
-        </div>
-        {% endif %}
-        {% if autocomplete_fields %}
-        <div class="autocomplete-fields">
-            {% for field in autocomplete_fields %}
-            <div class="field-box">
-                {{ adminform.adapt_for_field(field) }}
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% block fields %}
-        {% for fieldset in adminform %}
-        {% include "admin/includes/fieldset.html" %}
-        {% endfor %}
-        {% endblock %}
-        {% if adminform.readonly_fields %}
-        <div class="readonly-fields">
-            {% for field in adminform.readonly_fields %}
-            <div class="form-row">
-                <div class="readonly">{{ field.label }}: {{ field.value|default_if_none:"-" }}</div>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-        </form>
-        {% endif %}
-        {% if adminform and adminform.readonly_fields %}
-        <div class="readonly-fields">
-            {% for field in adminform.readonly_fields %>
-            <div class="form-row">
-                <div class="readonly">{{ field.label }}: {{ field.value|default_if_none:"-" }}</div>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-    </div>
-    {% endblock %}
 
-    {% block inline_formsets %}
-    {% if inline_admin_formsets %}
-    <div class="card">
-        <h2>{% trans "Inline entities" %}</h2>
-        {% for inline_admin_formset in inline_admin_formsets %}
-        {% include inline_admin_formset.opts.template %}
-        {% endfor %}
-    </div>
-    {% endif %}
-    {% endblock %}
+    {% if adminform %}
 
-    {% block submit_buttons %}
-    {% if show_save %}
-    <div class="card submit-row">
-        <div class="submit-buttons">
-            {% if show_save_as_new %}
-            <button type="submit" name="_saveasnew" value="1" class="default">{% trans "Save as new" %}</button>
-            {% endif %}
-            {% if show_save_and_add_another %}
-            <button type="submit" name="_addanother" value="1" class="default">{% trans "Save and add another" %}</button>
-            {% endif %}
-            {% if show_save_and_continue %}
-            <button type="submit" name="_continue" value="1" class="default">{% trans "Save and continue editing" %}</button>
-            {% endif %}
-            {% if show_delete_link %}
-            <a href="{% url opts|admin_urlname:'delete' original.pk|admin_urlquote %}" class="deletelink">{% trans "Delete" %}</a>
-            {% endif %}
-            <button type="submit" name="_save" value="1" class="default">{% trans "Save" %}</button>
+        <div class="card">
+
+            <form
+                method="post"
+                id="{{ opts.app_label }}_{{ opts.model_name }}_form"
+
+                {% if adminform.form.is_multipart %}
+                    enctype="multipart/form-data"
+                {% endif %}
+
+                novalidate
+            >
+
+                {% csrf_token %}
+
+
+                <!-- =========================================
+                     FORM ERRORS
+                ========================================== -->
+
+                {% if errors %}
+
+                    <div class="form-errors">
+
+                        <p class="errornote">
+
+                            {% if errors|length == 1 %}
+
+                                {% trans "Please correct the error below." %}
+
+                            {% else %}
+
+                                {% trans "Please correct the errors below." %}
+
+                            {% endif %}
+
+                        </p>
+
+                        {{ errors }}
+
+                    </div>
+
+                {% endif %}
+
+
+                <!-- =========================================
+                     MAIN MODEL FIELDSETS
+                ========================================== -->
+
+                {% block field_sets %}
+
+                    {% for fieldset in adminform %}
+
+                        {% include "admin/includes/fieldset.html" %}
+
+                    {% endfor %}
+
+                {% endblock field_sets %}
+
+
+                <!-- =========================================
+                     INLINE FORMSETS
+                     
+                     IMPORTANT:
+                     DO NOT manually render cell_count,
+                     form fields, management forms, etc.
+                     
+                     Django handles those internally.
+                ========================================== -->
+
+                {% block inline_field_sets %}
+
+                    {% for inline_admin_formset in inline_admin_formsets %}
+
+                        <div class="card admin-inline">
+
+                            {% include inline_admin_formset.opts.template %}
+
+                        </div>
+
+                    {% endfor %}
+
+                {% endblock inline_field_sets %}
+
+
+                <!-- =========================================
+                     SAVE BUTTONS
+                ========================================== -->
+
+                {% block submit_buttons_bottom %}
+
+                    <div class="card submit-row">
+
+                        <div class="submit-buttons">
+
+
+                            {% if show_save %}
+
+                                <button
+                                    type="submit"
+                                    name="_save"
+                                    value="1"
+                                    class="admin-button primary">
+
+                                    {% trans "Save" %}
+
+                                </button>
+
+                            {% endif %}
+
+
+                            {% if show_save_as_new %}
+
+                                <button
+                                    type="submit"
+                                    name="_saveasnew"
+                                    value="1"
+                                    class="admin-button secondary">
+
+                                    {% trans "Save as new" %}
+
+                                </button>
+
+                            {% endif %}
+
+
+                            {% if show_save_and_add_another %}
+
+                                <button
+                                    type="submit"
+                                    name="_addanother"
+                                    value="1"
+                                    class="admin-button secondary">
+
+                                    {% trans "Save and add another" %}
+
+                                </button>
+
+                            {% endif %}
+
+
+                            {% if show_save_and_continue %}
+
+                                <button
+                                    type="submit"
+                                    name="_continue"
+                                    value="1"
+                                    class="admin-button secondary">
+
+                                    {% trans "Save and continue editing" %}
+
+                                </button>
+
+                            {% endif %}
+
+
+                            {% if show_delete_link and original %}
+
+                                <a
+                                    href="{% url opts|admin_urlname:'delete' original.pk|admin_urlquote %}"
+                                    class="admin-button delete-button">
+
+                                    {% trans "Delete" %}
+
+                                </a>
+
+                            {% endif %}
+
+
+                            <a
+                                href="../"
+                                class="admin-button cancel">
+
+                                {% trans "Cancel" %}
+
+                            </a>
+
+
+                        </div>
+
+                    </div>
+
+                {% endblock submit_buttons_bottom %}
+
+
+                <!-- =========================================
+                     ADMIN MEDIA
+                ========================================== -->
+
+                {% block admin_change_form_document_ready %}
+
+                    {{ adminform.media }}
+
+                {% endblock admin_change_form_document_ready %}
+
+
+            </form>
+
         </div>
-    </div>
+
     {% endif %}
-    {% endblock %}
+
+    {% endblock admin_form %}
+
 </div>
-{% endblock %}
+
+{% endblock content %}

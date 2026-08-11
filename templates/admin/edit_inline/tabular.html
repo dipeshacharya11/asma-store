@@ -1,0 +1,211 @@
+{% load i18n admin_urls static %}
+
+<div class="js-inline-admin-formset inline-group"
+     id="{{ inline_admin_formset.formset.prefix }}-group"
+     data-inline-type="tabular"
+     data-inline-formset="{{ inline_admin_formset.inline_formset_data }}">
+
+    <div class="tabular inline-related">
+
+        <div class="inline-group-header">
+
+            <h2>
+                {{ inline_admin_formset.opts.verbose_name_plural|capfirst }}
+            </h2>
+
+        </div>
+
+
+        {{ inline_admin_formset.formset.management_form }}
+
+
+        {% if inline_admin_formset.formset.non_form_errors %}
+
+            <div class="form-errors">
+
+                {{ inline_admin_formset.formset.non_form_errors }}
+
+            </div>
+
+        {% endif %}
+
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th class="original">
+                        {% trans "Original" %}
+                    </th>
+
+                    {% for field in inline_admin_formset.fields %}
+
+                        {% if not field.widget.is_hidden %}
+
+                            <th
+                                class="
+                                    column-{{ field.name }}
+                                    {% if field.required %}required{% endif %}
+                                ">
+
+                                {{ field.label|capfirst }}
+
+                                {% if field.help_text %}
+
+                                    <img
+                                        src="{% static 'admin/img/icon-unknown.svg' %}"
+                                        class="help help-tooltip"
+                                        width="10"
+                                        height="10"
+                                        alt="({{ field.help_text|striptags }})"
+                                        title="{{ field.help_text|striptags }}"
+                                    >
+
+                                {% endif %}
+
+                            </th>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+
+                    {% if inline_admin_formset.formset.can_delete and inline_admin_formset.has_delete_permission %}
+
+                        <th>
+                            {% translate "Delete?" %}
+                        </th>
+
+                    {% endif %}
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for inline_admin_form in inline_admin_formset %}
+
+                    {% if inline_admin_form.form.non_field_errors %}
+
+                        <tr class="row-form-errors">
+
+                            <td colspan="{{ inline_admin_form.fields|length|add:2 }}">
+
+                                {{ inline_admin_form.form.non_field_errors }}
+
+                            </td>
+
+                        </tr>
+
+                    {% endif %}
+
+
+                    <tr
+                        class="form-row
+                        {% if inline_admin_form.original %}has_original{% endif %}
+                        {% if forloop.last %}empty-form{% endif %}"
+                        id="{{ inline_admin_formset.formset.prefix }}-{{ forloop.counter0 }}"
+                    >
+
+                        <td class="original">
+
+                            {% if inline_admin_form.original %}
+
+                                {{ inline_admin_form.original }}
+
+                            {% endif %}
+
+
+                            {% if inline_admin_form.show_url %}
+
+                                <a
+                                    href="{% url inline_admin_form.model_admin_urlname inline_admin_form.original.pk|admin_urlquote %}"
+                                    class="inline-view">
+
+                                    {% translate "View" %}
+
+                                </a>
+
+                            {% endif %}
+
+
+                            {% if inline_admin_form.form.non_field_errors %}
+
+                                {{ inline_admin_form.form.non_field_errors }}
+
+                            {% endif %}
+
+                        </td>
+
+
+                        {% for fieldset in inline_admin_form %}
+
+                            {% for line in fieldset %}
+
+                                {% for field in line %}
+
+                                    {% if field.field.is_hidden %}
+
+                                        {{ field.field }}
+
+                                    {% else %}
+
+                                        <td
+                                            class="
+                                                field-{{ field.field.name }}
+                                                {% if field.field.errors %}errors{% endif %}
+                                            "
+                                        >
+
+                                            {{ field.field }}
+
+                                            {% if field.field.errors %}
+
+                                                <div class="form-errors">
+
+                                                    {{ field.field.errors }}
+
+                                                </div>
+
+                                            {% endif %}
+
+                                        </td>
+
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            {% endfor %}
+
+                        {% endfor %}
+
+
+                        {% if inline_admin_formset.formset.can_delete and inline_admin_formset.has_delete_permission %}
+
+                            <td class="delete">
+
+                                {% if inline_admin_form.original %}
+
+                                    {{ inline_admin_form.deletion_field.field }}
+
+                                {% endif %}
+
+                            </td>
+
+                        {% endif %}
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
