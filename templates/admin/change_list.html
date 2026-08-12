@@ -1,6 +1,5 @@
 {% extends "admin/base.html" %}
 {% load i18n static admin_list admin_modify %}
-{% load admin_tags %}
 
 {% block content %}
 <div class="content">
@@ -103,9 +102,9 @@
         <!-- FILTERS -->
         {% if cl.has_filters %}
         <div class="admin-filter-wrapper" style="flex:0 0 auto;">
+            {% if cl.has_active_filters %}<span class="admin-filter-count">({{ cl.active_filters|length }})</span>{% endif %}
             <button type="button" id="filter-toggle" class="admin-filter-button" aria-label="Toggle filters">
                 Filters
-                {% if cl.has_active_filters %}<span class="admin-filter-count">({{ cl.active_filters|length }})</span>{% endif %}
                 <span class="admin-filter-icon">���▾</span>
             </button>
             <div id="filter-panel" class="admin-filter-panel" style="display:none; position:absolute; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); z-index:1000;">
@@ -115,7 +114,36 @@
                         <span>Filters</span>
                         <button type="button" id="filter-close" class="admin-filter-close" aria-label="Close filters">��������✕</button>
                     </div>
-                    {% admin_filters hide_title=True %}
+                    <!-- Native Django filters - no custom tags -->
+                    {% for filter_spec in cl.filter_specs %}
+                        {% if not filter_spec.is_hidden %}
+                            <div style="margin-bottom:12px;">
+                                {% if filter_spec.title %}
+                                    <label style="display:block; margin-bottom:4px; font-weight:500; font-size:14px;">{{ filter_spec.title }}</label>
+                                {% endif %}
+                                {% if filter_spec.choices|length <= 8 %}
+                                    <!-- Render as dropdown for small choice sets -->
+                                    <select name="{{ filter_spec.parameter_name }}" class="admin-filter-select" onchange="this.form.submit()">
+                                        <option value="">All {{ filter_spec.title|lower }}</option>
+                                        {% for choice in filter_spec.choices %}
+                                            <option value="{{ choice.query_string|urlencode }}" {% if choice.selected %}selected{% endif %}>
+                                                {{ choice.display }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                {% else %}
+                                    <!-- Render as search input for large choice sets -->
+                                    <input type="text" name="{{ filter_spec.parameter_name }}" value="{{ cl.get_query_string|cut:'&amp;'|cut:'?'|cut:filter_spec.parameter_name|cut:'='|cut:'&' }}" placeholder="Search {{ filter_spec.title|lower }}..." class="admin-filter-input" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:var(--radius);">
+                                    <button type="submit" class="admin-filter-submit" style="margin-top:8px; width:100%;">Filter</button>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    <form method="get" action="" style="margin-top:16px;">
+                        {% for hidden in cl.params|dictsort:"0" %}
+                            {% if forloop.first %}<input type="hidden" name="{{ hidden.0 }}" value="{{ hidden.1 }}">{% endif %}
+                        {% endfor %}
+                    </form>
                 </div>
                 {% endif %}
             </div>
@@ -135,11 +163,11 @@
             <form id="changelist-form" action="" method="post">
                 {% csrf_token %}
                 <div class="admin-bulk-actions" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-                    <label for="action-toggle" style="margin-right:8px;">
+                    <label style="margin-right:8px;">
                         <input type="checkbox" id="select-all-toggle" /> Select all
                     </label>
                     <div style="flex:1; min-width:150px;">
-                        {{ action_form }}
+                        {{ action_form.as_p }}
                     </div>
                     <button type="submit" class="admin-button-primary">Run</button>
                 </div>
@@ -197,11 +225,11 @@
             <form id="changelist-form-bottom" action="" method="post">
                 {% csrf_token %}
                 <div class="admin-bulk-actions" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-                    <label for="action-toggle-bottom" style="margin-right:8px;">
+                    <label style="margin-right:8px;">
                         <input type="checkbox" id="select-all-toggle-bottom" /> Select all
                     </label>
                     <div style="flex:1; min-width:150px;">
-                        {{ action_form }}
+                        {{ action_form.as_p }}
                     </div>
                     <button type="submit" class="admin-button-primary">Run</button>
                 </div>
