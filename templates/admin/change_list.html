@@ -120,7 +120,7 @@
                 <div class="admin-filter-bar">
                     <div class="admin-filter-title">
                         <span>Filters</span>
-                        <button type="button" id="filter-close" class="admin-filter-close" aria-label="Close filters">��������✕</button>
+                        <button type="button" id="filter-close" class="admin-filter-close" aria-label="Close filters">������✕</button>
                     </div>
                     <!-- Native Django filters - no custom tags -->
                     {% for filter_spec in cl.filter_specs %}
@@ -168,10 +168,13 @@
     {% if actions_on_top and cl.actions %}
         <div class="card admin-actions-card" style="margin-bottom:16px;">
             <div class="admin-bulk-actions" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-                <label style="margin-right:8px;">
-                    <input type="checkbox" id="select-all-toggle" /> Select all
-                </label>
-                <div style="flex:1; min-width:150px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <label style="margin-right:8px;">
+                        <input type="checkbox" id="select-all-toggle" /> Select all
+                    </label>
+                    <span id="selection-count" style="font-size:13px; color:var(--muted);">0 selected</span>
+                </div>
+                <div style="flex:1; min-width:200px;">
                     {{ action_form.as_p }}
                 </div>
                 <button type="submit" class="admin-button-primary">Run</button>
@@ -225,10 +228,13 @@
     {% if actions_on_bottom and cl.actions %}
         <div class="card admin-actions-card" style="margin-top:16px;">
             <div class="admin-bulk-actions" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-                <label style="margin-right:8px;">
-                    <input type="checkbox" id="select-all-toggle-bottom" /> Select all
-                </label>
-                <div style="flex:1; min-width:150px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <label style="margin-right:8px;">
+                        <input type="checkbox" id="select-all-toggle-bottom" /> Select all
+                    </label>
+                    <span id="selection-count-bottom" style="font-size:13px; color:var(--muted);">0 selected</span>
+                </div>
+                <div style="flex:1; min-width:200px;">
                     {{ action_form.as_p }}
                 </div>
                 <button type="submit" class="admin-button-primary">Run</button>
@@ -271,26 +277,57 @@
         // Select all togglers
         const selectAllToggler = document.getElementById('select-all-toggle');
         const selectAllTogglerBottom = document.getElementById('select-all-toggle-bottom');
+        const selectionCount = document.getElementById('selection-count');
+        const selectionCountBottom = document.getElementById('selection-count-bottom');
+
+        function updateSelectionCount() {
+            const checkboxes = document.querySelectorAll('#changelist-form input[type="checkbox"]:not(#select-all-toggle)');
+            const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+            if (selectionCount) selectionCount.textContent = checkedCount + ' selected';
+        }
+
+        function updateSelectionCountBottom() {
+            const checkboxes = document.querySelectorAll('#changelist-form-bottom input[type="checkbox"]:not(#select-all-toggle-bottom)');
+            const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+            if (selectionCountBottom) selectionCountBottom.textContent = checkedCount + ' selected';
+        }
+
         if (selectAllToggler) {
             selectAllToggler.addEventListener('change', function() {
-                const checkboxes = document.querySelectorAll('#changelist-form input[type=\"checkbox\"]');
+                const checkboxes = document.querySelectorAll('#changelist-form input[type="checkbox"]');
                 checkboxes.forEach(function(cb) {
                     if (cb.id !== 'select-all-toggle') {
                         cb.checked = selectAllToggler.checked;
                     }
                 });
+                updateSelectionCount();
             });
         }
         if (selectAllTogglerBottom) {
             selectAllTogglerBottom.addEventListener('change', function() {
-                const checkboxes = document.querySelectorAll('#changelist-form-bottom input[type=\"checkbox\"]');
+                const checkboxes = document.querySelectorAll('#changelist-form-bottom input[type="checkbox"]');
                 checkboxes.forEach(function(cb) {
                     if (cb.id !== 'select-all-toggle-bottom') {
                         cb.checked = selectAllTogglerBottom.checked;
                     }
                 });
+                updateSelectionCountBottom();
             });
         }
+
+        // Update counts when individual checkboxes change
+        document.addEventListener('change', function(e) {
+            if (e.target.closest('#changelist-form') && e.target.type === 'checkbox' && e.target.id !== 'select-all-toggle') {
+                updateSelectionCount();
+            }
+            if (e.target.closest('#changelist-form-bottom') && e.target.type === 'checkbox' && e.target.id !== 'select-all-toggle-bottom') {
+                updateSelectionCountBottom();
+            }
+        });
+
+        // Initialize counts
+        updateSelectionCount();
+        updateSelectionCountBottom();
     });
 </script>
 {% endblock extra_script %}

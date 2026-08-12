@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.db.models import Count
 
 from store.models import (
     Category,
@@ -53,6 +54,8 @@ class CategoryAdmin(admin.ModelAdmin):
         "sort_order",
     )
 
+    actions = ['delete_selected']
+
     @admin_site.display(description="Category")
     def indented_name(self, obj):
         if obj.parent_id:
@@ -75,6 +78,18 @@ class CategoryAdmin(admin.ModelAdmin):
 
         return "—"
 
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'slug', 'parent')
+        }),
+        ('Description & Image', {
+            'fields': ('description', 'image', 'hero_gradient')
+        }),
+        ('Display Settings', {
+            'fields': ('is_active', 'sort_order'),
+        }),
+    )
+
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
@@ -88,6 +103,7 @@ class ProductAdmin(admin.ModelAdmin):
         "is_featured",
         "is_new",
         "is_top_rated",
+        "rating",
     )
 
     actions = [
@@ -99,6 +115,7 @@ class ProductAdmin(admin.ModelAdmin):
         "remove_from_top_rated",
         "activate_products",
         "deactivate_products",
+        "delete_selected",
     ]
 
     @admin.action(description="Mark selected products as Featured")
@@ -195,10 +212,32 @@ class ProductAdmin(admin.ModelAdmin):
             obj.stock,
         )
 
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'slug', 'sku', 'category')
+        }),
+        ('Description', {
+            'fields': ('description',)
+        }),
+        ('Pricing', {
+            'fields': ('price', 'compare_at_price')
+        }),
+        ('Inventory', {
+            'fields': ('stock',)
+        }),
+        ('Product Images', {
+            'fields': ('image', 'image_secondary', 'image_gradient', 'image_gradient_secondary')
+        }),
+        ('Product Details', {
+            'fields': ('is_active', 'is_featured', 'is_new', 'is_top_rated', 'rating', 'rating_count')
+        }),
+    )
+
 
 class HeroSlideAdmin(admin.ModelAdmin):
     list_display = (
         "title",
+        "eyebrow",
         "sort_order",
         "is_active",
     )
@@ -206,6 +245,23 @@ class HeroSlideAdmin(admin.ModelAdmin):
     list_editable = (
         "sort_order",
         "is_active",
+    )
+
+    actions = ['delete_selected']
+
+    fieldsets = (
+        (None, {
+            'fields': ('title', 'eyebrow', 'description')
+        }),
+        ('Call to Action', {
+            'fields': ('cta_text', 'cta_url')
+        }),
+        ('Image', {
+            'fields': ('image', 'image_url')
+        }),
+        ('Display Settings', {
+            'fields': ('vertical_label', 'sort_order', 'is_active')
+        }),
     )
 
 
@@ -225,12 +281,43 @@ class BlogPostAdmin(admin.ModelAdmin):
         "is_published",
     )
 
+    actions = ['delete_selected']
+
+    fieldsets = (
+        (None, {
+            'fields': ('title', 'slug', 'author')
+        }),
+        ('Content', {
+            'fields': ('excerpt', 'content', 'image_gradient')
+        }),
+        ('Publication', {
+            'fields': ('is_published', 'published_at')
+        }),
+    )
+
 
 class TestimonialAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "rating",
+        "role",
         "is_active",
+    )
+
+    list_editable = (
+        "is_active",
+        "rating",
+    )
+
+    actions = ['delete_selected']
+
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'role', 'quote', 'rating')
+        }),
+        ('Display', {
+            'fields': ('is_active',)
+        }),
     )
 
 
@@ -240,6 +327,18 @@ class CouponAdmin(admin.ModelAdmin):
         "percent_off",
         "is_active",
         "expires_at",
+    )
+
+    list_editable = (
+        "is_active",
+    )
+
+    actions = ['delete_selected']
+
+    fieldsets = (
+        (None, {
+            'fields': ('code', 'percent_off', 'expires_at', 'is_active')
+        }),
     )
 
 
@@ -272,9 +371,23 @@ class OrderAdmin(admin.ModelAdmin):
         "status",
     )
 
+    actions = ['delete_selected']
+
     inlines = [
         OrderItemInline,
     ]
+
+    fieldsets = (
+        (None, {
+            'fields': ('full_name', 'email', 'phone', 'address', 'city')
+        }),
+        ('Order Details', {
+            'fields': ('status', 'coupon', 'shipping_cost')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at',)
+        }),
+    )
 
 
 class SignatureCollectionAdmin(admin.ModelAdmin):
@@ -290,6 +403,8 @@ class SignatureCollectionAdmin(admin.ModelAdmin):
         "sort_order",
         "is_active",
     )
+
+    actions = ['delete_selected']
 
     list_filter = (
         "is_active",
@@ -313,6 +428,18 @@ class SignatureCollectionAdmin(admin.ModelAdmin):
     @admin_site.display(description="Products")
     def product_total(self, obj):
         return obj.products.count()
+
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'subtitle', 'description')
+        }),
+        ('Products', {
+            'fields': ('products',)
+        }),
+        ('Display Settings', {
+            'fields': ('sort_order', 'is_active')
+        }),
+    )
 
 
 class OTPAdmin(admin.ModelAdmin):

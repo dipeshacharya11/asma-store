@@ -208,11 +208,11 @@
 
                 <!-- =========================================
                      INLINE FORMSETS
-                     
+
                      IMPORTANT:
                      DO NOT manually render cell_count,
                      form fields, management forms, etc.
-                     
+
                      Django handles those internally.
                 ========================================== -->
 
@@ -237,92 +237,97 @@
 
                 {% block submit_buttons_bottom %}
 
-                    <div class="card submit-row">
+                    <div class="card submit-row sticky-bottom">
 
                         <div class="submit-buttons">
 
+                            <div class="submit-button-group">
 
-                            {% if show_save %}
+                                {% if show_save %}
 
-                                <button
-                                    type="submit"
-                                    name="_save"
-                                    value="1"
-                                    class="admin-button primary">
+                                    <button
+                                        type="submit"
+                                        name="_save"
+                                        value="1"
+                                        class="admin-button primary">
 
-                                    {% trans "Save" %}
+                                        {% trans "Save" %}
 
-                                </button>
+                                    </button>
 
-                            {% endif %}
-
-
-                            {% if show_save_as_new %}
-
-                                <button
-                                    type="submit"
-                                    name="_saveasnew"
-                                    value="1"
-                                    class="admin-button secondary">
-
-                                    {% trans "Save as new" %}
-
-                                </button>
-
-                            {% endif %}
+                                {% endif %}
 
 
-                            {% if show_save_and_add_another %}
+                                {% if show_save_and_add_another %}
 
-                                <button
-                                    type="submit"
-                                    name="_addanother"
-                                    value="1"
-                                    class="admin-button secondary">
+                                    <button
+                                        type="submit"
+                                        name="_addanother"
+                                        value="1"
+                                        class="admin-button secondary">
 
-                                    {% trans "Save and add another" %}
+                                        {% trans "Save and add another" %}
 
-                                </button>
+                                    </button>
 
-                            {% endif %}
-
-
-                            {% if show_save_and_continue %}
-
-                                <button
-                                    type="submit"
-                                    name="_continue"
-                                    value="1"
-                                    class="admin-button secondary">
-
-                                    {% trans "Save and continue editing" %}
-
-                                </button>
-
-                            {% endif %}
+                                {% endif %}
 
 
-                            {% if show_delete_link and original %}
+                                {% if show_save_and_continue %}
+
+                                    <button
+                                        type="submit"
+                                        name="_continue"
+                                        value="1"
+                                        class="admin-button secondary">
+
+                                        {% trans "Save and continue editing" %}
+
+                                    </button>
+
+                                {% endif %}
+
+                            </div>
+
+                            <div class="submit-button-group">
+
+                                {% if show_save_as_new %}
+
+                                    <button
+                                        type="submit"
+                                        name="_saveasnew"
+                                        value="1"
+                                        class="admin-button secondary">
+
+                                        {% trans "Save as new" %}
+
+                                    </button>
+
+                                {% endif %}
+
+
+                                {% if show_delete_link and original %}
+
+                                    <a
+                                        href="{% url opts|admin_urlname:'delete' original.pk|admin_urlquote %}"
+                                        class="admin-button delete-button">
+
+                                        {% trans "Delete" %}
+
+                                    </a>
+
+                                {% endif %}
+
 
                                 <a
-                                    href="{% url opts|admin_urlname:'delete' original.pk|admin_urlquote %}"
-                                    class="admin-button delete-button">
+                                    href="../"
+                                    class="admin-button cancel">
 
-                                    {% trans "Delete" %}
+                                    {% trans "Cancel" %}
 
                                 </a>
 
-                            {% endif %}
-
-
-                            <a
-                                href="../"
-                                class="admin-button cancel">
-
-                                {% trans "Cancel" %}
-
-                            </a>
-
+                            </div>
 
                         </div>
 
@@ -353,3 +358,81 @@
 </div>
 
 {% endblock content %}
+
+{% block extra_script %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Make submit buttons sticky on scroll
+        const submitRow = document.querySelector('.submit-row.sticky-bottom');
+        if (submitRow) {
+            const offsetTop = submitRow.offsetTop;
+
+            window.addEventListener('scroll', function() {
+                if (window.pageYOffset > offsetTop) {
+                    submitRow.style.position = 'fixed';
+                    submitRow.style.bottom = '0';
+                    submitRow.style.left = '0';
+                    submitRow.style.right = '0';
+                    submitRow.style.zIndex = '1000';
+                    submitRow.style.backgroundColor = 'var(--bg)';
+                    submitRow.style.padding = '16px 32px';
+                    submitRow.style.borderTop = '1px solid var(--border)';
+                    submitRow.style.margin = '0 -32px';
+                } else {
+                    submitRow.style.position = '';
+                    submitRow.style.bottom = '';
+                    submitRow.style.left = '';
+                    submitRow.style.right = '';
+                    submitRow.style.zIndex = '';
+                    submitRow.style.backgroundColor = '';
+                    submitRow.style.padding = '';
+                    submitRow.style.borderTop = '';
+                    submitRow.style.margin = '';
+                }
+            });
+        }
+
+        // Handle dependent dropdowns for Category -> Subcategory -> Child Category
+        // Only apply to Product admin forms
+        const categorySelect = document.getElementById('id_category');
+        if (categorySelect) {
+            // Find subcategory and child category selects if they exist (they would be added via JS)
+            // For now, we'll enhance the existing category field to show hierarchy
+
+            // Enhance category select to show hierarchical options
+            const enhanceCategoryOptions = function() {
+                const options = Array.from(categorySelect.options);
+                options.forEach(option => {
+                    if (option.value !== '') { // Skip empty option
+                        // Get the category text and indent based on level
+                        // This is a simplified approach - in a real implementation,
+                        // we'd need to fetch the actual hierarchy from the server
+                        const text = option.textContent;
+                        // Check if it already has indentation (to avoid double processing)
+                        if (!text.startsWith('&nbsp;') && !text.includes('→')) {
+                            // In a full implementation, we would make an AJAX call
+                            // to get the category's level and indent accordingly
+                            // For now, we'll leave it as is since the indented_name method
+                            // in the admin already handles this in the list view
+                        }
+                    }
+                });
+            };
+
+            // Run enhancement on page load and when options change (for add another)
+            enhanceCategoryOptions();
+
+            // Also listen for DOM changes if options are dynamically updated
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList') {
+                        enhanceCategoryOptions();
+                    }
+                });
+            });
+
+            observer.observe(categorySelect, { childList: true, subtree: true });
+        }
+    });
+</script>
+{% endblock extra_script %}

@@ -92,7 +92,234 @@
         .empty-note{color:var(--muted); font-size:12.5px; padding:18px 0; text-align:center;}
         .admin-link-btn{display:inline-block; margin-top:14px; font-size:12px; font-weight:600; color:var(--gold); border-bottom:1.5px solid var(--gold-light); padding-bottom:2px;}
 
-        @media(max-width:1000px){ .app{grid-template-columns:1fr;} .sidebar{display:none;} .kpi-grid{grid-template-columns:1fr 1fr;} .charts-row, .tables-row{grid-template-columns:1fr;} }
+        /* Enhanced admin styles */
+        .submit-row.sticky-bottom {
+            background-color: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 16px 32px;
+            margin: 24px -32px -32px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .submit-button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .admin-button {
+            min-width: 100px;
+            padding: 8px 16px;
+            font-weight: 600;
+            border-radius: var(--radius);
+            transition: all 0.2s var(--ease);
+            cursor: pointer;
+        }
+
+        .admin-button.primary {
+            background: var(--grad-gold);
+            color: white;
+            border: none;
+        }
+
+        .admin-button.primary:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .admin-button.secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .admin-button.secondary:hover {
+            background: var(--bg);
+            border-color: var(--gold);
+        }
+
+        .admin-button.delete-button {
+            background: transparent;
+            color: var(--sale);
+            border: 1px solid var(--sale);
+        }
+
+        .admin-button.delete-button:hover {
+            background: var(--sale);
+            color: white;
+        }
+
+        .admin-button.cancel {
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid transparent;
+        }
+
+        .admin-button.cancel:hover {
+            color: var(--text);
+            border-color: var(--border);
+        }
+
+        .admin-search-input, .admin-filter-input, .admin-filter-select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 13px;
+            background: var(--surface);
+            color: var(--text);
+            width: 100%;
+            box-sizing: border-box;
+            transition: all 0.2s var(--ease);
+        }
+
+        .admin-search-input:focus, .admin-filter-input:focus, .admin-filter-select:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 2px rgba(74, 138, 186, 0.2);
+        }
+
+        .admin-search-button, .admin-filter-submit {
+            padding: 8px 16px;
+            background: var(--grad-gold);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s var(--ease);
+        }
+
+        .admin-search-button:hover, .admin-filter-submit:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .admin-filter-button {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s var(--ease);
+        }
+
+        .admin-filter-button:hover {
+            background: var(--bg);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .admin-toolbar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+        }
+
+        .admin-table-wrapper {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--bg);
+            font-weight: 600;
+            text-align: left;
+        }
+
+        td, th {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:hover td {
+            background: rgba(244, 242, 237, 0.5);
+        }
+
+        .admin-pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .pagination-link {
+            color: var(--text);
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            font-weight: 500;
+            transition: all 0.2s var(--ease);
+        }
+
+        .pagination-link:hover {
+            background: var(--bg);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .current {
+            font-weight: 600;
+            color: var(--text);
+            padding: 6px 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--muted);
+        }
+
+        .empty-state h3 {
+            color: var(--text);
+            margin-bottom: 16px;
+        }
+
+        .empty-state .admin-button {
+            margin-top: 24px;
+        }
+
+        @media(max-width:1000px){
+            .app{grid-template-columns:1fr;}
+            .sidebar{display:none;}
+            .kpi-grid{grid-template-columns:1fr 1fr;}
+            .charts-row, .tables-row{grid-template-columns:1fr;}
+            .content{padding:16px;}
+            .submit-row.sticky-bottom{
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                margin: 0;
+                padding: 16px;
+                background: var(--bg);
+                z-index: 1000;
+                border-top: 1px solid var(--border);
+            }
+        }
     </style>
 </head>
 <body>
