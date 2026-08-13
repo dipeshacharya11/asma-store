@@ -247,7 +247,17 @@ class HeroSlideAdmin(admin.ModelAdmin):
         "is_active",
     )
 
-    actions = ['delete_selected']
+    actions = ['delete_selected', 'activate_slides', 'deactivate_slides']
+
+    @admin.action(description="Activate selected slides")
+    def activate_slides(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f"{updated} slide(s) activated.")
+
+    @admin.action(description="Deactivate selected slides")
+    def deactivate_slides(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f"{updated} slide(s) deactivated.")
 
     fieldsets = (
         (None, {
@@ -281,7 +291,17 @@ class BlogPostAdmin(admin.ModelAdmin):
         "is_published",
     )
 
-    actions = ['delete_selected']
+    actions = ['delete_selected', 'make_published', 'make_unpublished']
+
+    @admin.action(description="Mark selected posts as published")
+    def make_published(self, request, queryset):
+        updated = queryset.update(is_published=True)
+        self.message_user(request, f"{updated} post(s) marked as published.")
+
+    @admin.action(description="Mark selected posts as unpublished")
+    def make_unpublished(self, request, queryset):
+        updated = queryset.update(is_published=False)
+        self.message_user(request, f"{updated} post(s) marked as unpublished.")
 
     fieldsets = (
         (None, {
@@ -309,7 +329,17 @@ class TestimonialAdmin(admin.ModelAdmin):
         "rating",
     )
 
-    actions = ['delete_selected']
+    actions = ['delete_selected', 'activate_testimonials', 'deactivate_testimonials']
+
+    @admin.action(description="Activate selected testimonials")
+    def activate_testimonials(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f"{updated} testimonial(s) activated.")
+
+    @admin.action(description="Deactivate selected testimonials")
+    def deactivate_testimonials(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f"{updated} testimonial(s) deactivated.")
 
     fieldsets = (
         (None, {
@@ -333,7 +363,17 @@ class CouponAdmin(admin.ModelAdmin):
         "is_active",
     )
 
-    actions = ['delete_selected']
+    actions = ['delete_selected', 'activate_coupons', 'deactivate_coupons']
+
+    @admin.action(description="Activate selected coupons")
+    def activate_coupons(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f"{updated} coupon(s) activated.")
+
+    @admin.action(description="Deactivate selected coupons")
+    def deactivate_coupons(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f"{updated} coupon(s) deactivated.")
 
     fieldsets = (
         (None, {
@@ -367,11 +407,40 @@ class OrderAdmin(admin.ModelAdmin):
         "status",
     )
 
-    list_editable = (
-        "status",
-    )
+    # We do not allow bulk deletion of orders for safety.
+    # Instead, we provide actions to change the status.
+    actions = [
+        'mark_as_pending',
+        'mark_as_paid',
+        'mark_as_shipped',
+        'mark_as_delivered',
+        'mark_as_cancelled',
+    ]
 
-    actions = ['delete_selected']
+    @admin.action(description="Mark selected orders as Pending")
+    def mark_as_pending(self, request, queryset):
+        updated = queryset.update(status='pending')
+        self.message_user(request, f"{updated} order(s) marked as Pending.")
+
+    @admin.action(description="Mark selected orders as Paid")
+    def mark_as_paid(self, request, queryset):
+        updated = queryset.update(status='paid')
+        self.message_user(request, f"{updated} order(s) marked as Paid.")
+
+    @admin.action(description="Mark selected orders as Shipped")
+    def mark_as_shipped(self, request, queryset):
+        updated = queryset.update(status='shipped')
+        self.message_user(request, f"{updated} order(s) marked as Shipped.")
+
+    @admin.action(description="Mark selected orders as Delivered")
+    def mark_as_delivered(self, request, queryset):
+        updated = queryset.update(status='delivered')
+        self.message_user(request, f"{updated} order(s) marked as Delivered.")
+
+    @admin.action(description="Mark selected orders as Cancelled")
+    def mark_as_cancelled(self, request, queryset):
+        updated = queryset.update(status='cancelled')
+        self.message_user(request, f"{updated} order(s) marked as Cancelled.")
 
     inlines = [
         OrderItemInline,
@@ -404,7 +473,17 @@ class SignatureCollectionAdmin(admin.ModelAdmin):
         "is_active",
     )
 
-    actions = ['delete_selected']
+    actions = ['delete_selected', 'activate_collections', 'deactivate_collections']
+
+    @admin.action(description="Activate selected collections")
+    def activate_collections(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f"{updated} collection(s) activated.")
+
+    @admin.action(description="Deactivate selected collections")
+    def deactivate_collections(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f"{updated} collection(s) deactivated.")
 
     list_filter = (
         "is_active",

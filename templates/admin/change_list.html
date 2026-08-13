@@ -113,14 +113,14 @@
             {% if cl.has_active_filters %}<span class="admin-filter-count">({{ cl.active_filters|length }})</span>{% endif %}
             <button type="button" id="filter-toggle" class="admin-filter-button" aria-label="Toggle filters">
                 Filters
-                <span class="admin-filter-icon">���▾</span>
+                <span class="admin-filter-icon">�������▾</span>
             </button>
             <div id="filter-panel" class="admin-filter-panel" style="display:none; position:absolute; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); z-index:1000;">
                 {% if cl.has_filters %}
                 <div class="admin-filter-bar">
                     <div class="admin-filter-title">
                         <span>Filters</span>
-                        <button type="button" id="filter-close" class="admin-filter-close" aria-label="Close filters">������✕</button>
+                        <button type="button" id="filter-close" class="admin-filter-close" aria-label="Close filters">��������������✕</button>
                     </div>
                     <!-- Native Django filters - no custom tags -->
                     {% for filter_spec in cl.filter_specs %}
@@ -174,8 +174,9 @@
                     </label>
                     <span id="selection-count" style="font-size:13px; color:var(--muted);">0 selected</span>
                 </div>
-                <div style="flex:1; min-width:200px;">
-                    {{ action_form.as_p }}
+                <div style="flex:1; min-width:150px;">
+                    <label for="{{ action_form.action.auto_id }}">{{ action_form.action.label }}</label>
+                    {{ action_form.action }}
                 </div>
                 <button type="submit" class="admin-button-primary">Run</button>
             </div>
@@ -234,8 +235,9 @@
                     </label>
                     <span id="selection-count-bottom" style="font-size:13px; color:var(--muted);">0 selected</span>
                 </div>
-                <div style="flex:1; min-width:200px;">
-                    {{ action_form.as_p }}
+                <div style="flex:1; min-width:150px;">
+                    <label for="{{ action_form.action.auto_id }}">{{ action_form.action.label }}</label>
+                    {{ action_form.action }}
                 </div>
                 <button type="submit" class="admin-button-primary">Run</button>
             </div>
