@@ -52,11 +52,17 @@ class OTPService:
         otp = generate_otp()
         # Create OTP record (this also invalidates old OTPs for the same purpose)
         otp_record, otp = create_otp_record(user, phone_number, purpose)
+        # Update status to SENT
+        otp_record.status = 'SENT'
+        otp_record.save(update_fields=['status'])
         # Send OTP via SMS
         success, message_id, raw_response = self.sms_service.send_otp(phone_number, otp)
         if success:
             # Increment rate limit counter on success
             self._increment_rate_limit(phone_number)
+            # Increment resend count
+            otp_record.resend_count += 1
+            otp_record.save(update_fields=['resend_count'])
             logger.info(f"OTP sent to {phone_number} for user {user.username if user else 'None'} (purpose: {purpose}). Message ID: {message_id}")
             return True, "OTP sent successfully.", otp_record
         else:
@@ -97,9 +103,8 @@ class OTPService:
         OTP.objects.filter(
             phone_number=phone_number,
             purpose=purpose,
-            is_verified=False,
-            is_used=False
-        ).update(is_used=True)
+            status='SENT'
+        ).update(status='CONSUMED')
 
     def cleanup_expired(self):
         """Delete expired OTP records"""

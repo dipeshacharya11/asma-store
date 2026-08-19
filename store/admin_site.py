@@ -43,7 +43,7 @@ class AsmaAdminSite(AdminSite):
 
         # OTP and verification counts
         otp_count = OTP.objects.count()
-        unverified_otp_count = OTP.objects.filter(is_verified=False).count()
+        unverified_otp_count = OTP.objects.exclude(status='VERIFIED').count()
         verified_guest_phone_count = VerifiedGuestPhone.objects.filter(is_active=True).count()
         user_profile_count = UserProfile.objects.count()
         phone_verified_count = UserProfile.objects.filter(is_phone_verified=True).count()

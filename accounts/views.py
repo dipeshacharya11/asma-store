@@ -6,9 +6,11 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from accounts.services.otp_service import OTPService
-from accounts.forms import OTPVerificationForm, SignUpForm
-from accounts.models import UserProfile
+from accounts.forms import OTPVerificationForm, SignUpForm, ForgotPasswordForm, SetNewPasswordForm
+from accounts.models import UserProfile, PendingSignup
+from django.contrib.auth import get_user_model
 import logging
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +18,7 @@ def signup_view(request):
     """
     Handle user signup via form submission.
     GET: Display empty signup form.
-    POST: Validate form, create user and profile (inactive), send OTP for phone verification,
+    POST: Validate form, save pending signup data, send OTP for phone verification,
           then redirect to OTP verification page.
     """
     if request.method == 'GET':
@@ -26,26 +28,41 @@ def signup_view(request):
     elif request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
-            # Save user and profile (user will be active by default from form)
-            user = form.save(commit=True)
-            # Make user inactive until phone verification
-            user.is_active = False
-            user.save(update_fields=['is_active'])
+            # Save pending signup data instead of creating user immediately
+            from django.core import serializers
+            import json
+
+            # Prepare user data for storage
+            user_data = {
+                'username': form.cleaned_data['username'],
+                'email': form.cleaned_data['email'],
+                'name': form.cleaned_data.get('name', ''),
+                'address': form.cleaned_data.get('address', ''),
+                'password1': form.cleaned_data['password1'],
+                'password2': form.cleaned_data['password2'],
+            }
+
+            # Create pending signup record
+            phone_number = form.cleaned_data['phone_number']
+            pending_signup = PendingSignup.objects.create(
+                user_data=user_data,
+                phone_number=phone_number,
+                expires_at=timezone.now() + timezone.timedelta(minutes=30)  # 30 minutes to complete verification
+            )
 
             # Send OTP for phone verification
             otp_service = OTPService()
-            phone_number = form.cleaned_data['phone_number']
-            success, message, otp_record = otp_service.send_otp(user, phone_number, 'signup')
+            success, message, otp_record = otp_service.send_otp(None, phone_number, 'signup')
             if success:
-                # Store user id and phone number in session for OTP verification
-                request.session['pre_verified_user_id'] = user.id
+                # Store pending signup id in session for OTP verification
+                request.session['pending_signup_id'] = pending_signup.id
                 request.session['phone_number'] = phone_number
                 request.session['otp_purpose'] = 'signup'
                 messages.info(request, "Please verify your phone number to complete signup.")
                 return redirect('accounts:verify_otp')
             else:
-                # OTP sending failed: delete the user (and profile) to avoid duplicate phone/email
-                user.delete()
+                # OTP sending failed: delete the pending signup to avoid duplicate phone/email
+                pending_signup.delete()
                 messages.error(request, message)
                 # Show empty form for user to try again
                 form = SignUpForm()
@@ -181,7 +198,6 @@ def verify_otp_view(request):
                 # Mark guest phone as verified and store in session for checkout
                 request.session['guest_phone_verified'] = True
                 request.session['guest_phone'] = phone_number
-                request.session['guest_name'] = request.session.get('guest_name')
                 # Retrieve guest data from session and store in checkout session for pre-filling the form
                 guest_name = request.session.get('guest_name', '')
                 guest_email = request.session.get('guest_email', '')
@@ -198,10 +214,11 @@ def verify_otp_view(request):
                 request.session.pop('guest_email', None)
                 request.session.pop('guest_address', None)
                 request.session.pop('guest_city', None)
+                request.session.pop('guest_phone', None)
                 if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                    return JsonResponse({'success': True, 'message': 'Phone verified! You can now complete your order.', 'redirect_url': '/checkout/'})
+                    return JsonResponse({'success': True, 'message': 'Phone verified! You can now complete your order.', 'redirect_url': '/accounts/guest-verify-success/'})
                 messages.success(request, "Phone number verified. You can now complete your order.")
-                return redirect('store:checkout')
+                return redirect('accounts:guest_verify_success')
 
             elif purpose == 'login':
                 # User login purpose: mark phone as verified and log in the user
@@ -231,25 +248,81 @@ def verify_otp_view(request):
                 return redirect('accounts:login')
 
             elif purpose == 'signup':
-                # Signup purpose: activate the user and log them in
-                if user_id:
-                    from django.contrib.auth import get_user_model
-                    User = get_user_model()
+                # Signup purpose: create user from pending signup and log them in
+                pending_signup_id = request.session.get('pending_signup_id')
+                if pending_signup_id:
                     try:
-                        user = User.objects.get(id=user_id)
-                        user.is_active = True
-                        # Mark phone as verified
-                        profile = user.profile
-                        profile.is_phone_verified = True
-                        profile.save(update_fields=['is_phone_verified'])
-                        user.save()
-                        login(request, user)
-                        messages.success(request, "Your account has been created and verified.")
-                        return redirect('store:account')
-                    except User.DoesNotExist:
-                        pass
-                messages.error(request, "User not found.")
-                return redirect('accounts:signup')
+                        pending_signup = PendingSignup.objects.get(id=pending_signup_id)
+                        if pending_signup.is_valid():
+                            # Create user from pending data
+                            user_data = pending_signup.user_data
+                            from django.contrib.auth import get_user_model
+                            User = get_user_model()
+
+                            # Check if username or email already exists (double-check)
+                            if User.objects.filter(username=user_data['username']).exists():
+                                pending_signup.delete()
+                                messages.error(request, "A user with that username already exists.")
+                                return redirect('accounts:signup')
+
+                            if User.objects.filter(email=user_data['email']).exists():
+                                pending_signup.delete()
+                                messages.error(request, "A user with that email already exists.")
+                                return redirect('accounts:signup')
+
+                            # Create user
+                            user = User.objects.create_user(
+                                username=user_data['username'],
+                                email=user_data['email'],
+                                password=user_data['password1']
+                            )
+
+                            # Update profile
+                            from accounts.models import UserProfile
+                            profile = UserProfile.objects.create(
+                                user=user,
+                                phone_number=pending_signup.phone_number,
+                                address=user_data.get('address', '')
+                            )
+
+                            # Set name fields
+                            name = user_data.get('name', '').strip()
+                            if name:
+                                name_parts = name.split(' ', 1)
+                                user.first_name = name_parts[0]
+                                user.last_name = name_parts[1] if len(name_parts) > 1 else ''
+                            else:
+                                user.first_name = ''
+                                user.last_name = ''
+
+                            # Mark phone as verified
+                            profile.is_phone_verified = True
+
+                            # Mark pending signup as used
+                            pending_signup.mark_as_used()
+
+                            # Save user and profile
+                            user.save()
+                            profile.save()
+
+                            # Log in the user
+                            login(request, user)
+                            messages.success(request, "Your account has been created and verified.")
+                            return redirect('store:account')
+                        else:
+                            # Pending signup is invalid (expired or used)
+                            pending_signup.delete()
+                            if pending_signup.is_expired():
+                                messages.error(request, "Signup session has expired. Please start over.")
+                            else:
+                                messages.error(request, "This signup has already been used.")
+                            return redirect('accounts:signup')
+                    except PendingSignup.DoesNotExist:
+                        messages.error(request, "Invalid signup session. Please start over.")
+                        return redirect('accounts:signup')
+                else:
+                    messages.error(request, "Invalid session data. Please try again.")
+                    return redirect('accounts:signup')
 
             elif purpose == 'password_reset':
                 # Password reset purpose: redirect to set new password page
@@ -297,26 +370,119 @@ def verify_otp_view(request):
 
 def resend_otp_view(request):
     """
-    Stub for resend OTP view - to be implemented properly.
+    Resend OTP for verification.
     """
     if request.method == 'POST':
-        # In a real implementation, we would resend the OTP
-        messages.success(request, "OTP resent successfully.")
+        # Get session data
+        phone_number = request.session.get('phone_number')
+        purpose = request.session.get('otp_purpose')
+        user_id = request.session.get('pre_verified_user_id')
+        pending_signup_id = request.session.get('pending_signup_id')
+
+        if not phone_number or not purpose:
+            messages.error(request, "Session expired. Please try again.")
+            return redirect('accounts:login')
+
+        # Initialize OTP service
+        otp_service = OTPService()
+
+        # Get user if applicable (for login, change_phone purposes)
+        user = None
+        if user_id and purpose != 'signup':
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            try:
+                user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                pass
+
+        # For signup purpose, we don't have a user yet, but we need to verify the pending signup is valid
+        if purpose == 'signup' and pending_signup_id:
+            from accounts.models import PendingSignup
+            try:
+                pending_signup = PendingSignup.objects.get(id=pending_signup_id)
+                if not pending_signup.is_valid():
+                    messages.error(request, "Signup session has expired or already used.")
+                    return redirect('accounts:signup')
+            except PendingSignup.DoesNotExist:
+                messages.error(request, "Invalid signup session.")
+                return redirect('accounts:signup')
+
+        # Resend OTP
+        success, message, otp_record = otp_service.resend_otp(user, phone_number, purpose)
+
+        if success:
+            messages.success(request, "OTP resent successfully.")
+        else:
+            messages.error(request, message)
+
         return redirect('accounts:verify_otp')
     return redirect('accounts:login')
 
 def guest_checkout_otp_request_view(request):
     """
-    Stub for guest checkout OTP request view - to be implemented properly.
+    Handle OTP request for guest checkout.
     """
     if request.method == 'POST':
-        phone_number = request.POST.get('phone')
-        # In a real implementation, we would send OTP and store guest name in session
-        request.session['guest_name'] = request.POST.get('full_name', '')
-        request.session['guest_phone'] = phone_number
-        request.session['otp_purpose'] = 'guest_checkout'
-        messages.success(request, "OTP sent to your phone. Please verify to continue.")
-        return redirect('accounts:verify_otp')
+        # Get form data
+        full_name = request.POST.get('full_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        address = request.POST.get('address', '').strip()
+        city = request.POST.get('city', '').strip()
+
+        # Validate required fields
+        if not full_name:
+            messages.error(request, "Full name is required.")
+            return render(request, 'accounts/guest_checkout_otp_request.html')
+
+        if not email:
+            messages.error(request, "Email address is required.")
+            return render(request, 'accounts/guest_checkout_otp_request.html')
+
+        if not phone:
+            messages.error(request, "Phone number is required.")
+            return render(request, 'accounts/guest_checkout_otp_request.html')
+
+        # Use phone verification service to check ownership and send OTP if needed
+        from accounts.services.phone_verification import PhoneVerificationService
+        phone_verification_service = PhoneVerificationService()
+
+        success, message, verification_obj = phone_verification_service.verify_phone_for_checkout(phone)
+
+        if success and verification_obj is not None:
+            # OTP sent successfully - need to verify
+            # Store guest data for later use
+            request.session['guest_name'] = full_name
+            request.session['guest_email'] = email
+            request.session['guest_address'] = address
+            request.session['guest_city'] = city
+            request.session['guest_phone'] = phone
+            request.session['otp_purpose'] = 'guest_checkout'
+            messages.info(request, message)
+            return redirect('accounts:verify_otp')
+        elif success and verification_obj is None:
+            # Phone already verified
+            messages.info(request, message)
+            # Proceed with order processing (will be handled below)
+            # Store guest data in checkout session for prefilling
+            request.session['checkout_phone'] = phone
+            request.session['checkout_full_name'] = full_name
+            request.session['checkout_email'] = email
+            request.session['checkout_address'] = address
+            request.session['checkout_city'] = city
+            request.session['guest_phone_verified'] = True
+            return redirect('store:checkout')
+        else:
+            # Failed to send OTP or phone belongs to another user
+            messages.error(request, message)
+            return render(request, 'accounts/guest_checkout_otp_request.html', {
+                'full_name': full_name,
+                'email': email,
+                'phone': phone,
+                'address': address,
+                'city': city
+            })
     return render(request, 'accounts/guest_checkout_otp_request.html')
 
 def change_phone_view(request):
@@ -365,7 +531,6 @@ def change_phone_view(request):
 
     else:
         return redirect('accounts:login')
-
 
 def add_phone_for_login(request):
     """
@@ -429,7 +594,6 @@ def add_phone_for_login(request):
     else:
         return redirect('accounts:login')
 
-
 def send_otp_for_login_view(request):
     """
     Handle sending OTP for login via phone number.
@@ -482,15 +646,117 @@ def send_otp_for_login_view(request):
     else:
         return redirect('accounts:login')
 
-
 def password_reset_request_view(request):
     """
-    Stub for password reset request view - to be implemented properly.
+    Handle password reset request via phone number.
+    GET: Display phone number entry form
+    POST: Validate phone number, find user, send OTP for verification, redirect to OTP verification
     """
-    return render(request, 'accounts/password_reset_request.html')
+    if request.method == 'GET':
+        form = ForgotPasswordForm()
+        return render(request, 'accounts/password_reset_request.html', {'form': form})
+
+    elif request.method == 'POST':
+        form = ForgotPasswordForm(request.POST)
+        if form.is_valid():
+            phone_number = form.cleaned_data['phone_number']
+
+            # Normalize the phone number for lookup
+            normalized_phone = ''.join(filter(str.isdigit, phone_number))
+            # Remove leading zeros
+            while normalized_phone.startswith('0') and len(normalized_phone) > 1:
+                normalized_phone = normalized_phone[1:]
+            # Remove Nepal country code if present
+            if normalized_phone.startswith('977') and len(normalized_phone) > 3:
+                normalized_phone = normalized_phone[3:]
+
+            # Now normalized_phone should be 10 digits starting with 97 or 98
+            try:
+                # Look for user by phone number in profile
+                profile = UserProfile.objects.get(phone_number=normalized_phone)
+                user = profile.user
+            except UserProfile.DoesNotExist:
+                # Do not reveal that the phone number is not registered
+                messages.info(request, "If the phone number is registered, an OTP has been sent to that number.")
+                return render(request, 'accounts/password_reset_request.html', {'form': form})
+
+            # Send OTP for password reset purpose
+            otp_service = OTPService()
+            success, message, otp_record = otp_service.send_otp(user, normalized_phone, 'password_reset')
+
+            if success:
+                # Store user id in session for OTP verification
+                request.session['pre_verified_user_id'] = user.id
+                request.session['phone_number'] = normalized_phone
+                request.session['otp_purpose'] = 'password_reset'
+                messages.info(request, "Please verify your phone number to reset your password.")
+                return redirect('accounts:verify_otp')
+            else:
+                messages.error(request, message)
+                return render(request, 'accounts/password_reset_request.html', {'form': form})
+        else:
+            return render(request, 'accounts/password_reset_request.html', {'form': form})
+
+    else:
+        return redirect('accounts:login')
 
 def password_reset_set_password_view(request):
     """
-    Stub for password reset set password view - to be implemented properly.
+    Handle setting new password after successful OTP verification for password reset.
+    GET: Display password reset form
+    POST: Validate form, set new password, log user in
     """
-    return render(request, 'accounts/password_reset_set_password.html')
+    # Check if we have a user ID in session from password reset request
+    user_id = request.session.get('reset_user_id')
+    if not user_id:
+        messages.error(request, "Password reset session expired. Please try again.")
+        return redirect('accounts:password_reset_request')
+
+    # Get the user from session
+    User = get_user_model()
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        messages.error(request, "User not found. Please try again.")
+        return redirect('accounts:password_reset_request')
+
+    if request.method == 'GET':
+        form = SetNewPasswordForm()
+        return render(request, 'accounts/password_reset_set_password.html', {'form': form})
+
+    elif request.method == 'POST':
+        form = SetNewPasswordForm(request.POST)
+        if form.is_valid():
+            new_password = form.cleaned_data['new_password']
+
+            # Set the new password
+            user.set_password(new_password)
+            user.save()
+
+            # Clear reset session data
+            request.session.pop('reset_user_id', None)
+            request.session.pop('pre_verified_user_id', None)
+            request.session.pop('phone_number', None)
+            request.session.pop('otp_purpose', None)
+
+            # Log the user in with the new password
+            login(request, user)
+            messages.success(request, "Your password has been reset successfully.")
+            return redirect('store:account')
+        else:
+            return render(request, 'accounts/password_reset_set_password.html', {'form': form})
+
+    else:
+        return redirect('accounts:password_reset_request')
+
+def guest_verify_success_view(request):
+    """
+    Show OTP verification success page for guest checkout and then redirect to checkout.
+    """
+    # Check if we have verified guest phone in session
+    if not request.session.get('guest_phone_verified'):
+        messages.error(request, "Verification session expired. Please start over.")
+        return redirect('store:checkout')
+
+    # We'll show a success page and then redirect to checkout after a short delay
+    return render(request, 'accounts/guest_verify_success.html')

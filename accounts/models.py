@@ -21,6 +21,20 @@ class OTP(models.Model):
         ('change_phone', 'Change Phone'),
     ]
 
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('SENT', 'Sent'),
+        ('VERIFIED', 'Verified'),
+        ('ALREADY_VERIFIED', 'Already Verified'),
+        ('INVALID', 'Invalid'),
+        ('EXPIRED', 'Expired'),
+        ('MAX_ATTEMPTS', 'Max Attempts'),
+        ('RESEND_COOLDOWN', 'Resend Cooldown'),
+        ('RESEND_LIMIT', 'Resend Limit'),
+        ('SEND_FAILED', 'Send Failed'),
+        ('CONSUMED', 'Consumed'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='otp_records', blank=True, null=True)
     phone_number = models.CharField(
         max_length=15,
@@ -36,8 +50,11 @@ class OTP(models.Model):
     expires_at = models.DateTimeField()
     attempts = models.IntegerField(default=0)
     max_attempts = models.IntegerField(default=5)  # Default, will be overridden by setting when creating
-    is_verified = models.BooleanField(default=False)
-    is_used = models.BooleanField(default=False)
+    verified_at = models.DateTimeField(null=True, blank=True)
+    resend_count = models.IntegerField(default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    # Optional: reference to order for guest checkout
+    order = models.ForeignKey('store.Order', on_delete=models.SET_NULL, null=True, blank=True, related_name='otp_record')
 
     class Meta:
         indexes = [
@@ -56,7 +73,7 @@ class OTP(models.Model):
         return timezone.now() > self.expires_at
 
     def is_valid_attempt(self):
-        return self.attempts < self.max_attempts and not self.is_expired() and not self.is_used
+        return self.status == 'SENT' and self.attempts < self.max_attempts and not self.is_expired()
 
     def increment_attempts(self):
         self.attempts += 1
@@ -64,7 +81,12 @@ class OTP(models.Model):
 
     def verify(self, otp_code):
         """Verify OTP using Argon2 or PBKDF2 fallback"""
-        if self.is_expired() or self.is_used or not self.is_valid_attempt():
+        if not self.is_valid_attempt():
+            if self.is_expired():
+                self.status = 'EXPIRED'
+            else:
+                self.status = 'MAX_ATTEMPTS'
+            self.save(update_fields=['status'])
             return False
 
         self.increment_attempts()
@@ -94,10 +116,16 @@ class OTP(models.Model):
             return False
 
         # Mark as verified and used
-        self.is_verified = True
-        self.is_used = True
-        self.save(update_fields=['is_verified', 'is_used'])
+        self.status = 'VERIFIED'
+        self.verified_at = timezone.now()
+        self.save(update_fields=['status', 'verified_at'])
         return True
+
+    def consume(self):
+        """Mark the OTP as consumed after use (e.g., after account creation or order placement)"""
+        if self.status == 'VERIFIED':
+            self.status = 'CONSUMED'
+            self.save(update_fields=['status'])
 
     @classmethod
     def create_otp(cls, phone_number, purpose, user=None):
@@ -135,7 +163,8 @@ class OTP(models.Model):
             user=user,
             otp_hash=otp_hash,
             verification_token=secrets.token_urlsafe(32),
-            expires_at=timezone.now() + timezone.timedelta(minutes=settings.OTP_EXPIRY_MINUTES)
+            expires_at=timezone.now() + timezone.timedelta(minutes=settings.OTP_EXPIRY_MINUTES),
+            status='PENDING'
         )
         otp.save()
         return otp, otp_code
@@ -146,7 +175,7 @@ class OTP(models.Model):
         cls.objects.filter(expires_at__lt=timezone.now()).delete()
 
     def __str__(self):
-        return f"OTP for {self.phone_number} ({self.purpose}) - {'Verified' if self.is_verified else 'Pending'}"
+        return f"OTP for {self.phone_number} ({self.purpose}) - {self.status}"
 
 
 class UserProfile(models.Model):
@@ -233,3 +262,45 @@ class VerifiedGuestPhone(models.Model):
         self.save(update_fields=['expires_at'])
 
 
+class PendingSignup(models.Model):
+    """
+    Temporary storage for signup data during OTP verification process.
+    """
+    user_data = models.JSONField(
+        help_text="Encrypted JSON data containing user signup information"
+    )
+    phone_number = models.CharField(
+        max_length=15,
+        validators=[RegexValidator(
+            regex=r'^(97|98)\d{8}$',
+            message='Phone number must be 10 digits starting with 97 or 98'
+        )]
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(
+        help_text="When this pending signup expires and should be cleaned up"
+    )
+    is_used = models.BooleanField(
+        default=False,
+        help_text="Whether this pending signup has been used to create a user"
+    )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['phone_number', 'created_at']),
+            models.Index(fields=['expires_at']),
+        ]
+
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+    def is_valid(self):
+        return not self.is_used and not self.is_expired()
+
+    def mark_as_used(self):
+        """Mark this pending signup as used"""
+        self.is_used = True
+        self.save(update_fields=['is_used'])
+
+    def __str__(self):
+        return f"Pending signup for {self.phone_number} ({'Used' if self.is_used else 'Pending'})"

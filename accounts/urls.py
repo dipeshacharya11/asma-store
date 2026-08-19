@@ -12,6 +12,8 @@ urlpatterns = [
     path('resend-otp/', views.resend_otp_view, name='resend_otp'),
     # Guest checkout
     path('guest-checkout/otp-request/', views.guest_checkout_otp_request_view, name='guest_checkout_otp_request'),
+    # Guest verify success
+    path('guest-verify-success/', views.guest_verify_success_view, name='guest_verify_success'),
     # Change phone
     path('change-phone/', views.change_phone_view, name='change_phone'),
     # Add phone for login
