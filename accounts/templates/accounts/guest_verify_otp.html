@@ -1,0 +1,286 @@
+{% extends "store/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Verify Phone" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">{% trans "Verify Phone Number" %}</h3>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <form method="post" id="otpForm">
+                        {% csrf_token %}
+                        <div class="mb-4 text-center">
+                            <h5>{% trans "We've sent a 6-digit verification code to" %}</h5>
+                            <h4 id="phoneNumberDisplay" class="mb-3">{{ phone_number }}</h4>
+                        </div>
+                        <div class="mb-4" id="otpInputs">
+                            <div class="d-flex justify-content-center gap-2">
+                                {% for i in "123456" %}
+                                    <input type="text" class="form-control otp-input" maxlength="1" data-index="{{ forloop.counter0 }}" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*">
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div id="otpStatus" class="mb-3 text-center p-3 rounded" style="min-height: 60px;"></div>
+                        <div id="otpTimer" class="mb-3 text-center fw-bold" style="display: none;">
+                            {% trans "Code expires in" %}: <span id="timerDisplay">05:00</span>
+                        </div>
+                        <div id="resendContainer" class="text-center mt-3" style="display: none;">
+                            <button type="button" class="btn btn-outline-primary" id="resendButton">
+                                {% trans "Resend Code" %}
+                            </button>
+                            <span id="resendCountdown" class="ms-2"></span>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" id="verifyButton">
+                                {% trans "Verify Phone" %} <span id="verifySpinner" class="ms-2 d-none">
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('otpForm');
+    const inputs = document.querySelectorAll('.otp-input');
+    const verifyButton = document.getElementById('verifyButton');
+    const verifySpinner = document.getElementById('verifySpinner');
+    const resendButton = document.getElementById('resendButton');
+    const resendContainer = document.getElementById('resendContainer');
+    const resendCountdown = document.getElementById('resendCountdown');
+    const otpStatus = document.getElementById('otpStatus');
+    const otpTimer = document.getElementById('otpTimer');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const phoneNumberDisplay = document.getElementById('phoneNumberDisplay');
+
+    // Set phone number from context
+    phoneNumberDisplay.textContent = "{{ phone_number|default_if_none:'' }}";
+
+    // OTP input handling
+    inputs.forEach((input, index) => {
+        input.addEventListener('input', function(e) {
+            // Allow only numbers
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value.length === 1 && index < inputs.length - 1) {
+                inputs[index + 1].focus();
+            }
+            if (this.value.length === 0 && index > 0) {
+                inputs[index - 1].focus();
+            }
+        });
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && this.value.length === 0 && index > 0) {
+                e.preventDefault();
+                inputs[index - 1].focus();
+            }
+        });
+
+        // Paste handling
+        input.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const paste = (e.clipboardData || window.clipboardData).getData('text');
+            const numbersOnly = paste.replace(/[^0-9]/g, '');
+            // Fill the inputs with the pasted numbers
+            inputs.forEach((input, i) => {
+                input.value = numbersOnly[i] || '';
+            });
+            // Move focus to the last filled input
+            const lastFilled = Array.from(inputs).findLastIndex(input => input.value.length > 0);
+            if (lastFilled >= 0) {
+                inputs[lastFilled].focus();
+            }
+        });
+    });
+
+    // Auto focus first input
+    if (inputs.length > 0) {
+        inputs[0].focus();
+    }
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        // Collect OTP from inputs
+        const otp = Array.from(inputs).map(input => input.value).join('');
+        if (otp.length !== 6) {
+            otpStatus.textContent = "{% trans 'Please enter a 6-digit code' %}";
+            otpStatus.className = 'mb-3 text-center p-3 rounded bg-danger text-white';
+            return;
+        }
+        // Show spinner and disable button
+        verifySpinner.classList.remove('d-none');
+        verifyButton.disabled = true;
+        // Submit via fetch
+        fetch("{% url 'accounts:verify_otp' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: new URLSearchParams({ 'otp': otp })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if data.redirect_url {
+                window.location.href = data.redirect_url;
+            } else {
+                otpStatus.textContent = data.message || "{% trans 'An error occurred' %}";
+                otpStatus.className = 'mb-3 text-center p-3 rounded bg-danger text-white';
+                verifySpinner.classList.add('d-none');
+                verifyButton.disabled = false;
+            }
+        })
+        .catch(error => {
+            otpStatus.textContent = "{% trans 'Network error. Please try again.' %}";
+            otpStatus.className = 'mb-3 text-center p-3 rounded bg-danger text-white';
+            verifySpinner.classList.add('d-none');
+            verifyButton.disabled = false;
+        });
+    });
+
+    // Resend button (if applicable)
+    if (resendButton) {
+        resendButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            resendButton.disabled = true;
+            resendButton.textContent = "{% trans 'Sending...' %}";
+            fetch("{% url 'accounts:resend_otp' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if data.success {
+                    // Start resend cooldown
+                    let seconds = 60;
+                    resendCountdown.textContent = `(${seconds}s)`;
+                    const countdown = setInterval(() => {
+                        seconds--;
+                        if (seconds <= 0) {
+                            clearInterval(countdown);
+                            resendContainer.style.display = 'none';
+                            resendButton.disabled = false;
+                            resendButton.textContent = "{% trans 'Resend Code' %}";
+                        } else {
+                            resendCountdown.textContent = `(${seconds}s)`;
+                        }
+                    }, 1000);
+                    resendContainer.style.display = 'block';
+                    otpStatus.textContent = "{% trans 'New code sent.' %}";
+                    otpStatus.className = 'mb-3 text-center p-3 rounded bg-success text-white";
+                    // Reset timer
+                    startTimer(300); // 5 minutes
+                } else {
+                    otpStatus.textContent = data.message || "{% trans 'Failed to resend code' %}";
+                    otpStatus.className = 'mb-3 text-center p-3 rounded bg-danger text-white";
+                    resendButton.disabled = false;
+                    resendButton.textContent = "{% trans 'Resend Code' %}";
+                }
+            })
+            .catch(error => {
+                otpStatus.textContent = "{% trans 'Network error. Please try again.' %}";
+                otpStatus.className = 'mb-3 text-center p-3 rounded bg-danger text-white';
+                resendButton.disabled = false;
+                resendButton.textContent = "{% trans 'Resend Code' %}";
+            });
+        });
+    }
+
+    // Timer functionality (if applicable)
+    const expirySeconds = parseInt("{{ expiry_seconds|default:300 }}");
+    if (!isNaN(expirySeconds) && expirySeconds > 0) {
+        startTimer(expirySeconds);
+    }
+
+    function startTimer(seconds) {
+        let timeLeft = seconds;
+        otpTimer.style.display = 'block';
+        const timerInterval = setInterval(() => {
+            const minutes = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            timeLeft--;
+            if (timeLeft < 0) {
+                clearInterval(timerInterval);
+                otpTimer.style.display = 'none';
+                // Optionally show expired status
+                otpStatus.textContent = "{% trans 'Verification code has expired.' %}";
+                otpStatus.className = 'mb-3 text-center p-3 rounded bg-warning text-dark";
+                resendContainer.style.display = 'block';
+            }
+        }, 1000);
+    }
+
+    // Helper to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Set initial status from context
+    const statusMessage = "{{ status_message|default_if_none:'Enter the 6-digit verification code.' }}";
+    const statusClass = "{{ status_class|default_if_not:'status-otp-pending' }}";
+    if (statusMessage) {
+        otpStatus.textContent = statusMessage;
+        // Map status class to Bootstrap colors
+        let classMap = {
+            'status-otp-pending': 'bg-info text-white',
+            'status-otp-sent': 'bg-success text-white',
+            'status-otp-verifying': 'bg-primary text-white',
+            'status-otp-verified': 'bg-success text-white',
+            'status-otp-already-verified': 'bg-success text-white',
+            'status-otp-invalid': 'bg-danger text-white',
+            'status-otp-expired': 'bg-warning text-dark',
+            'status-otp-max-attempts': 'bg-danger text-white',
+            'status-otp-resend-cooldown': 'bg-info text-white',
+            'status-otp-resend-limit': 'bg-danger text-white',
+            'status-otp-send-failed': 'bg-danger text-white',
+            'status-otp-session-expired': 'bg-danger text-white'
+        };
+        otpStatus.className = `mb-3 text-center p-3 rounded ${classMap[statusClass] || 'bg-secondary text-white'}`;
+        // Show timer if applicable
+        if (["status-otp-sent", "status-otp-pending"].includes(statusClass)) {
+            otpTimer.style.display = 'block';
+        }
+        // Show resend button if applicable
+        if (["status-otp-expired", "status-otp-max-attempts"].includes(statusClass)) {
+            resendContainer.style.display = 'block';
+        }
+    }
+});
+</script>
+{% endblock %}
