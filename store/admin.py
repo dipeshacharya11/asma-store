@@ -8,3 +8,6 @@ class OTPAdmin(admin.ModelAdmin):
     search_fields = ('phone_number', 'user__username', 'user__email')
     readonly_fields = ('verification_token', 'created_at', 'expires_at')
     ordering = ('-created_at',)
+
+
+admin.site.register(OTP, OTPAdmin)
