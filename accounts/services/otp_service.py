@@ -69,7 +69,30 @@ class OTPService:
             logger.error(f"Failed to send OTP to {phone_number}: {raw_response}")
             # Delete the OTP record if SMS failed
             otp_record.delete()
-            return False, "Failed to send OTP. Please try again.", None
+
+            # Check for specific Sparrow SMS errors to provide better user messages
+            user_message = "Failed to send OTP. Please try again."
+            if isinstance(raw_response, dict):
+                # Check for Sparrow-specific error codes
+                if 'response_code' in raw_response:
+                    error_code = raw_response.get('response_code')
+                    error_response = raw_response.get('response', '')
+
+                    # Map known Sparrow error codes to user-friendly messages
+                    if error_code == 1011:  # No valid receiver
+                        user_message = "The phone number you entered is not valid or cannot receive SMS messages. Please check the number and try again."
+                    elif error_code == 1012:  # Invalid sender ID
+                        user_message = "Unable to send SMS due to sender configuration issue. Please try again later."
+                    elif error_code == 1013:  # Message too long
+                        user_message = "The message is too long to be sent as an SMS."
+                    elif error_code == 1014:  # Invalid message type
+                        user_message = "Invalid message type specified."
+                    elif 400 <= error_code < 500:
+                        # Other client errors
+                        user_message = f"Failed to send SMS: {error_response}"
+                    # For 5xx errors, we keep the generic message as they might be transient
+
+            return False, user_message, None
 
     def verify_otp(self, phone_number, otp, purpose):
         """
