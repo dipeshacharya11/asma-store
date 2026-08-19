@@ -1,0 +1,340 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static admin_urls %}
+
+{% block title %}{% trans 'Dashboard' %} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'asma_admin:index' %}">{% trans 'Home' %}</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+{% if orders %}
+<section class="module capsule">
+    <h2>{% trans 'Orders' %}</h2>
+    <div class="order-table">
+        <table id="orders_list">
+        <thead>
+            <tr>
+                <th>{% trans 'ID' %}</th>
+                <th>{% trans 'Customer' %}</th>
+                <th>{% trans 'Date' %}</th>
+                <th>{% trans 'Total' %}</th>
+                <th>{% trans 'Status' %}</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for order in orders %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+                <td>{{ order.id }}</td>
+                <td>{{ order.full_name }}</td>
+                <td>{{ order.created_at|date:"SHORT_DATETIME_FORMAT" }}</td>
+                <td>${{ order.total }}</td>
+                <td>
+                    {% if order.status == 'pending' %}<span class="pending">{% trans 'Pending' %}</span>
+                    {% elif order.status == 'paid' %}<span class="paid">{% trans 'Paid' %}</span>
+                    {% elif order.status == 'shipped' %}<span class="shipped">{% trans 'Shipped' %}</span>
+                    {% elif order.status == 'delivered' %}<span class="delivered">{% trans 'Delivered' %}</span>
+                    {% elif order.status == 'cancelled' %}<span class="cancelled">{% trans 'Cancelled' %}</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5">{% trans 'No orders yet.' %}</td></tr>
+        {% endfor %}
+        </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+{% if products %}
+<section class="module capsule">
+    <h2>{% trans 'Recent Products' %}</h2>
+    <div class="product-table">
+        <table id="products_list">
+        <thead>
+            <tr>
+                <th>{% trans 'Product' %}</th>
+                <th>{% trans 'SKU' %}</th>
+                <th>{% trans 'Price' %}</th>
+                <th>{% trans 'Stock' %}</th>
+                <th>{% trans 'Status' %}</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for product in products %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+                <td><a href="{% url 'asma_admin:store_product_change' product.id %}">{{ product.name }}</a></td>
+                <td>{{ product.sku }}</td>
+                <td>${{ product.price }}</td>
+                <td>{{ product.stock }}</td>
+                <td>
+                    {% if product.is_active %}<span class="active">{% trans 'Active' %}</span>
+                    {% else %}<span class="inactive">{% trans 'Inactive' %}</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5">{% trans 'No products yet.' %}</td></tr>
+        {% endfor %}
+        </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+{% if low_stock %}
+<section class="module capsule">
+    <h2>{% trans 'Low Stock Products' %}</h2>
+    <div class="product-table">
+        <table id="lowstock_list">
+        <thead>
+            <tr>
+                <th>{% trans 'Product' %}</th>
+                <th>{% trans 'SKU' %}</th>
+                <th>{% trans 'Stock' %}</th>
+                <th>{% trans 'Low Stock Threshold' %}</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for product in low_stock %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+                <td><a href="{% url 'asma_admin:store_product_change' product.id %}">{{ product.name }}</a></td>
+                <td>{{ product.sku }}</td>
+                <td>{{ product.stock }}</td>
+                <td>{{ LOW_STOCK_THRESHOLD }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="4">{% trans 'No low stock products.' %}</td></tr>
+        {% endfor %}
+        </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+{% if recent_orders %}
+<section class="module capsule">
+    <h2>{% trans 'Recent Orders' %}</h2>
+    <div class="order-table">
+        <table id="recent_orders_list">
+        <thead>
+            <tr>
+                <th>{% trans 'ID' %}</th>
+                <th>{% trans 'Customer' %}</th>
+                <th>{% trans 'Date' %}</th>
+                <th>{% trans 'Total' %}</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for order in recent_orders %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+                <td>{{ order.id }}</td>
+                <td>{{ order.full_name }}</td>
+                <td>{{ order.created_at|date:"SHORT_DATETIME_FORMAT" }}</td>
+                <td>${{ order.total }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="4">{% trans 'No recent orders.' %}</td></tr>
+        {% endfor %}
+        </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+{% if top_products %}
+<section class="module capsule">
+    <h2>{% trans 'Top Selling Products' %}</h2>
+    <div class="product-table">
+        <table id="top_products_list">
+        <thead>
+            <tr>
+                <th>{% trans 'Product' %}</th>
+                <th>{% trans 'Total Sold' %}</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for product in top_products %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+                <td>{{ product.product__name }}</td>
+                <td>{{ product.total_sold }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="2">{% trans 'No top selling products.' %}</td></tr>
+        {% endfor %}
+        </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+{% if otp_stats %}
+<section class="module capsule">
+    <h2>{% trans 'OTP Statistics' %}</h2>
+    <table id="otp_stats_list">
+    <thead>
+        <tr>
+            <th>{% trans 'Purpose' %}</th>
+            <th>{% trans 'Total' %}</th>
+            <th>{% trans 'Verified' %}</th>
+            <th>{% trans 'Expired' %}</th>
+            <th>{% trans 'Invalid' %}</th>
+            <th>{% trans 'Max Attempts' %}</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for stat in otp_stats %}
+        <tr class="{% cycle 'row1' 'row2' %}">
+            <td>{{ stat.purpose|title }}</td>
+            <td>{{ stat.total }}</td>
+            <td>{{ stat.verified }}</td>
+            <td>{{ stat.expired }}</td>
+            <td>{{ stat.invalid }}</td>
+            <td>{{ stat.max_attempts }}</td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="6">{% trans 'No OTP statistics.' %}</td></tr>
+    {% endfor %}
+    </tbody>
+    </table>
+</section>
+{% endif %}
+
+{% if trend_labels and trend_values %}
+<section class="module capsule">
+    <h2>{% trans 'Revenue Trend (Last 7 Days)' %}</h2>
+    <canvas id="revenueChart" width="400" height="200"></canvas>
+</section>
+{% endif %}
+
+{% if donut_data %}
+<section class="module capsule">
+    <h2>{% trans 'Revenue by Category' %}</h2>
+    <canvas id="categoryChart" width="400" height="200"></canvas>
+</section>
+{% endif %}
+
+{% if log_entries %}
+<section class="module">
+    <h2>{% trans 'Recent Actions' %}</h2>
+    <table id="action_list">
+    <thead>
+        <tr>
+            <th>{% trans 'Date/time' %}</th>
+            <th>{% trans 'User' %}</th>
+            <th>{% trans 'Action' %}</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for entry in log_entries %}
+        <tr class="{% cycle 'row1' 'row2' %}">
+            <td>{{ entry.action_time|date:"SHORT_DATETIME_FORMAT" }}</td>
+            <td>{{ entry.user.get_username }}</td>
+            <td>{{ entry.get_change_message|default:entry.subtitle }}</td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="3">{% trans 'No actions available.' %}</td></tr>
+    {% endfor %}
+    </tbody>
+    </table>
+</section>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block extrastyle %}
+<style>
+    .module { margin-bottom: 20px; }
+    .capsule { background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 4px; padding: 15px; }
+    .module h2 { font-size: 16px; margin-top: 0; color: #333; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px; }
+    .order-table table, .product-table table { width: 100%; border-collapse: collapse; }
+    .order-table th, .order-table td, .product-table th, .product-table td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+    .order-table th, .product-table th { background-color: #f2f2f2; }
+    .order-table tbody tr:hover, .product-table tbody tr:hover { background-color: #f5f5f5; }
+    .pending { color: #e67e22; }
+    .paid { color: #27ae60; }
+    .shipped { color: #3498db; }
+    .delivered { color: #2ecc71; }
+    .cancelled { color: #e74c3c; }
+    .active { color: #27ae60; }
+    .inactive { color: #e74c3c; }
+    #revenueChart, #categoryChart { max-width: 100%; height: auto; }
+</style>
+{% endblock %}
+
+{% block extrajs %}
+{% if trend_labels and trend_values %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Revenue Trend Chart
+    var revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    var revenueChart = new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: {{ trend_labels|safe }},
+            datasets: [{
+                label: 'Revenue',
+                data: {{ trend_values|safe }},
+                borderColor: '#3498db',
+                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) { return '$' + value; }
+                    }
+                }
+            }
+        }
+    });
+
+    // Category Donut Chart
+    var categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    var categoryChart = new Chart(categoryCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {% for c in donut_data %}"{{ c.name }}"{% if not forloop.last %}, {% endif %}{% endfor %},
+            datasets: [{
+                data: [{% for c in donut_data %}{{ c.pct }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+                backgroundColor: [{% for c in donut_data %}"{{ c.color }}"{% if not forloop.last %}, {% endif %}{% endfor %}],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            var label = context.label || '';
+                            var value = context.parsed || 0;
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += value + '%';
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

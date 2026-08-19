@@ -1,0 +1,1827 @@
+
+ASMA STORES — COMPLETE USER + OTP VERIFICATION WORKFLOW
+========================================================
+
+You are working on an existing Django 6.0.7 e-commerce project called "Asma Stores".
+
+Your task is to AUDIT, FIX, COMPLETE, and POLISH the entire USER PHONE VERIFICATION + OTP SYSTEM.
+
+IMPORTANT:
+
+Do NOT create a second authentication system.
+
+Do NOT create duplicate OTP models if an equivalent model already exists.
+
+Do NOT create duplicate templates if suitable templates already exist.
+
+Use and improve the existing project structure, templates, URLs, views, forms, models, services, checkout, account pages, and admin dashboard.
+
+The final result must be a complete working end-to-end system.
+
+========================================================
+1. FIRST — AUDIT THE EXISTING PROJECT
+========================================================
+
+Before modifying anything, inspect:
+
+accounts/
+    models.py
+    views.py
+    forms.py
+    urls.py
+    admin.py
+
+store/
+    models.py
+    views.py
+    urls.py
+
+templates/
+    store/base.html
+    accounts/
+    checkout/
+    admin/
+
+Also inspect:
+
+- existing User/Profile model
+- existing OTP model
+- existing guest verification model
+- existing Sparrow SMS service
+- existing checkout view
+- existing order creation logic
+- existing login
+- existing signup
+- existing forgot-password flow
+- existing change-phone flow
+- existing account dashboard
+- existing custom admin dashboard
+- settings.py
+- .env configuration
+
+Search the entire project for:
+
+OTP
+otp
+phone_verified
+phone_number
+verification
+Sparrow
+SPARROW_TOKEN
+SPARROW_SENDER
+guest
+checkout
+signup
+forgot password
+change phone
+
+Create a map of what already exists.
+
+Then modify the existing architecture instead of duplicating it.
+
+========================================================
+2. MASTER USER + PHONE VERIFICATION FLOW
+========================================================
+
+The final system must support:
+
+USER PHONE VERIFICATION
+
+├── Signup
+│     └── OTP Verification
+│
+├── Guest Checkout
+│     ├── New Phone → OTP
+│     └── Previously Verified Guest Phone → Skip OTP
+│
+├── Registered User Checkout
+│     └── Auto-fill saved information
+│
+├── Change Phone
+│     └── OTP Verification
+│
+├── Forgot Password
+│     └── OTP Verification
+│
+└── Optional SMS Login
+      └── OTP Verification
+
+All flows must use the same secure OTP engine.
+
+========================================================
+3. OTP PURPOSES
+========================================================
+
+Every OTP MUST have a purpose.
+
+Use:
+
+SIGNUP
+GUEST_CHECKOUT
+FORGOT_PASSWORD
+CHANGE_PHONE
+SMS_LOGIN
+
+An OTP created for:
+
+SIGNUP
+
+must NEVER work for:
+
+FORGOT_PASSWORD
+GUEST_CHECKOUT
+CHANGE_PHONE
+SMS_LOGIN
+
+The backend must enforce this.
+
+Do not rely on the frontend.
+
+========================================================
+4. OTP LIFECYCLE
+========================================================
+
+The complete lifecycle is:
+
+REQUEST
+↓
+PHONE CHECK
+↓
+GENERATE OTP
+↓
+HASH OTP
+↓
+STORE OTP
+↓
+SEND SPARROW SMS
+↓
+OTP_SENT
+↓
+OTP_PENDING
+↓
+USER ENTERS OTP
+↓
+VERIFYING
+↓
+CORRECT
+    ↓
+OTP_VERIFIED
+    ↓
+PERFORM ACTION
+OR
+INCORRECT
+    ↓
+OTP_INVALID
+OR
+EXPIRED
+    ↓
+OTP_EXPIRED
+OR
+TOO MANY ATTEMPTS
+    ↓
+OTP_MAX_ATTEMPTS
+
+The frontend must clearly reflect the current backend status.
+
+========================================================
+5. OTP SECURITY
+========================================================
+
+Generate OTP using:
+
+secrets
+
+Example:
+
+otp = f"{secrets.randbelow(1000000):06d}"
+
+Do NOT use:
+
+random.randint()
+
+OTP:
+
+6 digits
+5 minute validity
+5 verification attempts
+3 resend attempts
+60 second resend cooldown
+single-use
+
+Store ONLY the hashed OTP.
+
+Use Django password hashing utilities or another secure hash.
+
+Example:
+
+make_password(otp)
+
+Verify:
+
+check_password(entered_otp, stored_hash)
+
+NEVER store plaintext OTP.
+
+NEVER print OTP in production.
+
+NEVER return OTP in JSON.
+
+NEVER put OTP into URL parameters.
+
+========================================================
+6. OTP STATUS MODEL
+========================================================
+
+Use explicit backend status.
+
+Preferred states:
+
+PENDING
+SENT
+VERIFYING
+VERIFIED
+ALREADY_VERIFIED
+INVALID
+EXPIRED
+MAX_ATTEMPTS
+RESEND_COOLDOWN
+RESEND_LIMIT
+SEND_FAILED
+SESSION_EXPIRED
+CONSUMED
+CANCELLED
+
+If the existing project already has status choices, reuse them or safely extend them.
+
+Do not create conflicting status systems.
+
+========================================================
+7. PHONE NORMALIZATION
+========================================================
+
+Use ONE centralized phone normalization function.
+
+These must resolve consistently:
+
+9817052570
+9779817052570
++9779817052570
+
+Normalize before:
+
+- User lookup
+- Signup
+- Guest checkout
+- OTP generation
+- OTP verification
+- Change phone
+- Order creation
+- Sparrow SMS
+
+Avoid duplicate phone numbers caused by formatting differences.
+
+========================================================
+8. SIGNUP FLOW
+========================================================
+
+Existing signup fields include:
+
+Username
+Full Name
+Email
+Phone Number
+Current Address
+Password
+Confirm Password
+
+Use the existing signup template and improve it.
+
+Flow:
+
+SIGNUP
+↓
+Validate form
+↓
+Normalize phone
+↓
+Check registered User
+↓
+If registered:
+    Show account-exists message
+    Offer Login
+    Offer Use Another Phone
+↓
+If available:
+    Save pending signup securely
+↓
+Generate SIGNUP OTP
+↓
+Hash OTP
+↓
+Store OTP
+↓
+Send Sparrow
+↓
+Redirect to OTP verification page
+
+CRITICAL:
+
+A successful signup POST must NOT simply return:
+
+HTTP 200
+
+with the signup page again.
+
+It must redirect to the OTP verification page.
+
+Use:
+
+return redirect(...)
+
+after successful OTP generation and SMS submission.
+
+Only render signup again if there are actual validation errors.
+
+========================================================
+9. PENDING SIGNUP
+========================================================
+
+Do not trust browser data after OTP verification.
+
+Use an existing pending-registration mechanism if present.
+
+Otherwise use a secure server-side pending signup record/session.
+
+Do NOT store plaintext password unnecessarily in session.
+
+Prefer:
+
+PendingSignup model
+
+if the project architecture supports it.
+
+The pending signup should contain the information required to create the user after OTP verification.
+
+========================================================
+10. SIGNUP OTP SUCCESS
+========================================================
+
+Correct OTP:
+
+VERIFY OTP
+↓
+Mark OTP consumed
+↓
+Mark phone verified
+↓
+Retrieve pending signup
+↓
+Revalidate uniqueness
+↓
+Create User
+↓
+set_password()
+↓
+Set phone_number
+↓
+phone_verified=True
+↓
+Save profile/address
+↓
+Login user
+↓
+Clear pending signup
+↓
+Clear OTP session
+↓
+Redirect account/dashboard
+
+Final result:
+
+✓ Phone Verified
+✓ Account Created
+✓ Logged In
+
+Redirect:
+
+account/dashboard
+
+or the project's existing account URL.
+
+========================================================
+11. LOGIN FLOW
+========================================================
+
+Normal login remains:
+
+Username/email
++
+Password
+
+↓
+
+authenticate()
+
+↓
+
+login()
+
+↓
+
+safe next URL
+
+or:
+
+account/dashboard
+
+Do not unnecessarily require OTP for normal password login.
+
+OTP should only be used for the explicitly defined OTP flows.
+
+Use the existing login template and improve its UX.
+
+It must extend:
+
+store/base.html
+
+Do NOT create another HTML document.
+
+========================================================
+12. FORGOT PASSWORD
+========================================================
+
+Flow:
+
+Forgot Password
+↓
+Registered account lookup
+↓
+Phone verification
+↓
+Generate FORGOT_PASSWORD OTP
+↓
+Sparrow SMS
+↓
+OTP verification
+↓
+OTP VERIFIED
+↓
+Allow new password
+↓
+Save password
+↓
+Invalidate OTP
+↓
+Redirect Login
+
+Use a dedicated OTP purpose.
+
+Never accept another OTP purpose.
+
+========================================================
+13. CHANGE PHONE
+========================================================
+
+Logged-in user:
+
+Account
+↓
+Change Phone
+↓
+Enter new phone
+↓
+Normalize
+↓
+Check registered users
+
+If another user owns the phone:
+
+STOP
+
+Show:
+
+"This phone number is already associated with another account."
+
+Otherwise:
+
+Generate CHANGE_PHONE OTP
+↓
+Sparrow
+↓
+Verify
+↓
+Update phone
+↓
+phone_verified=True
+↓
+Return Account
+
+========================================================
+14. GUEST CHECKOUT — MASTER FLOW
+========================================================
+
+Guest checkout is extremely important.
+
+When an unauthenticated user reaches checkout:
+
+Collect:
+
+Full Name
+Email
+Phone
+City
+Address
+Shipping information
+Coupon if applicable
+
+Then check the phone.
+
+--------------------------------------------------------
+CASE 1 — REGISTERED USER PHONE
+--------------------------------------------------------
+
+If phone belongs to a registered User:
+
+DO NOT send OTP.
+
+DO NOT create order.
+
+Show an inline checkout status:
+
+⚠ Phone Number Already Registered
+
+"This phone number is associated with an Asma Store account."
+
+Buttons:
+
+[ Login ]
+
+[ Use Another Number ]
+
+The checkout data should remain available where safe.
+
+--------------------------------------------------------
+CASE 2 — PREVIOUSLY VERIFIED GUEST PHONE
+--------------------------------------------------------
+
+If the phone exists in the guest verification table:
+
+verified=True
+
+Then:
+
+DO NOT send OTP.
+
+Show:
+
+✓ Phone Already Verified
+
+"This phone number has already been verified."
+
+Continue directly to order creation.
+
+The same guest phone can be reused for later guest orders.
+
+--------------------------------------------------------
+CASE 3 — NEW GUEST PHONE
+--------------------------------------------------------
+
+If phone is:
+
+NOT registered
+AND
+NOT previously guest-verified
+
+Then:
+
+Save pending checkout server-side.
+
+Generate:
+
+GUEST_CHECKOUT OTP
+
+Send Sparrow.
+
+Redirect:
+
+checkout
+↓
+verify OTP
+
+DO NOT create order yet.
+
+========================================================
+15. CHECKOUT OTP STATUS UI
+========================================================
+
+This is a major UX requirement.
+
+The checkout page itself must clearly communicate the verification state.
+
+Do NOT make the user wonder whether their phone is verified.
+
+On checkout, display a phone verification component next to the phone field.
+
+Example:
+
+Phone Number
+
++977 9817052570
+
+[ Verify Phone ]
+
+Status:
+
+○ Phone verification required
+
+or:
+
+✓ Phone Verified
+
+or:
+
+✓ Previously Verified
+
+or:
+
+⚠ Phone belongs to an existing account
+
+or:
+
+⌛ Verification code sent
+
+The status must come from backend state.
+
+========================================================
+16. CHECKOUT BEFORE OTP
+========================================================
+
+For a new guest phone:
+
+Display:
+
+PHONE VERIFICATION
+
+"Verify your phone number before placing your order."
+
+[ Send Verification Code ]
+
+After submission:
+
+Disable button.
+
+Show:
+
+Sending verification code...
+
+Then:
+
+✓ Verification code sent.
+
+"Enter the 6-digit code sent to your phone."
+
+[ Verify Phone ]
+
+This should either open/redirect to the OTP page according to the existing architecture.
+
+========================================================
+17. CHECKOUT OTP PAGE
+========================================================
+
+Use an existing OTP template if available.
+
+Otherwise create:
+
+guest_verify_otp.html
+
+It MUST extend:
+
+store/base.html
+
+Do not create a standalone HTML page.
+
+Keep:
+
+Header
+Navigation
+Footer
+
+Use Asma Stores styling.
+
+========================================================
+18. OTP PAGE UX
+========================================================
+
+Create a premium modern verification experience.
+
+Layout:
+
+VERIFY YOUR PHONE
+
+"One more step before we place your order."
+
+We sent a 6-digit verification code to:
+
++977 98******70
+
+OTP:
+
+[ _ ][ _ ][ _ ][ _ ][ _ ][ _ ]
+
+[ Verify Phone ]
+
+Resend Code
+
+Change Phone Number
+
+Timer:
+
+05:00
+
+Status card below:
+
+⌛ Waiting for verification
+
+or:
+
+✓ Phone verified
+
+or:
+
+⚠ Incorrect code
+
+or:
+
+⌛ Code expired
+
+========================================================
+19. OTP STATUS ON CHECKOUT
+========================================================
+
+The checkout must display status even when the user returns from OTP.
+
+Examples:
+
+------------------------------------------------
+NEW PHONE
+------------------------------------------------
+
+○ Verification required
+
+------------------------------------------------
+SMS SENT
+------------------------------------------------
+
+✓ Verification code sent
+
+------------------------------------------------
+OTP PENDING
+------------------------------------------------
+
+⌛ Waiting for verification
+
+------------------------------------------------
+VERIFIED
+------------------------------------------------
+
+✓ Phone verified
+
+"You can now place your order."
+
+------------------------------------------------
+ALREADY VERIFIED
+------------------------------------------------
+
+✓ Phone already verified
+
+"No additional verification is required."
+
+------------------------------------------------
+EXPIRED
+------------------------------------------------
+
+⚠ Verification code expired
+
+[ Send New Code ]
+
+------------------------------------------------
+INVALID
+------------------------------------------------
+
+⚠ Incorrect verification code
+
+"Please try again."
+
+------------------------------------------------
+REGISTERED PHONE
+------------------------------------------------
+
+⚠ Account phone detected
+
+"This number belongs to an existing Asma Store account."
+
+[ Login ]
+
+[ Use Another Number ]
+
+========================================================
+20. OTP PAGE TIMER
+========================================================
+
+Display:
+
+05:00
+
+Count down based on server expiry time.
+
+Do NOT trust only JavaScript time.
+
+The backend must enforce expiry.
+
+When timer reaches zero:
+
+Show:
+
+⚠ Verification code expired.
+
+Disable verification.
+
+Show:
+
+[ Send New Code ]
+
+========================================================
+21. OTP INPUT UX
+========================================================
+
+Six individual inputs.
+
+Features:
+
+- Numeric keyboard
+- Auto-focus
+- Auto-advance
+- Backspace navigation
+- Paste full six-digit OTP
+- Automatically distribute pasted digits
+- Disable submit during verification
+- Loading spinner
+- Keyboard accessibility
+- aria-live status
+
+Do not use browser alert().
+
+========================================================
+22. RESEND OTP
+========================================================
+
+Resend must be POST.
+
+Rules:
+
+60 seconds cooldown.
+
+Maximum 3 resends.
+
+When resend succeeds:
+
+Invalidate previous OTP.
+
+Generate new OTP.
+
+Hash new OTP.
+
+Save new OTP.
+
+Reset expiry to 5 minutes.
+
+Increment resend_count.
+
+Send Sparrow.
+
+Update UI:
+
+✓ New verification code sent.
+
+"Resend available in 60 seconds."
+
+Old OTP must fail.
+
+========================================================
+23. OTP ERROR UX
+========================================================
+
+Invalid:
+
+⚠ Incorrect verification code.
+
+"Please check the code and try again."
+
+Show remaining attempts.
+
+Expired:
+
+⚠ Code expired.
+
+"Your verification code has expired."
+
+[ Send New Code ]
+
+Maximum attempts:
+
+⚠ Too many attempts.
+
+"Please request a new verification code."
+
+SMS failure:
+
+⚠ Unable to send verification code.
+
+"Please try again."
+
+Session expired:
+
+⚠ Verification session expired.
+
+"Please return to checkout and start verification again."
+
+========================================================
+24. SPARROW SMS INTEGRATION
+========================================================
+
+Use existing Sparrow service if present.
+
+Endpoint:
+
+https://api.sparrowsms.com/v2/sms/
+
+POST:
+
+payload = {
+    "token": settings.SPARROW_TOKEN,
+    "from": settings.SPARROW_SENDER,
+    "to": normalized_phone,
+    "text": f"Your Asma Store verification code is {otp}. Valid for 5 minutes."
+}
+
+Use:
+
+requests.post(
+    SPARROW_URL,
+    data=payload,
+    timeout=10
+)
+
+Successful response example:
+
+{
+    "count": 1,
+    "response_code": 200,
+    "response": "1 mesages has been queued for delivery",
+    "message_id": 4967591,
+    "credit_consumed": 1,
+    "credit_available": 9.0
+}
+
+Check:
+
+HTTP status == 200
+
+AND:
+
+response_code == 200
+
+If Sparrow returns:
+
+400
+
+403
+
+timeout
+
+or another failure:
+
+OTP status = SEND_FAILED
+
+DO NOT tell the user:
+
+"OTP sent"
+
+unless Sparrow accepted the request.
+
+Never expose:
+
+SPARROW_TOKEN
+OTP
+password
+
+========================================================
+25. ORDER CREATION AFTER OTP
+========================================================
+
+This is critical.
+
+For a NEW guest phone:
+
+DO NOT create an Order before OTP verification.
+
+Flow:
+
+Checkout POST
+↓
+Validate
+↓
+Save pending checkout
+↓
+OTP
+↓
+Verify
+↓
+Revalidate cart
+↓
+Revalidate stock
+↓
+Recalculate totals
+↓
+Revalidate coupon
+↓
+Create Order
+↓
+Create OrderItems
+↓
+Mark guest phone verified
+↓
+Clear pending checkout
+↓
+Redirect Order Success
+
+Use transaction.atomic() where appropriate.
+
+========================================================
+26. PREVENT DUPLICATE ORDER
+========================================================
+
+If user:
+
+refreshes
+goes back
+double-clicks
+resubmits OTP
+opens OTP page twice
+
+DO NOT create duplicate orders.
+
+Once order creation succeeds:
+
+invalidate the pending checkout session.
+
+Consume the verification session.
+
+Redirect using PRG:
+
+POST
+↓
+Redirect
+↓
+GET
+
+========================================================
+27. ORDER SUCCESS UX
+========================================================
+
+After successful guest OTP verification:
+
+Show:
+
+✓ ORDER CONFIRMED
+
+"Thank you for your order."
+
+Order #123
+
+Phone Verification:
+
+✓ Verified
+
+Order Status:
+
+Pending
+
+Total:
+
+Rs. XXXX
+
+Delivery:
+
+Address
+
+Buttons:
+
+[ View Order ]
+
+[ Continue Shopping ]
+
+Do not show the OTP.
+
+Do not falsely show:
+
+Paid
+Shipped
+Delivered
+
+unless the existing order status actually supports it.
+
+========================================================
+28. LOGGED-IN USER CHECKOUT
+========================================================
+
+If:
+
+request.user.is_authenticated
+
+Automatically load:
+
+Name
+Email
+Phone
+Address
+City
+Province
+Postal Code
+saved profile information
+
+Show:
+
+✓ Signed in
+
+✓ Verified Phone
+
+No guest OTP.
+
+If user changes phone:
+
+require CHANGE_PHONE OTP.
+
+========================================================
+29. OPTIONAL SMS LOGIN
+========================================================
+
+If the existing project supports SMS login:
+
+Phone
+↓
+Find registered user
+↓
+Generate SMS_LOGIN OTP
+↓
+Send
+↓
+Verify
+↓
+login(request, user)
+↓
+Account Dashboard
+
+If phone is only a guest phone:
+
+DO NOT log them into a registered account.
+
+Show:
+
+"No registered account exists for this phone number."
+
+[ Create Account ]
+
+========================================================
+30. FRONTEND STATUS COMPONENT
+========================================================
+
+Create a reusable status component where practical.
+
+For example:
+
+<div class="verification-status">
+
+    icon
+
+    title
+
+    message
+
+    action
+
+</div>
+
+Statuses should have consistent visual states:
+
+success
+warning
+error
+pending
+info
+
+Use existing Asma Stores CSS variables.
+
+Do not introduce unnecessary frameworks.
+
+========================================================
+31. ADMIN OTP DASHBOARD
+========================================================
+
+Use the existing admin/dashboard architecture.
+
+Display:
+
+Total OTP Requests
+Sent
+Pending
+Verified
+Expired
+Invalid
+Max Attempts
+Already Verified
+SMS Failed
+
+Filters:
+
+Purpose
+Status
+Date
+Phone
+User
+
+Purposes:
+
+SIGNUP
+GUEST_CHECKOUT
+FORGOT_PASSWORD
+CHANGE_PHONE
+SMS_LOGIN
+
+Table:
+
+Phone
+Purpose
+Status
+Created
+Expires
+Attempts
+Resends
+User
+Order
+Verified At
+
+Never show plaintext OTP.
+
+========================================================
+32. ADMIN LOGIN ERROR
+========================================================
+
+There is/was an error:
+
+NoReverseMatch at /admin/login/
+
+Reverse for 'store_product_changelist' not found.
+
+Search the project for:
+
+store_product_changelist
+
+Determine the actual Product admin URL.
+
+If Product is registered in Django admin:
+
+use:
+
+{% url 'admin:store_product_changelist' %}
+
+If Product is not registered:
+
+register it correctly or point to the existing custom dashboard route.
+
+Do not invent URL names.
+
+Verify:
+
+/admin/login/
+
+works.
+
+Verify:
+
+/admin/
+
+works.
+
+Verify every custom admin navigation item.
+
+========================================================
+33. URLS
+========================================================
+
+Use named URLs.
+
+Examples:
+
+accounts:signup
+accounts:login
+accounts:verify_signup_otp
+accounts:resend_signup_otp
+accounts:forgot_password
+accounts:verify_forgot_password_otp
+accounts:change_phone
+accounts:verify_change_phone_otp
+accounts:sms_login
+accounts:verify_sms_login_otp
+
+Checkout:
+
+store:checkout
+store:verify_checkout_otp
+store:resend_checkout_otp
+store:order_success
+
+Use the project's actual names if they already exist.
+
+Do not duplicate URL patterns.
+
+========================================================
+34. SESSION BINDING
+========================================================
+
+OTP must be tied to the correct verification session.
+
+For signup:
+
+OTP → pending signup
+
+For guest checkout:
+
+OTP → pending checkout
+
+For forgot password:
+
+OTP → intended account/password reset flow
+
+For change phone:
+
+OTP → logged-in user + new phone
+
+For SMS login:
+
+OTP → intended phone/login flow
+
+Never allow a verification code from one flow to authorize another.
+
+========================================================
+35. JWT REQUIREMENT
+========================================================
+
+Do NOT add JWT simply for OTP.
+
+This is a server-rendered Django website.
+
+Use:
+
+Django session authentication
+
+for logged-in users.
+
+OTP is the verification mechanism.
+
+Only use JWT if an existing API/mobile authentication layer genuinely requires it.
+
+========================================================
+36. SECURITY CHECKLIST
+========================================================
+
+Must prevent:
+
+Plaintext OTP storage
+OTP logging
+OTP reuse
+Expired OTP reuse
+Cross-purpose OTP
+Unlimited attempts
+Unlimited resends
+Duplicate signup
+Duplicate phone numbers
+Guest checkout using registered phone
+Duplicate order creation
+Client-side verification bypass
+Client-side order creation
+Session hijacking through predictable IDs
+
+Use:
+
+secrets
+Django password hashing
+CSRF protection
+session binding
+transaction.atomic()
+server-side validation
+
+========================================================
+37. TEST CASES
+========================================================
+
+Run and verify:
+
+SIGNUP
+
+1. Valid signup
+2. Signup redirects to OTP
+3. OTP sent
+4. OTP status visible
+5. Correct OTP
+6. Incorrect OTP
+7. Expired OTP
+8. Resend OTP
+9. Resend cooldown
+10. Resend limit
+11. Duplicate registered phone
+
+LOGIN
+
+12. Correct login
+13. Wrong password
+14. Next URL redirect
+15. Account redirect
+
+GUEST CHECKOUT
+
+16. New phone
+17. OTP sent
+18. OTP page
+19. Correct OTP
+20. Incorrect OTP
+21. Expired OTP
+22. Resend
+23. Previously verified guest phone
+24. Registered phone
+25. Login button
+26. Use another phone
+
+LOGGED-IN CHECKOUT
+
+27. Auto-filled details
+28. No guest OTP
+29. Change phone
+30. Change phone OTP
+
+PASSWORD
+
+31. Forgot password
+32. Forgot password OTP
+33. Expired forgot-password OTP
+34. Password reset
+
+SMS LOGIN
+
+35. SMS login
+36. Invalid OTP
+37. Guest phone attempting SMS login
+
+ORDERS
+
+38. Order created only after verification
+39. No duplicate order on refresh
+40. Stock revalidated
+41. Coupon revalidated
+42. Order success page
+
+SPARROW
+
+43. HTTP 200 / response_code 200
+44. HTTP 400
+45. HTTP 403
+46. timeout
+
+ADMIN
+
+47. Admin login
+48. Admin dashboard
+49. OTP dashboard
+50. Product navigation
+51. NoReverseMatch completely fixed
+
+========================================================
+38. FINAL USER EXPERIENCE
+========================================================
+
+The complete guest checkout UX should feel like:
+
+CHECKOUT
+
+Contact & Shipping
+
+Full Name
+Email
+Phone
+
+Phone status:
+
+○ Verification required
+
+[ Verify Phone ]
+
+↓
+
+SMS sent
+
+✓ Verification code sent
+
+↓
+
+OTP PAGE
+
+Verify Your Phone
+
+"We sent a 6-digit code to +977 98******70"
+
+[ 1 ][ 2 ][ 3 ][ 4 ][ 5 ][ 6 ]
+
+05:00
+
+[ Verify Phone ]
+
+Resend Code
+
+Change Number
+
+↓
+
+SUCCESS
+
+✓ Phone Verified
+
+"Your phone number has been verified."
+
+"Returning you to checkout..."
+
+↓
+
+CHECKOUT
+
+Phone:
+
+✓ Verified
+
+[ Place Order ]
+
+↓
+
+ORDER SUCCESS
+
+✓ Order Confirmed
+
+Order #123
+
+Phone:
+
+✓ Verified
+
+Order:
+
+Pending
+
+Total:
+
+Rs. XXXX
+
+========================================================
+39. RETURNING VERIFIED GUEST UX
+========================================================
+
+Checkout:
+
+Phone:
+
++977 98******70
+
+✓ Previously Verified
+
+"No additional verification required."
+
+Continue.
+
+No OTP SMS.
+
+No OTP page.
+
+Create order normally.
+
+========================================================
+40. REGISTERED PHONE UX
+========================================================
+
+Guest enters:
+
++977 98******70
+
+Backend detects registered account.
+
+Checkout displays:
+
+⚠ Account Phone Detected
+
+"This phone number is already associated with an Asma Store account."
+
+[ Login ]
+
+[ Use Another Number ]
+
+Do not send OTP.
+
+Do not create order.
+
+========================================================
+41. IMPORTANT IMPLEMENTATION RULE
+========================================================
+
+Do NOT just create templates.
+
+The backend workflow MUST actually work.
+
+Do NOT fake OTP status using JavaScript.
+
+Do NOT redirect to OTP if Sparrow failed.
+
+Do NOT create orders before OTP verification.
+
+Do NOT create accounts before signup verification unless the existing architecture explicitly requires a pending user.
+
+Do NOT mark a phone verified from frontend data.
+
+Do NOT use random.randint().
+
+Do NOT store plaintext OTP.
+
+Do NOT duplicate OTP logic across views.
+
+========================================================
+42. FINAL DELIVERABLE
+========================================================
+
+After inspecting the project, provide exact changes.
+
+For each changed file provide complete relevant code.
+
+Include only files that actually need changes.
+
+Potential files:
+
+accounts/models.py
+accounts/forms.py
+accounts/views.py
+accounts/services.py
+accounts/urls.py
+accounts/admin.py
+
+store/models.py
+store/views.py
+store/services.py
+store/urls.py
+
+templates/accounts/signup.html
+templates/accounts/login.html
+templates/accounts/verify_otp.html
+templates/accounts/forgot_password.html
+templates/accounts/change_phone.html
+
+templates/store/checkout.html
+templates/store/guest_verify_otp.html
+templates/store/order_success.html
+
+admin templates if required
+
+settings.py only if required
+
+Also provide:
+
+makemigrations
+migrate
+
+commands
+
+Testing URLs
+
+Test cases
+
+Expected result
+
+========================================================
+43. COMPLETION CRITERIA
+========================================================
+
+DO NOT say the implementation is complete until these work:
+
+SIGNUP
+→ validation
+→ phone check
+→ OTP generation
+→ OTP hash
+→ Sparrow SMS
+→ OTP redirect
+→ OTP status
+→ verification
+→ account creation
+→ phone_verified=True
+→ login
+→ account dashboard
+
+LOGIN
+→ credentials
+→ authenticate
+→ login
+→ account/dashboard
+
+GUEST CHECKOUT
+→ phone check
+→ new phone → OTP
+→ previously verified → skip OTP
+→ registered phone → block
+→ OTP status
+→ OTP verification
+→ order creation
+→ order success
+
+FORGOT PASSWORD
+→ OTP
+→ verification
+→ reset password
+
+CHANGE PHONE
+→ new phone
+→ OTP
+→ verification
+→ update phone
+
+ADMIN
+→ admin login
+→ admin dashboard
+→ OTP dashboard
+→ OTP statuses
+→ no broken URL reversals
+
+The checkout page and OTP verification page must clearly show the current phone verification state at every stage.
+
+Use the EXISTING TEMPLATES and EXISTING DESIGN SYSTEM wherever possible.
+
+Do not replace the entire project architecture unnecessarily.
+```
+
+### The most important UX change
+
+For your checkout, I would have Claude make the status progression visible like this:
+
+```text
+┌─────────────────────────────────────────────┐
+│ Phone Number                                │
+│                                             │
+│ +977 9817052570                             │
+│                                             │
+│ ✓ Phone verified                            │
+│ Your number is ready for checkout.          │
+└─────────────────────────────────────────────┘
+```
+
+For a new guest:
+
+```text
+┌─────────────────────────────────────────────┐
+│ Phone Verification                          │
+│                                             │
+│ ○ Verification required                     │
+│ Verify your phone before placing the order.│
+│                                             │
+│              [ Verify Phone ]               │
+└─────────────────────────────────────────────┘
+```
+
+After sending:
+
+```text
+┌─────────────────────────────────────────────┐
+│ ✓ Code sent                                 │
+│                                             │
+│ A 6-digit code was sent to                  │
+│ +977 98******70                             │
+│                                             │
+│              [ Enter OTP ]                  │
+│                                             │
+│ Code expires in 04:37                       │
+└─────────────────────────────────────────────┘
+```
+
+And after verification:
+
+```text
+┌─────────────────────────────────────────────┐
+│ ✓ Phone Verified                            │
+│                                             │
+│ Your phone number has been verified.        │
+│ You can now place your order.               │
+└─────────────────────────────────────────────┘
+```
+
