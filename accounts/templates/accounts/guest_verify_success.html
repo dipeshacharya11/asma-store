@@ -1,0 +1,64 @@
+{% extends "store/base.html" %}
+{% block title %}Phone Verified - Asma Store{% endblock %}
+
+{% block extra_style %}
+<style>
+    .success-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background-color: #28a745;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        margin: 20px auto;
+    }
+    .countdown {
+        font-weight: bold;
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="success-icon">✓</div>
+            <h2 class="mb-4">Phone Number Verified</h2>
+            <p class="lead mb-4">
+                Your phone number has been successfully verified.
+                You can now complete your order.
+            </p>
+            <div id="countdown"></div>
+            <a href="{% url 'store:checkout' %}" class="btn btn-primary btn-lg">
+                Continue to Checkout
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+    // Redirect to checkout after 3 seconds
+    setTimeout(function() {
+        window.location.href = "{% url 'store:checkout' %}";
+    }, 3000);
+
+    // Optional: show countdown
+    var countdown = 3;
+    var countdownElement = document.getElementById('countdown');
+    var interval = setInterval(function() {
+        countdown--;
+        if (countdown <= 0) {
+            clearInterval(interval);
+            countdownElement.textContent = '';
+        } else {
+            countdownElement.textContent = 'Redirecting in ' + countdown + ' seconds...';
+        }
+    }, 1000);
+</script>
+{% endblock %}

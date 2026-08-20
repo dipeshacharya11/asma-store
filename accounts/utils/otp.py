@@ -25,11 +25,13 @@ if ARGON2_ENABLED:
         ARGON2_ENABLED = False
         logger.warning("ARGON2_ENABLED is True but argon2-cffi is not installed. Falling back to PBKDF2.")
 
+
 def generate_otp(length=6):
     """
     Generate a numeric OTP of specified length.
     """
     return ''.join(secrets.choice('0123456789') for _ in range(length))
+
 
 def hash_otp(otp):
     """
@@ -53,6 +55,7 @@ def hash_otp(otp):
         )
         # Return salt and hex digest in a format that includes the algorithm
         return f"pbkdf2_sha256${salt.hex()}${dk.hex()}"
+
 
 def verify_otp(otp, hashed):
     """
@@ -87,6 +90,7 @@ def verify_otp(otp, hashed):
             # If the hash string is malformed, return False
             return False
 
+
 def create_otp_record(user, phone_number, purpose):
     """
     Create a new OTP record for the user, phone_number, and purpose.
@@ -96,9 +100,8 @@ def create_otp_record(user, phone_number, purpose):
     OTP.objects.filter(
         phone_number=phone_number,
         purpose=purpose,
-        is_verified=False,
-        is_used=False
-    ).update(is_used=True)  # Mark as used to prevent reuse
+        status='SENT'  # Only invalidate those that are sent and not yet verified/consumed
+    ).update(status='CONSUMED')  # Mark as consumed to prevent reuse
 
     # Generate OTP
     otp = generate_otp()
@@ -113,11 +116,13 @@ def create_otp_record(user, phone_number, purpose):
         otp_hash=otp_hash,
         verification_token=verification_token,
         expires_at=expires_at,
-        max_attempts=settings.OTP_MAX_ATTEMPTS
+        max_attempts=settings.OTP_MAX_ATTEMPTS,
+        status='PENDING'
     )
 
     logger.info(f"Generated OTP for {phone_number} (purpose: {purpose}, user: {user.username if user else 'None'})")
     return otp_record, otp
+
 
 def verify_and_use_otp(phone_number, otp, purpose):
     """
@@ -129,8 +134,7 @@ def verify_and_use_otp(phone_number, otp, purpose):
         otp_record = OTP.objects.filter(
             phone_number=phone_number,
             purpose=purpose,
-            is_verified=False,
-            is_used=False
+            status='SENT'  # Only consider sent OTPs that are waiting for verification
         ).order_by('-created_at').first()
     except OTP.DoesNotExist:
         return False, "No pending OTP found for this number and purpose.", None
@@ -140,16 +144,20 @@ def verify_and_use_otp(phone_number, otp, purpose):
 
     if not otp_record.is_valid_attempt():
         if otp_record.is_expired():
+            otp_record.status = 'EXPIRED'
+            otp_record.save(update_fields=['status'])
             return False, "OTP has expired.", otp_record
         else:
+            otp_record.status = 'MAX_ATTEMPTS'
+            otp_record.save(update_fields=['status'])
             return False, "Too many attempts. Please request a new OTP.", otp_record
 
     # Verify the OTP
     if verify_otp(otp, otp_record.otp_hash):
-        # Mark as verified and used
-        otp_record.is_verified = True
-        otp_record.is_used = True
-        otp_record.save(update_fields=['is_verified', 'is_used'])
+        # Mark as verified
+        otp_record.status = 'VERIFIED'
+        otp_record.verified_at = timezone.now()
+        otp_record.save(update_fields=['status', 'verified_at'])
         # Also mark the user's phone as verified in their profile if user exists
         if otp_record.user:
             try:
@@ -165,9 +173,12 @@ def verify_and_use_otp(phone_number, otp, purpose):
         otp_record.save(update_fields=['attempts'])
         remaining_attempts = otp_record.max_attempts - otp_record.attempts
         if remaining_attempts <= 0:
+            otp_record.status = 'MAX_ATTEMPTS'
+            otp_record.save(update_fields=['status', 'attempts'])
             return False, "Maximum attempts exceeded. Please request a new OTP.", otp_record
         else:
             return False, f"Invalid OTP. {remaining_attempts} attempts remaining.", otp_record
+
 
 def get_otp_record_by_token(verification_token):
     """

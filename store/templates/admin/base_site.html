@@ -1,0 +1,76 @@
+{% load i18n static admin_urls %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="{% block stylesheet %}{% static 'admin/css/base.css' %}{% endblock %}" />
+    {% block extrastyle %}{% endblock %}
+    {% if block }}{% endif %}
+    <meta name="robots" content="NONE,NOARCHIVE" />
+</head>
+<body class="
+    {% if is_popup %}popup {% endif %}
+    {% if is_login_page %}login-page {% endif %}"
+    data-admin-utc-offset="{% now "Z" %}">
+
+    <!-- Container -->
+    <div id="container">
+
+        {% if not is_login_page %}
+        <!-- Header -->
+        <div id="header">
+            <div id="branding">
+            {% block branding %}
+                <h1 id="site-name"><a href="{% url 'asma_admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
+            {% endblock %}
+            </div>
+
+            {% block usertools %}
+            {% if user.is_authenticated %}
+                <div id="user-tools">
+                    {% trans 'Welcome,' %}
+                    <strong>{% firstof user.user_short_name user.get_username %}</strong>.
+                    {% block usertools_views %}
+                        <a href="{% url 'asma_admin:password_change' %}">{% trans 'Change password' %}</a> /
+                        <a href="{% url 'asma_admin:logout' %}">{% trans 'Log out' %}</a>
+                    {% endblock %}
+                    {% block usertools_dashboard %}
+                        <a href="{% url 'asma_admin:index' %}" class="history-switch">{% trans 'Dashboard' %}</a>
+                    {% endblock %}
+                </div>
+            {% endif %}
+            {% endblock %}
+
+            {% block nav-global %}{% endblock %}
+        </div>
+        <!-- END Header -->
+
+        <!-- Content -->
+        <div id="content" class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}">
+            <!-- Breadcrumbs -->
+            <div class="breadcrumbs">
+            <a href="{% url 'asma_admin:index' %}">{% trans 'Home' %}</a>
+            {% if title %} &rsaquo; {{ title }}{% endif %}
+            </div>
+            {% block messages %}
+                {% if messages %}
+                    <ul class="messagelist">{% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}</ul>
+                {% endif %}
+            {% endblock %}
+
+            {% block content %}
+            {% block object-tools %}{% endblock %}
+            {% endblock %}
+            <!-- END Content -->
+        </div>
+        <!-- END Content -->
+        {% endif %}
+    </div>
+    <!-- END Container -->
+
+    {% block footer %}<div id="footer"></div>{% endblock %}
+{% endblock %}
+</body>
+</html>

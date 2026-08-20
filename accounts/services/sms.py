@@ -111,6 +111,16 @@ class SparrowSMSService:
             return False, None, {"error": "Connection error"}
         except RequestException as e:
             logger.error(f"Sparrow SMS request failed: {str(e)}")
+            # If we have an HTTP error with a response, try to get more details
+            if hasattr(e, 'response') and e.response is not None:
+                try:
+                    # Try to parse the error response from Sparrow
+                    error_data = e.response.json()
+                    # If we got a proper JSON response, return it so callers can check for specific error codes
+                    return False, None, error_data
+                except (ValueError, KeyError, AttributeError):
+                    # If we can't parse JSON, fall back to the original error
+                    pass
             return False, None, {"error": str(e)}
         except ValueError as e:  # JSON decode error
             logger.error(f"Failed to parse Sparrow SMS response: {str(e)}")
@@ -145,7 +155,8 @@ class SparrowSMSService:
                     response_code = int(response.get('response_code', 0))
                 except (ValueError, TypeError):
                     response_code = 0
-                if response_code in [101, 102, 1013]:  # Example: Invalid token, insufficient credits
+                # Check for known non-retryable Sparrow SMS error codes
+                if response_code in [101, 102, 1011, 1013]:  # Added Sparrow error 1011 (No valid receiver)
                     logger.error(f"Non-retryable error from Sparrow SMS: {response.get('response')}")
                     return False, None, response
             # Check if the error is an HTTP 4xx error (client error) which should not be retried

@@ -1,0 +1,1 @@
+Fixed unicode encoding issue in store/admin.py CategoryAdmin.indented_name method

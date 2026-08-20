@@ -1,0 +1,181 @@
+{% extends "store/base.html" %}
+
+{% block title %}Order Success - Asma Store{% endblock %}
+
+{% block extra_style %}
+<style>
+    .order-success-container {
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 20px;
+        text-align: center;
+    }
+    .order-success-icon {
+        width: 80px;
+        height: 80px;
+        background: #28a745;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        margin: 0 auto 24px;
+    }
+    .order-success-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: #333;
+    }
+    .order-success-message {
+        font-size: 18px;
+        color: #666;
+        margin-bottom: 24px;
+    }
+    .order-details {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 24px;
+        margin: 24px 0;
+        text-align: left;
+    }
+    .order-detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .order-detail-item:last-child {
+        border-bottom: none;
+    }
+    .order-detail-label {
+        font-weight: 600;
+        color: #555;
+    }
+    .order-detail-value {
+        font-weight: 500;
+        color: #333;
+    }
+    .order-detail-value.verified {
+        color: #28a745;
+        font-weight: 600;
+    }
+    .order-total {
+        font-size: 22px;
+        font-weight: 700;
+        color: #28a745;
+        margin: 20px 0;
+    }
+    .btn-group {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .btn-view-order,
+    .btn-continue-shopping {
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+    }
+    .btn-view-order {
+        background: var(--brand-primary);
+        color: white;
+    }
+    .btn-view-order:hover {
+        background: var(--brand-primary-hover);
+        transform: translateY(-2px);
+    }
+    .btn-continue-shopping {
+        background: #6c757d;
+        color: white;
+    }
+    .btn-continue-shopping:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+    /* Responsive */
+    @media (max-width: 480px) {
+        .order-success-container {
+            margin: 20px auto;
+            padding: 15px;
+        }
+        .order-success-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        .order-success-title {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+        .order-success-message {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .order-details {
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .order-detail-item {
+            padding: 10px 0;
+        }
+        .order-total {
+            font-size: 20px;
+            margin: 16px 0;
+        }
+        .btn-group {
+            flex-direction: column;
+            gap: 12px;
+        }
+        .btn-view-order,
+        .btn-continue-shopping {
+            padding: 14px 20px;
+            font-size: 16px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="order-success-container">
+    <div class="order-success-icon">✓</div>
+    <h1 class="order-success-title">Order Confirmed</h1>
+    <p class="order-success-message">Thank you, {{ order.full_name }}.</p>
+
+    <div class="order-details">
+        <div class="order-detail-item">
+            <span class="order-detail-label">Order #</span>
+            <span class="order-detail-value">{{ order.id }}</span>
+        </div>
+        <div class="order-detail-item">
+            <span class="order-detail-label">Phone</span>
+            <span class="order-detail-value verified">✓ Verified</span>
+        </div>
+        <div class="order-detail-item">
+            <span class="order-detail-label">Status</span>
+            <span class="order-detail-value">Order Received / Pending</span>
+        </div>
+        <div class="order-detail-item">
+            <span class="order-detail-label">Total</span>
+            <span class="order-detail-value order-total">Rs. {{ order.total }}</span>
+        </div>
+        <div class="order-detail-item">
+            <span class="order-detail-label">Shipping Address</span>
+            <span class="order-detail-value">{{ order.address }}, {{ order.city }}</span>
+        </div>
+    </div>
+
+    <p class="order-success-message">Order confirmation has been recorded successfully.</p>
+
+    <div class="btn-group">
+        <a href="{% url 'store:order_detail' order_id=order.id %}" class="btn-view-order">View Order</a>
+        <a href="{% url 'store:home' %}" class="btn-continue-shopping">Continue Shopping</a>
+    </div>
+</div>
+{% endblock %}

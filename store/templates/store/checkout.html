@@ -36,10 +36,133 @@ textarea:focus {
     border-color: var(--brand-primary);
     box-shadow: 0 0 0 2px rgba(74, 138, 186, 0.25);
 }
+/* Phone verification status */
+.verification-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  margin-top: 12px;
+  font-size: 14px;
+}
+.verification-status.success {
+  background: #ecfdf5;
+  border-left: 3px solid var(--success);
+}
+.verification-status.warning {
+  background: #fffbeb;
+  border-left: 3px solid #f59e0b;
+}
+.verification-status.info {
+  background: #eff6ff;
+  border-left: 3px solid #3b82f6;
+}
+.verification-status .verification-icon {
+  font-size: 18px;
+  font-weight: bold;
+}
+.verification-status .verification-info {
+  flex: 1;
+}
+.verification-status .verification-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.verification-status .verification-message {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
 @media(max-width:900px){ .checkout-layout{grid-template-columns:1fr;} .form-grid{grid-template-columns:1fr;} }
+{% endblock %}
+{% block extra_script %}
+document.addEventListener('DOMContentLoaded', function() {
+  // Handle verify phone button click
+  const verifyPhoneBtn = document.getElementById('verify-phone-btn');
+  if (verifyPhoneBtn) {
+    verifyPhoneBtn.addEventListener('click', function() {
+      const phoneInput = document.getElementById('id_phone');
+      const phoneNumber = phoneInput.value.trim();
+      
+      if (!phoneNumber) {
+        alert('Please enter a phone number');
+        return;
+      }
+      
+      // Basic phone validation (Nepal format)
+      const phoneRegex = /^(97|98)\d{8}$/;
+      const cleanedPhone = phoneNumber.replace(/\s+/g, '').replace(/^\+977/, '').replace(/^0+/, '');
+      
+      if (!phoneRegex.test(cleanedPhone)) {
+        alert('Please enter a valid Nepal phone number (e.g., 98XXXXXXXX or 97XXXXXXXX)');
+        return;
+      }
+      
+      // Show loading state
+      verifyPhoneBtn.disabled = true;
+      verifyPhoneBtn.textContent = 'Sending verification code...';
+      
+      // Store other form data for later use
+      const fullName = document.getElementById('id_full_name')?.value.trim() || '';
+      const email = document.getElementById('id_email')?.value.trim() || '';
+      const address = document.getElementById('id_address')?.value.trim() || '';
+      const city = document.getElementById('id_city')?.value.trim() || '';
+      
+      // Send request to initiate phone verification
+      fetch('/checkout/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          'phone': cleanedPhone,
+          'full_name': fullName,
+          'email': email,
+          'address': address,
+          'city': city
+        })
+      })
+      .then(response => response.text())
+      .then(html => {
+        // Reload the page to show updated verification status
+        location.reload();
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+        verifyPhoneBtn.disabled = false;
+        verifyPhoneBtn.textContent = 'Verify Phone';
+      });
+    });
+  }
+});
+
+// Helper to get CSRF cookie
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
 {% endblock %}
 {% block content %}
 <div class="container">
+  {% if messages %}
+    <div class="messages">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
   <h1 style="margin:36px 0 10px;">Checkout</h1>
   <form method="post" class="checkout-layout">
     {% csrf_token %}
@@ -50,6 +173,44 @@ textarea:focus {
           <div class="form-group full"><label for="id_full_name">Full Name</label><input type="text" name="full_name" id="id_full_name" value="{{ default_name }}" required></div>
           <div class="form-group full"><label for="id_email">Email</label><input type="email" name="email" id="id_email" value="{{ default_email }}"></div>
           <div class="form-group"><label for="id_phone">Phone</label><input type="tel" name="phone" id="id_phone" value="{{ default_phone }}"></div>
+          <div class="form-group" id="phone-verification-status">
+            {% if request.user.is_authenticated %}
+              {% if request.user.profile.is_phone_verified %}
+                <div class="verification-status success">
+                  <div class="verification-icon">✓</div>
+                  <div class="verification-info">
+                    <div class="verification-title">Phone Verified</div>
+                    <div class="verification-message">Your number is ready for checkout.</div>
+                  </div>
+                </div>
+              {% else %}
+                <div class="verification-status warning">
+                  <div class="verification-icon">⚠</div>
+                  <div class="verification-info">
+                    <div class="verification-title">Phone Not Verified</div>
+                    <div class="verification-message">Please verify your phone to continue with checkout.</div>
+                  </div>
+                </div>
+              {% endif %}
+            {% elif request.session.guest_phone_verified %}
+              <div class="verification-status success">
+                <div class="verification-icon">✓</div>
+                <div class="verification-info">
+                  <div class="verification-title">Phone Verified</div>
+                  <div class="verification-message">Your number is ready for checkout.</div>
+                </div>
+              </div>
+            {% else %}
+              <div class="verification-status info">
+                <div class="verification-icon">○</div>
+                <div class="verification-info">
+                  <div class="verification-title">Verification Required</div>
+                  <div class="verification-message">Verify your phone before placing the order.</div>
+                  <button type="button" id="verify-phone-btn" class="btn btn-outline-secondary btn-sm">Verify Phone</button>
+                </div>
+              </div>
+            {% endif %}
+          </div>
           <div class="form-group"><label for="id_city">City</label><input type="text" name="city" id="id_city" value="{{ default_city }}"></div>
           <div class="form-group full"><label for="id_address">Address</label><textarea name="address" rows="3" required id="id_address">{{ default_address }}</textarea></div>
         </div>
@@ -74,6 +235,13 @@ textarea:focus {
       </div>
       <div class="total-row"><span>Subtotal</span><span>Rs. {{ checkout_subtotal }}</span></div>
       <div class="total-row grand"><span>Total (before shipping)</span><span>Rs. {{ checkout_subtotal }}</span></div>
+      {% if messages %}
+        <div class="messages mb-3">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
       <button type="submit" class="btn btn-dark" style="width:100%; margin-top:18px;">Place Order</button>
     </div>
   </form>
