@@ -162,6 +162,21 @@
 
 
     <!-- =====================================================
+         BULK-ACTION FORM
+         Everything Django's admin bulk-action system needs (the action
+         dropdown, the Run button, and every row checkbox rendered by
+         {% result_list cl %}) must live inside ONE POST form with a
+         CSRF token — this was previously missing entirely, which is
+         why bulk actions submitted nothing.
+    ====================================================== -->
+
+    <form id="changelist-form" method="post"{% if cl.formset and cl.formset.is_multipart %} enctype="multipart/form-data"{% endif %} novalidate>
+    {% csrf_token %}
+    {% if cl.formset %}
+        {{ cl.formset.management_form }}
+    {% endif %}
+
+    <!-- =====================================================
          TOP BULK ACTIONS
     ====================================================== -->
 
@@ -178,7 +193,7 @@
                     <label for="{{ action_form.action.auto_id }}">{{ action_form.action.label }}</label>
                     {{ action_form.action }}
                 </div>
-                <button type="submit" class="admin-button-primary">Run</button>
+                <button type="submit" class="admin-button-primary" name="index" value="0">Run</button>
             </div>
         </div>
     {% endif %}
@@ -224,6 +239,10 @@
 
     <!-- =====================================================
          BOTTOM BULK ACTIONS
+         Reuses the SAME form as the top actions (Django's own default
+         admin template does this too — the browser submits whichever
+         action <select> was last touched under the shared "action"
+         name, which is exactly the same behavior as stock Django admin).
     ====================================================== -->
 
     {% if actions_on_bottom and cl.actions %}
@@ -239,10 +258,12 @@
                     <label for="{{ action_form.action.auto_id }}">{{ action_form.action.label }}</label>
                     {{ action_form.action }}
                 </div>
-                <button type="submit" class="admin-button-primary">Run</button>
+                <button type="submit" class="admin-button-primary" name="index" value="0">Run</button>
             </div>
         </div>
     {% endif %}
+
+    </form>
 
 </div>
 {% endblock content %}
@@ -276,60 +297,81 @@
             });
         }
 
-        // Select all togglers
+        // There is only one <form id="changelist-form"> now (top actions,
+        // the result table, and bottom actions all share it) -- both
+        // "select all" checkboxes and both counters operate on that same
+        // form's checkboxes, which is what makes bulk actions actually work.
         const selectAllToggler = document.getElementById('select-all-toggle');
         const selectAllTogglerBottom = document.getElementById('select-all-toggle-bottom');
         const selectionCount = document.getElementById('selection-count');
         const selectionCountBottom = document.getElementById('selection-count-bottom');
 
-        function updateSelectionCount() {
-            const checkboxes = document.querySelectorAll('#changelist-form input[type="checkbox"]:not(#select-all-toggle)');
-            const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
-            if (selectionCount) selectionCount.textContent = checkedCount + ' selected';
+        function rowCheckboxes() {
+            // Django's admin_list template tag renders each row's
+            // checkbox with class="action-select" and
+            // name="_selected_action" -- scope to that specifically
+            // rather than every checkbox in the form, so filter-panel
+            // or other unrelated checkboxes can never be miscounted.
+            return document.querySelectorAll('#changelist-form input.action-select');
         }
 
-        function updateSelectionCountBottom() {
-            const checkboxes = document.querySelectorAll('#changelist-form-bottom input[type="checkbox"]:not(#select-all-toggle-bottom)');
+        function updateSelectionCount() {
+            const checkboxes = rowCheckboxes();
             const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+            if (selectionCount) selectionCount.textContent = checkedCount + ' selected';
             if (selectionCountBottom) selectionCountBottom.textContent = checkedCount + ' selected';
+            if (selectAllToggler) selectAllToggler.checked = checkboxes.length > 0 && checkedCount === checkboxes.length;
+            if (selectAllTogglerBottom) selectAllTogglerBottom.checked = checkboxes.length > 0 && checkedCount === checkboxes.length;
+        }
+
+        function toggleAll(checked) {
+            rowCheckboxes().forEach(function(cb) { cb.checked = checked; });
+            updateSelectionCount();
         }
 
         if (selectAllToggler) {
-            selectAllToggler.addEventListener('change', function() {
-                const checkboxes = document.querySelectorAll('#changelist-form input[type="checkbox"]');
-                checkboxes.forEach(function(cb) {
-                    if (cb.id !== 'select-all-toggle') {
-                        cb.checked = selectAllToggler.checked;
-                    }
-                });
-                updateSelectionCount();
-            });
+            selectAllToggler.addEventListener('change', function() { toggleAll(selectAllToggler.checked); });
         }
         if (selectAllTogglerBottom) {
-            selectAllTogglerBottom.addEventListener('change', function() {
-                const checkboxes = document.querySelectorAll('#changelist-form-bottom input[type="checkbox"]');
-                checkboxes.forEach(function(cb) {
-                    if (cb.id !== 'select-all-toggle-bottom') {
-                        cb.checked = selectAllTogglerBottom.checked;
-                    }
-                });
-                updateSelectionCountBottom();
-            });
+            selectAllTogglerBottom.addEventListener('change', function() { toggleAll(selectAllTogglerBottom.checked); });
         }
 
-        // Update counts when individual checkboxes change
+        // Update counts whenever an individual row checkbox changes.
         document.addEventListener('change', function(e) {
-            if (e.target.closest('#changelist-form') && e.target.type === 'checkbox' && e.target.id !== 'select-all-toggle') {
+            if (e.target.matches && e.target.matches('#changelist-form input.action-select')) {
                 updateSelectionCount();
-            }
-            if (e.target.closest('#changelist-form-bottom') && e.target.type === 'checkbox' && e.target.id !== 'select-all-toggle-bottom') {
-                updateSelectionCountBottom();
             }
         });
 
+        // Require an action to be chosen and at least one row selected
+        // before letting the form submit -- mirrors Django's own default
+        // admin behavior (it shows a confirm() rather than silently
+        // submitting an empty/no-op bulk action).
+        const changelistForm = document.getElementById('changelist-form');
+        if (changelistForm) {
+            changelistForm.addEventListener('submit', function(e) {
+                const actionSelects = changelistForm.querySelectorAll('select[name="action"]');
+                const chosenAction = Array.from(actionSelects).map(function(s) { return s.value; }).find(function(v) { return v; });
+                const checkedCount = Array.from(rowCheckboxes()).filter(function(cb) { return cb.checked; }).length;
+
+                if (!chosenAction) {
+                    e.preventDefault();
+                    alert('Please choose an action from the dropdown first.');
+                    return;
+                }
+                if (checkedCount === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one item.');
+                    return;
+                }
+                if (chosenAction.toLowerCase().includes('delete') && !confirm('Delete ' + checkedCount + ' selected item(s)? This action cannot be undone.')) {
+                    e.preventDefault();
+                }
+            });
+        }
+
         // Initialize counts
         updateSelectionCount();
-        updateSelectionCountBottom();
     });
 </script>
 {% endblock extra_script %}
